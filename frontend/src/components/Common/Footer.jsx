@@ -94,15 +94,15 @@ const Footer = () => {
             <ul className="space-y-3">
               <li className="flex items-start space-x-3 text-gray-400 text-sm">
                 <MapPin className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" />
-                <span>123 Cinema Street, Movie City, MC 12345</span>
+                <span>Ahmedabad</span>
               </li>
               <li className="flex items-center space-x-3 text-gray-400 text-sm">
                 <Phone className="w-5 h-5 text-primary flex-shrink-0" />
-                <span>+1 (555) 123-4567</span>
+                <span>+91 9274350698</span>
               </li>
               <li className="flex items-center space-x-3 text-gray-400 text-sm">
                 <Mail className="w-5 h-5 text-primary flex-shrink-0" />
-                <span>support@cinebook.com</span>
+                <span>support@showtimex.com</span>
               </li>
             </ul>
           </div>
@@ -111,7 +111,7 @@ const Footer = () => {
         {/* Bottom Bar */}
         <div className="border-t border-gray-800 mt-8 pt-8 text-center">
           <p className="text-gray-400 text-sm">
-            © {currentYear} CineBook. All rights reserved. Made with ❤️ for movie lovers.
+            © {currentYear} ShowTimeX Final year project .
           </p>
         </div>
       </div>

@@ -1,12 +1,13 @@
 import React, { useRef } from 'react';
 import { motion } from 'framer-motion';
-import { Download, CheckCircle, Calendar, Clock, MapPin, Ticket, Home } from 'lucide-react';
+import { Download, CheckCircle, Calendar, Clock, MapPin, Home, Clapperboard } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { formatDate, formatTime } from '../../utils/formatDate';
 import Button from '../UI/Button';
 import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
 import toast from 'react-hot-toast';
+import logo from './../../assets/images/Showtime_logo.png'
 
 const Receipt = ({ booking }) => {
   const navigate = useNavigate();
@@ -93,7 +94,8 @@ const Receipt = ({ booking }) => {
               <p className="text-sm opacity-90 mb-1">Booking ID</p>
               <p className="text-2xl font-bold tracking-wider">{booking.bookingId || 'BK' + Date.now()}</p>
             </div>
-            <Ticket className="w-12 h-12 opacity-80" />
+           <img src={logo} alt="" className='h-12 bg-transparent' />
+            
           </div>
         </div>
 

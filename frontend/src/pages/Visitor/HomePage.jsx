@@ -1,14 +1,19 @@
 import React, { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
-import { Film, TrendingUp, Calendar } from 'lucide-react';
+// Added missing icon imports here
+import { Film, TrendingUp, Calendar, Search, Menu, PlayCircle } from 'lucide-react';
 import MovieGrid from '../../components/Movie/MovieGrid';
 import Loader from '../../components/UI/Loader';
 import { movieService } from '../../services/movieService';
 import toast from 'react-hot-toast';
+import { Link } from 'react-router-dom';
+import AllMovies from './Allmovies';
 
 const HomePage = () => {
   const [nowShowing, setNowShowing] = useState([]);
   const [comingSoon, setComingSoon] = useState([]);
+  const [heroMovie, setHeroMovie] = useState(null); // Added this state
+  const [currentIndex, setCurrentIndex] = useState(0)
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -19,14 +24,18 @@ const HomePage = () => {
     try {
       setLoading(true);
       
-      // Fetch both now showing and coming soon movies
       const [nowShowingRes, comingSoonRes] = await Promise.all([
         movieService.getNowShowing(),
         movieService.getComingSoon(),
       ]);
 
       if (nowShowingRes.success) {
-        setNowShowing(nowShowingRes.movies || []);
+        const movies = nowShowingRes.movies || [];
+        setNowShowing(movies);
+        // Set the first movie from your MongoDB as the hero movie
+        if (movies.length > 0) {
+          setHeroMovie(movies[0]);
+        }
       }
 
       if (comingSoonRes.success) {
@@ -39,48 +48,65 @@ const HomePage = () => {
       setLoading(false);
     }
   };
+  useEffect(() => {
+    if (nowShowing.length === 0) return;
 
+    // Change movie every 5 seconds
+    const interval = setInterval(() => {
+      setCurrentIndex((prevIndex) => {
+        const nextIndex = prevIndex === nowShowing.length - 1 ? 0 : prevIndex + 1;
+        setHeroMovie(nowShowing[nextIndex]);
+        return nextIndex;
+      });
+    }, 10000); 
+
+    return () => clearInterval(interval); // Cleanup timer on unmount
+  }, [nowShowing]);
+
+  // Keep the loader here to ensure data is ready before rendering the hero
   if (loading) {
     return <Loader fullScreen message="Loading movies..." />;
   }
 
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen bg-dark">
       {/* Hero Section */}
-      <motion.section
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        className="relative h-[60vh] md:h-[70vh] bg-gradient-to-b from-dark-lighter to-dark overflow-hidden"
-      >
-        <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?w=1920')] bg-cover bg-center opacity-20"></div>
-        
-        <div className="absolute inset-0 bg-gradient-to-t from-dark via-dark/50 to-transparent"></div>
+      {heroMovie ? (
+        <motion.section
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          className="relative  w-full h-[600px] text-white overflow-hidden bg-cover bg-center "
+          style={{
+            backgroundImage: `linear-gradient(0deg, rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), url(${heroMovie?.backdrop || heroMovie?.poster || 'https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?w=1920'})`,
+          }}
+        >
+          
+          
 
-        <div className="container-custom relative h-full flex items-center">
-          <div className="max-w-2xl">
+          {/* Description Box */}
+          <div className="absolute top-[158px] left-[98px] w-[40%] z-10">
             <motion.div
-              initial={{ y: 50, opacity: 0 }}
-              animate={{ y: 0, opacity: 1 }}
+              initial={{ x: -50, opacity: 0 }}
+              animate={{ x: 0, opacity: 1 }}
               transition={{ delay: 0.2 }}
             >
-              <div className="flex items-center space-x-2 mb-4">
-                <Film className="w-8 h-8 text-primary" />
-                <span className="text-primary font-semibold">Welcome to CineBook</span>
-              </div>
-              
-              <h1 className="text-4xl md:text-6xl font-bold text-white mb-6 leading-tight">
-                Book Your Favorite
-                <span className="text-primary"> Movie Tickets</span>
-                <br />
-                Online
+              <h1 className="text-[48px] font-bold leading-[56px] mb-4">
+                {heroMovie?.title}
               </h1>
-              
-              <p className="text-lg text-gray-300 mb-8">
-                Experience the magic of cinema with the best seats at unbeatable prices. 
-                Browse movies, select showtimes, and book instantly.
-              </p>
 
-              <div className="flex flex-wrap gap-4">
+              <div className="flex items-center gap-8 mb-4 text-xs">
+                <div className="flex items-center gap-2">
+                  <span className="bg-yellow-500 text-black px-1 font-bold rounded-sm">IMDb</span>
+                  <span>{heroMovie?.rating ? `${heroMovie.rating} / 10` : "8.6 / 10"}</span>
+                </div>
+                
+              </div>
+
+              <p className="text-[14px] font-medium leading-[18px] w-full text-gray-200 mb-6">
+                {heroMovie?.description}
+              </p>
+               <div className="flex flex-wrap gap-4">
+               
                 <motion.a
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
@@ -88,7 +114,9 @@ const HomePage = () => {
                   className="btn-primary inline-flex items-center space-x-2"
                 >
                   <TrendingUp className="w-5 h-5" />
+                  
                   <span>Browse Movies</span>
+                  
                 </motion.a>
                 
                 <motion.a
@@ -101,10 +129,29 @@ const HomePage = () => {
                   <span>Coming Soon</span>
                 </motion.a>
               </div>
+
+              
             </motion.div>
           </div>
+
+          {/* Pagination */}
+          <div className="absolute right-[36px] top-[245px] flex flex-col items-end gap-[10px] z-10 text-[12px] font-bold text-[#9CA3AF]">
+            {nowShowing.slice(0, 5).map((_, idx) => (
+              <div key={idx} className="flex items-center gap-2">
+                {currentIndex === idx && <div className="w-5 h-[3px] bg-white rounded-md"></div>}
+                <span className={currentIndex === idx ? "text-white text-[16px]" : ""}>
+                  {idx + 1}
+                </span>
+              </div>
+            ))}
+          </div>
+          
+        </motion.section>
+      ) : (
+        <div className="h-[600px] flex items-center justify-center bg-dark text-white">
+           No Movies Available to Feature
         </div>
-      </motion.section>
+      )}
 
       {/* Now Showing Section */}
       <section id="now-showing" className="py-16 bg-dark">
