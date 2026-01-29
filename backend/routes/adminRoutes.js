@@ -1,11 +1,10 @@
 const express = require('express');
 const router = express.Router();
-const express = require('express');
 const { seedMovies } = require('../controllers/seedMovieController');
 
 
 
-router.post('/seed-movies', seedMovies);
+
 
 module.exports = router;
 

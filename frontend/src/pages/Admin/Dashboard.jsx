@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import React, { useEffect, useState, useRef } from 'react';
+
 
 
 import { 
@@ -29,24 +29,7 @@ const Dashboard = () => {
     fetchDashboardData();
   }, []);
 
-  useEffect(() => {
-  const alreadySeeded = localStorage.getItem('dbSeeded');
 
-  if (alreadySeeded) return; // 🚫 prevent re-run
-
-  const seedDatabase = async () => {
-    try {
-      await apiRequest.post('/api/admin/seed-movies');
-      localStorage.setItem('dbSeeded', 'true');
-      toast.success('Movies & ShowTime theaters seeded');
-    } catch (error) {
-      console.error('Seeding error:', error);
-      toast.error('Failed to seed database');
-    }
-  };
-
-  seedDatabase();
-}, []);
 
 
   const fetchDashboardData = async () => {
