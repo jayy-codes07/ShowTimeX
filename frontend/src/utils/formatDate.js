@@ -30,12 +30,18 @@ export const formatDateFull = (date) => {
 export const formatTime = (time) => {
   if (!time) return '';
   
-  const [hours, minutes] = time.split(':');
+  // Remove any existing AM/PM from the string before processing
+  const cleanTime = time.replace(/\s?[AP]M/i, '');
+  const [hours, minutes] = cleanTime.split(':');
+  
   const h = parseInt(hours);
   const ampm = h >= 12 ? 'PM' : 'AM';
   const displayHours = h % 12 || 12;
   
-  return `${displayHours}:${minutes} ${ampm}`;
+  // Extract only the first two digits of minutes to avoid "45 AM"
+  const cleanMinutes = minutes.substring(0, 2);
+  
+  return `${displayHours}:${cleanMinutes} ${ampm}`;
 };
 
 /**

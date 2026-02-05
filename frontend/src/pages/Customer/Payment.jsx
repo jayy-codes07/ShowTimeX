@@ -10,6 +10,8 @@ import { formatDate, formatTime } from '../../utils/formatDate';
 import { apiRequest } from '../../services/api';
 import { API_ENDPOINTS, RAZORPAY_KEY } from '../../utils/constants';
 import toast from 'react-hot-toast';
+import html2canvas from 'html2canvas';
+import jsPDF from 'jspdf';
 
 const Payment = () => {
   const navigate = useNavigate();

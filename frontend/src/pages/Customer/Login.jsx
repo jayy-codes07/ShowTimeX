@@ -6,6 +6,7 @@ import Input from '../../components/UI/Input';
 import Button from '../../components/UI/Button';
 import { useAuth } from '../../context/AuthContext';
 import { validateForm } from '../../utils/validators';
+import toast from 'react-hot-toast';
 
 const Login = () => {
   const navigate = useNavigate();
@@ -28,9 +29,9 @@ const Login = () => {
   };
 
   const handleSubmit = async (e) => {
-    e.preventDefault();
+    e.preventDefault(); // STOPS RELOAD
 
-    // Validate form
+    // 1. Validation Logic
     const validationRules = {
       email: { required: true, type: 'email', label: 'Email' },
       password: { required: true, label: 'Password' },
@@ -43,17 +44,23 @@ const Login = () => {
     }
 
     setLoading(true);
+
+    // 2. Call login from Context
+    // Note: The toast will show up automatically because it's inside AuthContext.js
     const result = await login(formData.email, formData.password);
+
     setLoading(false);
 
-    if (result.success) {
-      // Redirect based on user role
+    // 3. Handle Navigation only on success
+    if (result && result.success) {
       if (result.user.role === 'admin') {
         navigate('/admin/dashboard');
       } else {
         navigate('/');
       }
-    }
+    } 
+    // If result.success is false, we do NOTHING here. 
+    // The AuthContext has already shown the error toast.
   };
 
   return (
