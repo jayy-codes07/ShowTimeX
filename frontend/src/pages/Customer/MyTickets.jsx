@@ -1,17 +1,25 @@
-import React, { useEffect, useState } from 'react';
-import { motion } from 'framer-motion';
-import { Ticket, Calendar, Clock, MapPin, Download, XCircle, CheckCircle } from 'lucide-react';
-import Loader from '../../components/UI/Loader';
-import Button from '../../components/UI/Button';
-import { apiRequest } from '../../services/api';
-import { API_ENDPOINTS } from '../../utils/constants';
-import { formatDate, formatTime } from '../../utils/formatDate';
-import toast from 'react-hot-toast';
+import React, { useEffect, useState } from "react";
+import { motion } from "framer-motion";
+import {
+  Ticket,
+  Calendar,
+  Clock,
+  MapPin,
+  Download,
+  XCircle,
+  CheckCircle,
+} from "lucide-react";
+import Loader from "../../components/UI/Loader";
+import Button from "../../components/UI/Button";
+import { apiRequest } from "../../services/api";
+import { API_ENDPOINTS } from "../../utils/constants";
+import { formatDate, formatTime } from "../../utils/formatDate";
+import toast from "react-hot-toast";
 
 const MyTickets = () => {
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [filter, setFilter] = useState('all'); // all, upcoming, past, cancelled
+  const [filter, setFilter] = useState("all"); // all, upcoming, past, cancelled
 
   useEffect(() => {
     fetchBookings();
@@ -21,52 +29,56 @@ const MyTickets = () => {
     try {
       setLoading(true);
       const response = await apiRequest.get(API_ENDPOINTS.USER_BOOKINGS);
-      
+
       if (response.success) {
         setBookings(response.bookings || []);
       }
     } catch (error) {
-      console.error('Error fetching bookings:', error);
-      toast.error('Failed to load bookings');
+      console.error("Error fetching bookings:", error);
+      toast.error("Failed to load bookings");
     } finally {
       setLoading(false);
     }
   };
 
   const handleCancelBooking = async (bookingId) => {
-    if (!window.confirm('Are you sure you want to cancel this booking?')) {
+    if (!window.confirm("Are you sure you want to cancel this booking?")) {
       return;
     }
 
     try {
-      const response = await apiRequest.delete(API_ENDPOINTS.CANCEL_BOOKING(bookingId));
-      
+      const response = await apiRequest.delete(
+        API_ENDPOINTS.CANCEL_BOOKING(bookingId),
+      );
+
       if (response.success) {
-        toast.success('Booking cancelled successfully');
+        toast.success("Booking cancelled successfully");
         fetchBookings();
       }
     } catch (error) {
-      console.error('Error cancelling booking:', error);
-      toast.error(error.response?.data?.message || 'Failed to cancel booking');
+      console.error("Error cancelling booking:", error);
+      toast.error(error.response?.data?.message || "Failed to cancel booking");
     }
   };
 
   const handleDownloadTicket = (booking) => {
     // Implement ticket download
-    toast.success('Ticket download started');
+    toast.success("Ticket download started");
     window.print();
   };
 
   const getFilteredBookings = () => {
     const now = new Date();
-    
+
     switch (filter) {
-      case 'upcoming':
-        return bookings.filter(b => new Date(b.show?.date) >= now && b.status !== 'cancelled');
-      case 'past':
-        return bookings.filter(b => new Date(b.show?.date) < now);
-      case 'cancelled':
-        return bookings.filter(b => b.status === 'cancelled');
+      case "upcoming":
+        return bookings.filter(
+          (b) => new Date(b.show?.date) >= now && b.status !== "cancelled",
+        );
+      case "past":
+        return bookings.filter((b) => new Date(b.show?.date) < now);
+      case "cancelled":
+        return bookings.filter((b) => b.status === "cancelled");
       default:
         return bookings;
     }
@@ -74,16 +86,22 @@ const MyTickets = () => {
 
   const getStatusBadge = (status) => {
     const statusConfig = {
-      confirmed: { color: 'bg-green-500', icon: CheckCircle, text: 'Confirmed' },
-      cancelled: { color: 'bg-red-500', icon: XCircle, text: 'Cancelled' },
-      pending: { color: 'bg-yellow-500', icon: Clock, text: 'Pending' },
+      confirmed: {
+        color: "bg-green-500",
+        icon: CheckCircle,
+        text: "Confirmed",
+      },
+      cancelled: { color: "bg-red-500", icon: XCircle, text: "Cancelled" },
+      pending: { color: "bg-yellow-500", icon: Clock, text: "Pending" },
     };
 
     const config = statusConfig[status] || statusConfig.confirmed;
     const Icon = config.icon;
 
     return (
-      <span className={`inline-flex items-center space-x-1 px-3 py-1 rounded-full text-white text-sm ${config.color}`}>
+      <span
+        className={`inline-flex items-center space-x-1 px-3 py-1 rounded-full text-white text-sm ${config.color}`}
+      >
         <Icon className="w-4 h-4" />
         <span>{config.text}</span>
       </span>
@@ -107,8 +125,12 @@ const MyTickets = () => {
         >
           <div className="flex items-center justify-between mb-6">
             <div>
-              <h1 className="text-3xl md:text-4xl font-bold text-white mb-2">My Tickets</h1>
-              <p className="text-gray-400">View and manage your movie bookings</p>
+              <h1 className="text-3xl md:text-4xl font-bold text-white mb-2">
+                My Tickets
+              </h1>
+              <p className="text-gray-400">
+                View and manage your movie bookings
+              </p>
             </div>
             <Ticket className="w-12 h-12 text-primary" />
           </div>
@@ -116,18 +138,18 @@ const MyTickets = () => {
           {/* Filter Tabs */}
           <div className="flex space-x-2 overflow-x-auto pb-2">
             {[
-              { id: 'all', label: 'All Bookings' },
-              { id: 'upcoming', label: 'Upcoming' },
-              { id: 'past', label: 'Past' },
-              { id: 'cancelled', label: 'Cancelled' },
+              { id: "all", label: "All Bookings" },
+              { id: "upcoming", label: "Upcoming" },
+              { id: "past", label: "Past" },
+              { id: "cancelled", label: "Cancelled" },
             ].map((tab) => (
               <button
                 key={tab.id}
                 onClick={() => setFilter(tab.id)}
                 className={`px-6 py-2 rounded-lg font-semibold transition whitespace-nowrap ${
                   filter === tab.id
-                    ? 'bg-primary text-white'
-                    : 'bg-dark-card text-gray-400 hover:bg-dark-lighter'
+                    ? "bg-primary text-white"
+                    : "bg-dark-card text-gray-400 hover:bg-dark-lighter"
                 }`}
               >
                 {tab.label}
@@ -177,7 +199,9 @@ const MyTickets = () => {
                           <Calendar className="w-5 h-5 text-primary" />
                           <div>
                             <p className="text-xs text-gray-500">Date</p>
-                            <p className="text-white">{formatDate(booking.show?.date)}</p>
+                            <p className="text-white">
+                              {formatDate(booking.show?.date)}
+                            </p>
                           </div>
                         </div>
 
@@ -185,7 +209,9 @@ const MyTickets = () => {
                           <Clock className="w-5 h-5 text-primary" />
                           <div>
                             <p className="text-xs text-gray-500">Time</p>
-                            <p className="text-white">{formatTime(booking.show?.time)}</p>
+                            <p className="text-white">
+                              {formatTime(booking.show?.time)}
+                            </p>
                           </div>
                         </div>
 
@@ -193,8 +219,12 @@ const MyTickets = () => {
                           <MapPin className="w-5 h-5 text-primary" />
                           <div>
                             <p className="text-xs text-gray-500">Theater</p>
-                            <p className="text-white">{booking.show?.theater}</p>
-                            <p className="text-sm text-gray-400">{booking.show?.location}</p>
+                            <p className="text-white">
+                              {booking.show?.theater}
+                            </p>
+                            <p className="text-sm text-gray-400">
+                              {booking.show?.location}
+                            </p>
                           </div>
                         </div>
                       </div>
@@ -208,7 +238,8 @@ const MyTickets = () => {
                               key={idx}
                               className="bg-primary px-3 py-1 rounded text-white font-semibold text-sm"
                             >
-                              {seat.row}{seat.number}
+                              {seat.row}
+                              {seat.number}
                             </span>
                           ))}
                         </div>
@@ -217,7 +248,9 @@ const MyTickets = () => {
                       {/* Price */}
                       <div className="flex items-center justify-between pt-4 border-t border-gray-700">
                         <div>
-                          <p className="text-gray-500 text-sm">Total Amount Paid</p>
+                          <p className="text-gray-500 text-sm">
+                            Total Amount Paid
+                          </p>
                           <p className="text-2xl font-bold text-primary">
                             ₹{booking.totalAmount?.toFixed(2)}
                           </p>
@@ -225,8 +258,31 @@ const MyTickets = () => {
 
                         {/* Actions */}
                         <div className="flex gap-3">
-                          {booking.status !== 'cancelled' && new Date(booking.show?.date) >= new Date() && (
-                            <>
+                          {booking.status !== "cancelled" &&
+                            new Date(booking.show?.date) >= new Date() && (
+                              <>
+                                <Button
+                                  variant="secondary"
+                                  size="sm"
+                                  onClick={() => handleDownloadTicket(booking)}
+                                  icon={<Download className="w-4 h-4" />}
+                                >
+                                  Download
+                                </Button>
+                                <Button
+                                  variant="danger"
+                                  size="sm"
+                                  onClick={() =>
+                                    handleCancelBooking(booking._id)
+                                  }
+                                  icon={<XCircle className="w-4 h-4" />}
+                                >
+                                  Cancel
+                                </Button>
+                              </>
+                            )}
+                          {booking.status !== "cancelled" &&
+                            new Date(booking.show?.date) < new Date() && (
                               <Button
                                 variant="secondary"
                                 size="sm"
@@ -235,26 +291,7 @@ const MyTickets = () => {
                               >
                                 Download
                               </Button>
-                              <Button
-                                variant="danger"
-                                size="sm"
-                                onClick={() => handleCancelBooking(booking._id)}
-                                icon={<XCircle className="w-4 h-4" />}
-                              >
-                                Cancel
-                              </Button>
-                            </>
-                          )}
-                          {booking.status !== 'cancelled' && new Date(booking.show?.date) < new Date() && (
-                            <Button
-                              variant="secondary"
-                              size="sm"
-                              onClick={() => handleDownloadTicket(booking)}
-                              icon={<Download className="w-4 h-4" />}
-                            >
-                              Download
-                            </Button>
-                          )}
+                            )}
                         </div>
                       </div>
                     </div>
@@ -262,26 +299,47 @@ const MyTickets = () => {
                 </div>
 
                 {/* QR Code Section */}
-                {booking.status === 'confirmed' && new Date(booking.show?.date) >= new Date() && (
-                  <div className="bg-dark-lighter p-4 border-t border-gray-700">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center space-x-3">
-                        <div className="w-16 h-16 bg-white rounded flex items-center justify-center">
-                        <img 
-                            src={`https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${booking.bookingId}`} 
-                            alt="Booking QR" 
-                            className="w-13 h-13"
-                            crossOrigin="anonymous" 
-                        />
+                {/* QR Code Section */}
+                {booking.status === "confirmed" &&
+                  new Date(booking.show?.date) >= new Date() && (
+                    <div className="bg-gradient-to-r from-dark-lighter to-dark-card p-6 border-t border-gray-700">
+                      <div className="flex flex-col md:flex-row items-center justify-between gap-6">
+                        {/* QR + Label */}
+                        <div className="flex items-center gap-5">
+                          <div className="bg-white p-3 rounded-xl shadow-lg">
+                            <img
+                              src={`https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${booking.bookingId}`}
+                              alt="Booking QR"
+                              className="w-32 h-32"
+                              crossOrigin="anonymous"
+                            />
+                          </div>
+
+                          <div>
+                            <p className="text-lg font-semibold text-white">
+                              Show this at the entrance
+                            </p>
+                            <p className="text-gray-400 text-sm max-w-xs">
+                              Scan this QR code to verify your ticket and allow
+                              entry
+                            </p>
+                            <p className="text-xs text-gray-500 mt-1">
+                              Valid only for selected date & time
+                            </p>
+
+                            <p className="mt-2 text-xs text-primary">
+                              Booking ID: {booking.bookingId}
+                            </p>
+                          </div>
                         </div>
-                        <div>
-                          <p className="text-white font-semibold">Show this at the entrance</p>
-                          <p className="text-gray-400 text-sm">Scan QR code for entry</p>
+
+                        {/* Status Badge */}
+                        <div className="px-4 py-2 rounded-lg bg-primary/10 text-primary text-sm font-semibold">
+                          Entry Pass
                         </div>
                       </div>
                     </div>
-                  </div>
-                )}
+                  )}
               </motion.div>
             ))}
           </div>
@@ -292,13 +350,18 @@ const MyTickets = () => {
             className="text-center py-20"
           >
             <Ticket className="w-20 h-20 text-gray-600 mx-auto mb-4" />
-            <h3 className="text-2xl font-bold text-white mb-2">No bookings found</h3>
+            <h3 className="text-2xl font-bold text-white mb-2">
+              No bookings found
+            </h3>
             <p className="text-gray-400 mb-6">
-              {filter === 'all'
+              {filter === "all"
                 ? "You haven't made any bookings yet"
                 : `No ${filter} bookings found`}
             </p>
-            <Button variant="primary" onClick={() => (window.location.href = '/')}>
+            <Button
+              variant="primary"
+              onClick={() => (window.location.href = "/")}
+            >
               Browse Movies
             </Button>
           </motion.div>

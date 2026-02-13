@@ -3,6 +3,8 @@ import { Routes, Route, Navigate } from "react-router-dom";
 import { Toaster } from "react-hot-toast";
 import { AuthProvider } from "./context/AuthContext";
 import { BookingProvider } from "./context/BookingContext";
+import ReceiptPage from "./pages/Customer/ReceiptPage";
+
 
 // Layouts
 import Navbar from "./components/Common/Navbar";
@@ -55,6 +57,16 @@ function App() {
                   </ProtectedRoute>
                 }
               />
+
+              <Route
+                path="/receipt/:bookingId"
+                element={
+                  <ProtectedRoute allowedRoles={["customer", "admin"]}>
+                    <ReceiptPage />
+                  </ProtectedRoute>
+                }
+              />
+
               <Route
                 path="/my-tickets"
                 element={

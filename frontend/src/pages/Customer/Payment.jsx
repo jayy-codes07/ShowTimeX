@@ -9,7 +9,7 @@ import { useBooking } from "../../context/BookingContext";
 import { formatDate, formatTime } from "../../utils/formatDate";
 import { apiRequest } from "../../services/api";
 import { API_ENDPOINTS, RAZORPAY_KEY } from "../../utils/constants";
-import { API_BASE_URL } from '../../utils/constants';
+import { API_BASE_URL } from "../../utils/constants";
 import toast from "react-hot-toast";
 import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
@@ -34,8 +34,6 @@ const Payment = () => {
     try {
       setLoading(true);
 
-      console.log("CREATE_BOOKING:", API_ENDPOINTS.CREATE_BOOKING);
-      console.log("API_BASE_URL:", API_BASE_URL);
 
       // 1️⃣ Create booking (PENDING)
       const bookingRes = await apiRequest.post(API_ENDPOINTS.CREATE_BOOKING, {
@@ -76,10 +74,11 @@ const Payment = () => {
           );
 
           if (verifyRes.success) {
-            setConfirmedBooking(verifyRes.booking);
-            setBookingConfirmed(true);
             clearBooking();
-            toast.success("Payment successful 🎉");
+            toast.success("Payment successful");
+
+            // ✅ use booking returned by VERIFY API
+            navigate(`/receipt/${verifyRes.booking._id}`, { replace: true });
           }
         },
 
@@ -102,16 +101,6 @@ const Payment = () => {
       setLoading(false);
     }
   };
-
-  if (bookingConfirmed && confirmedBooking) {
-    return (
-      <div className="min-h-screen bg-dark py-12">
-        <div className="container-custom">
-          <Receipt booking={confirmedBooking} />
-        </div>
-      </div>
-    );
-  }
 
   if (!bookingData.movie || !bookingData.show) {
     return null;

@@ -1,13 +1,18 @@
-import React, { useEffect, useState } from 'react';
-import { motion } from 'framer-motion';
-import { Plus, Edit, Trash2, Calendar, Search } from 'lucide-react';
-import Button from '../../components/UI/Button';
-import Input from '../../components/UI/Input';
-import Loader from '../../components/UI/Loader';
-import { apiRequest } from '../../services/api';
-import { API_ENDPOINTS, FORMATS, TIME_SLOTS, SEAT_CONFIG } from '../../utils/constants';
-import { formatDate, formatTime } from '../../utils/formatDate';
-import toast from 'react-hot-toast';
+import React, { useEffect, useState } from "react";
+import { motion } from "framer-motion";
+import { Plus, Edit, Trash2, Calendar, Search } from "lucide-react";
+import Button from "../../components/UI/Button";
+import Input from "../../components/UI/Input";
+import Loader from "../../components/UI/Loader";
+import { apiRequest } from "../../services/api";
+import {
+  API_ENDPOINTS,
+  FORMATS,
+  TIME_SLOTS,
+  SEAT_CONFIG,
+} from "../../utils/constants";
+import { formatDate, formatTime } from "../../utils/formatDate";
+import toast from "react-hot-toast";
 
 const ManageShows = () => {
   const [shows, setShows] = useState([]);
@@ -16,13 +21,14 @@ const ManageShows = () => {
   const [showModal, setShowModal] = useState(false);
   const [editingShow, setEditingShow] = useState(null);
   const [formData, setFormData] = useState({
-    movieId: '',
-    date: '',
-    time: '',
-    theater: '',
-    location: '',
-    format: '2D',
-    price: '',
+    movieId: "",
+    startDate: "",
+    endDate: "",
+    timeSlots: [],
+    theater: "",
+    location: "",
+    format: "2D",
+    price: "",
     totalSeats: SEAT_CONFIG.ROWS.length * SEAT_CONFIG.SEATS_PER_ROW,
   });
   const [errors, setErrors] = useState({});
@@ -47,8 +53,8 @@ const ManageShows = () => {
         setMovies(moviesRes.movies || []);
       }
     } catch (error) {
-      console.error('Error fetching data:', error);
-      toast.error('Failed to load shows');
+      console.error("Error fetching data:", error);
+      toast.error("Failed to load shows");
     } finally {
       setLoading(false);
     }
@@ -58,7 +64,7 @@ const ManageShows = () => {
     const { name, value } = e.target;
     setFormData({ ...formData, [name]: value });
     if (errors[name]) {
-      setErrors({ ...errors, [name]: '' });
+      setErrors({ ...errors, [name]: "" });
     }
   };
 
@@ -67,11 +73,13 @@ const ManageShows = () => {
 
     // Validation
     const newErrors = {};
-    if (!formData.movieId) newErrors.movieId = 'Movie is required';
-    if (!formData.date) newErrors.date = 'Date is required';
-    if (!formData.time) newErrors.time = 'Time is required';
-    if (!formData.theater.trim()) newErrors.theater = 'Theater is required';
-    if (!formData.price) newErrors.price = 'Price is required';
+    if (!formData.movieId) newErrors.movieId = "Movie is required";
+    if (!formData.startDate) newErrors.startDate = "Start date required";
+    if (!formData.endDate) newErrors.endDate = "End date required";
+    if (formData.timeSlots.length === 0)
+      newErrors.timeSlots = "Select at least one time slot";
+    if (!formData.theater.trim()) newErrors.theater = "Theater is required";
+    if (!formData.price) newErrors.price = "Price is required";
 
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
@@ -89,20 +97,25 @@ const ManageShows = () => {
 
       let response;
       if (editingShow) {
-        response = await apiRequest.put(API_ENDPOINTS.SHOW_BY_ID(editingShow._id), showData);
+        response = await apiRequest.put(
+          API_ENDPOINTS.SHOW_BY_ID(editingShow._id),
+          showData,
+        );
       } else {
         response = await apiRequest.post(API_ENDPOINTS.SHOWS, showData);
       }
 
       if (response.success) {
-        toast.success(editingShow ? 'Show updated successfully' : 'Show added successfully');
+        toast.success(
+          editingShow ? "Show updated successfully" : "Show added successfully",
+        );
         setShowModal(false);
         resetForm();
         fetchData();
       }
     } catch (error) {
-      console.error('Error saving show:', error);
-      toast.error(error.response?.data?.message || 'Failed to save show');
+      console.error("Error saving show:", error);
+      toast.error(error.response?.data?.message || "Failed to save show");
     } finally {
       setSubmitting(false);
     }
@@ -112,43 +125,48 @@ const ManageShows = () => {
     setEditingShow(show);
     setFormData({
       movieId: show.movie?._id || show.movieId,
-      date: show.date?.split('T')[0] || '',
-      time: show.time || '',
-      theater: show.theater || '',
-      location: show.location || '',
-      format: show.format || '2D',
-      price: show.price?.toString() || '',
-      totalSeats: show.totalSeats || SEAT_CONFIG.ROWS.length * SEAT_CONFIG.SEATS_PER_ROW,
+      startDate: show.startDate?.split("T")[0] || "",
+      endDate: show.endDate?.split("T")[0] || "",
+      timeSlots: show.timeSlots || [],
+      theater: show.theater || "",
+      location: show.location || "",
+      format: show.format || "2D",
+      price: show.price?.toString() || "",
+      totalSeats:
+        show.totalSeats || SEAT_CONFIG.ROWS.length * SEAT_CONFIG.SEATS_PER_ROW,
     });
     setShowModal(true);
   };
 
   const handleDelete = async (showId) => {
-    if (!window.confirm('Are you sure you want to delete this show?')) {
+    if (!window.confirm("Are you sure you want to delete this show?")) {
       return;
     }
 
     try {
-      const response = await apiRequest.delete(API_ENDPOINTS.SHOW_BY_ID(showId));
+      const response = await apiRequest.delete(
+        API_ENDPOINTS.SHOW_BY_ID(showId),
+      );
       if (response.success) {
-        toast.success('Show deleted successfully');
+        toast.success("Show deleted successfully");
         fetchData();
       }
     } catch (error) {
-      console.error('Error deleting show:', error);
-      toast.error('Failed to delete show');
+      console.error("Error deleting show:", error);
+      toast.error("Failed to delete show");
     }
   };
 
   const resetForm = () => {
     setFormData({
-      movieId: '',
-      date: '',
-      time: '',
-      theater: '',
-      location: '',
-      format: '2D',
-      price: '',
+      movieId: "",
+      startDate: "",
+      endDate: "",
+      timeSlots: [],
+      theater: "",
+      location: "",
+      format: "2D",
+      price: "",
       totalSeats: SEAT_CONFIG.ROWS.length * SEAT_CONFIG.SEATS_PER_ROW,
     });
     setEditingShow(null);
@@ -158,6 +176,15 @@ const ManageShows = () => {
   if (loading) {
     return <Loader fullScreen message="Loading shows..." />;
   }
+
+  const toggleTimeSlot = (time) => {
+    setFormData((prev) => ({
+      ...prev,
+      timeSlots: prev.timeSlots.includes(time)
+        ? prev.timeSlots.filter((t) => t !== time)
+        : [...prev.timeSlots, time],
+    }));
+  };
 
   return (
     <div className="min-h-screen bg-dark py-8">
@@ -169,7 +196,9 @@ const ManageShows = () => {
           className="flex flex-col md:flex-row md:items-center md:justify-between mb-8"
         >
           <div>
-            <h1 className="text-3xl md:text-4xl font-bold text-white mb-2">Manage Shows</h1>
+            <h1 className="text-3xl md:text-4xl font-bold text-white mb-2">
+              Manage Shows
+            </h1>
             <p className="text-gray-400">Schedule and manage movie showtimes</p>
           </div>
           <Button
@@ -197,14 +226,30 @@ const ManageShows = () => {
               <table className="w-full">
                 <thead className="bg-dark-lighter">
                   <tr>
-                    <th className="text-left py-4 px-6 text-gray-400 font-semibold">Movie</th>
-                    <th className="text-left py-4 px-6 text-gray-400 font-semibold">Date</th>
-                    <th className="text-left py-4 px-6 text-gray-400 font-semibold">Time</th>
-                    <th className="text-left py-4 px-6 text-gray-400 font-semibold">Theater</th>
-                    <th className="text-left py-4 px-6 text-gray-400 font-semibold">Format</th>
-                    <th className="text-left py-4 px-6 text-gray-400 font-semibold">Price</th>
-                    <th className="text-left py-4 px-6 text-gray-400 font-semibold">Seats</th>
-                    <th className="text-left py-4 px-6 text-gray-400 font-semibold">Actions</th>
+                    <th className="text-left py-4 px-6 text-gray-400 font-semibold">
+                      Movie
+                    </th>
+                    <th className="text-left py-4 px-6 text-gray-400 font-semibold">
+                      Date
+                    </th>
+                    <th className="text-left py-4 px-6 text-gray-400 font-semibold">
+                      Time
+                    </th>
+                    <th className="text-left py-4 px-6 text-gray-400 font-semibold">
+                      Theater
+                    </th>
+                    <th className="text-left py-4 px-6 text-gray-400 font-semibold">
+                      Format
+                    </th>
+                    <th className="text-left py-4 px-6 text-gray-400 font-semibold">
+                      Price
+                    </th>
+                    <th className="text-left py-4 px-6 text-gray-400 font-semibold">
+                      Seats
+                    </th>
+                    <th className="text-left py-4 px-6 text-gray-400 font-semibold">
+                      Actions
+                    </th>
                   </tr>
                 </thead>
                 <tbody>
@@ -217,20 +262,29 @@ const ManageShows = () => {
                       className="border-b border-gray-800 hover:bg-dark-lighter transition"
                     >
                       <td className="py-4 px-6 text-white font-semibold">
-                        {show.movie?.title || 'Unknown'}
+                        {show.movie?.title || "Unknown"}
                       </td>
-                      <td className="py-4 px-6 text-gray-300">{formatDate(show.date)}</td>
-                      <td className="py-4 px-6 text-gray-300">{formatTime(show.time)}</td>
+                      <td className="py-4 px-6 text-gray-300">
+                        {formatDate(show.date)}
+                      </td>
+                      <td className="py-4 px-6 text-gray-300">
+                        {formatTime(show.time)}
+                      </td>
                       <td className="py-4 px-6">
                         <div>
                           <p className="text-white">{show.theater}</p>
-                          <p className="text-gray-500 text-sm">{show.location}</p>
+                          <p className="text-gray-500 text-sm">
+                            {show.location}
+                          </p>
                         </div>
                       </td>
                       <td className="py-4 px-6 text-gray-300">{show.format}</td>
-                      <td className="py-4 px-6 text-primary font-semibold">₹{show.price}</td>
+                      <td className="py-4 px-6 text-primary font-semibold">
+                        ₹{show.price}
+                      </td>
                       <td className="py-4 px-6 text-gray-300">
-                        {show.totalSeats - (show.bookedSeats?.length || 0)}/{show.totalSeats}
+                        {show.totalSeats - (show.bookedSeats?.length || 0)}/
+                        {show.totalSeats}
                       </td>
                       <td className="py-4 px-6">
                         <div className="flex space-x-2">
@@ -270,7 +324,7 @@ const ManageShows = () => {
               className="bg-dark-card rounded-xl p-8 max-w-2xl w-full max-h-[90vh] overflow-y-auto"
             >
               <h2 className="text-2xl font-bold text-white mb-6">
-                {editingShow ? 'Edit Show' : 'Add New Show'}
+                {editingShow ? "Edit Show" : "Add New Show"}
               </h2>
 
               <form onSubmit={handleSubmit} className="space-y-4">
@@ -286,44 +340,66 @@ const ManageShows = () => {
                     required
                   >
                     <option value="">Select Movie</option>
-                    {movies.map(movie => (
+                    {movies.map((movie) => (
                       <option key={movie._id} value={movie._id}>
                         {movie.title}
                       </option>
                     ))}
                   </select>
-                  {errors.movieId && <p className="mt-1 text-sm text-red-500">{errors.movieId}</p>}
+                  {errors.movieId && (
+                    <p className="mt-1 text-sm text-red-500">
+                      {errors.movieId}
+                    </p>
+                  )}
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <Input
-                    label="Date"
-                    name="date"
-                    type="date"
-                    value={formData.date}
-                    onChange={handleInputChange}
-                    error={errors.date}
-                    required
-                  />
-                  <div>
-                    <label className="block text-sm font-medium text-gray-300 mb-2">
-                      Time <span className="text-primary">*</span>
-                    </label>
-                    <select
-                      name="time"
-                      value={formData.time}
+                <div className="">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <Input
+                      label="Start Date"
+                      name="startDate"
+                      type="date"
+                      value={formData.startDate}
                       onChange={handleInputChange}
-                      className="input-field"
                       required
-                    >
-                      <option value="">Select Time</option>
-                      {TIME_SLOTS.map(time => (
-                        <option key={time} value={time}>
-                          {time}
-                        </option>
-                      ))}
-                    </select>
-                    {errors.time && <p className="mt-1 text-sm text-red-500">{errors.time}</p>}
+                    />
+                    <Input
+                      label="End Date"
+                      name="endDate"
+                      type="date"
+                      value={formData.endDate}
+                      onChange={handleInputChange}
+                      required
+                    />
+                  </div>
+
+                  <div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-300 mb-2">
+                        Time Slots
+                      </label>
+
+                      <div className="grid grid-cols-3 gap-2">
+                        {TIME_SLOTS.map((time) => (
+                          <button
+                            key={time}
+                            type="button"
+                            onClick={() => toggleTimeSlot(time)}
+                            className={`px-3 py-2 rounded text-sm ${
+                             (formData.timeSlots || []).includes(time)
+                                ? "bg-primary text-white"
+                                : "bg-dark-lighter text-gray-300"
+                            }`}
+                          >
+                            {time}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    {errors.time && (
+                      <p className="mt-1 text-sm text-red-500">{errors.time}</p>
+                    )}
                   </div>
                 </div>
 
@@ -348,14 +424,16 @@ const ManageShows = () => {
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-300 mb-2">Format</label>
+                    <label className="block text-sm font-medium text-gray-300 mb-2">
+                      Format
+                    </label>
                     <select
                       name="format"
                       value={formData.format}
                       onChange={handleInputChange}
                       className="input-field"
                     >
-                      {FORMATS.map(format => (
+                      {FORMATS.map((format) => (
                         <option key={format} value={format}>
                           {format}
                         </option>
@@ -394,7 +472,7 @@ const ManageShows = () => {
                     Cancel
                   </Button>
                   <Button type="submit" variant="primary" loading={submitting}>
-                    {editingShow ? 'Update Show' : 'Add Show'}
+                    {editingShow ? "Update Show" : "Add Show"}
                   </Button>
                 </div>
               </form>
