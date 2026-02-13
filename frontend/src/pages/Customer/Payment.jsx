@@ -1,17 +1,18 @@
-import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { motion } from 'framer-motion';
-import { ArrowLeft, Film, Calendar, Clock, MapPin } from 'lucide-react';
-import SeatMap from '../../components/Booking/SeatMap';
-import BookingForm from '../../components/Booking/BookingForm';
-import Receipt from '../../components/Booking/Receipt';
-import { useBooking } from '../../context/BookingContext';
-import { formatDate, formatTime } from '../../utils/formatDate';
-import { apiRequest } from '../../services/api';
-import { API_ENDPOINTS, RAZORPAY_KEY } from '../../utils/constants';
-import toast from 'react-hot-toast';
-import html2canvas from 'html2canvas';
-import jsPDF from 'jspdf';
+import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { motion } from "framer-motion";
+import { ArrowLeft, Film, Calendar, Clock, MapPin } from "lucide-react";
+import SeatMap from "../../components/Booking/SeatMap";
+import BookingForm from "../../components/Booking/BookingForm";
+import Receipt from "../../components/Booking/Receipt";
+import { useBooking } from "../../context/BookingContext";
+import { formatDate, formatTime } from "../../utils/formatDate";
+import { apiRequest } from "../../services/api";
+import { API_ENDPOINTS, RAZORPAY_KEY } from "../../utils/constants";
+import { API_BASE_URL } from '../../utils/constants';
+import toast from "react-hot-toast";
+import html2canvas from "html2canvas";
+import jsPDF from "jspdf";
 
 const Payment = () => {
   const navigate = useNavigate();
@@ -24,8 +25,8 @@ const Payment = () => {
   useEffect(() => {
     // Redirect if no booking data
     if (!bookingData.movie || !bookingData.show) {
-      toast.error('Please select a movie and showtime first');
-      navigate('/');
+      toast.error("Please select a movie and showtime first");
+      navigate("/");
     }
   }, [bookingData, navigate]);
 
@@ -33,44 +34,70 @@ const Payment = () => {
     try {
       setLoading(true);
 
-      // Create booking
-      const bookingPayload = {
+      console.log("CREATE_BOOKING:", API_ENDPOINTS.CREATE_BOOKING);
+      console.log("API_BASE_URL:", API_BASE_URL);
+
+      // 1️⃣ Create booking (PENDING)
+      const bookingRes = await apiRequest.post(API_ENDPOINTS.CREATE_BOOKING, {
         movieId: bookingData.movie._id,
         showId: bookingData.show._id,
         seats: bookingData.selectedSeats,
         email: formData.email,
         phone: formData.phone,
+      });
+
+      const booking = bookingRes.booking;
+
+      // 2️⃣ Create Razorpay order
+      const orderRes = await apiRequest.post(
+        API_ENDPOINTS.CREATE_RAZORPAY_ORDER,
+        { bookingId: booking._id },
+      );
+
+      // 3️⃣ Open Razorpay popup
+      const options = {
+        key: RAZORPAY_KEY, // rzp_test_xxx
+        amount: orderRes.amount,
+        currency: orderRes.currency,
+        order_id: orderRes.id,
+        name: "Movie Booking",
+        description: "Ticket Payment",
+
+        handler: async function (response) {
+          // 🔴 THIS IS THE “5️⃣ FRONTEND DATA YOU MUST SEND”
+          const verifyRes = await apiRequest.post(
+            API_ENDPOINTS.VERIFY_PAYMENT,
+            {
+              razorpay_order_id: response.razorpay_order_id,
+              razorpay_payment_id: response.razorpay_payment_id,
+              razorpay_signature: response.razorpay_signature,
+              bookingId: booking._id,
+            },
+          );
+
+          if (verifyRes.success) {
+            setConfirmedBooking(verifyRes.booking);
+            setBookingConfirmed(true);
+            clearBooking();
+            toast.success("Payment successful 🎉");
+          }
+        },
+
+        prefill: {
+          email: formData.email,
+          contact: formData.phone,
+        },
+
+        theme: {
+          color: "#6366f1",
+        },
       };
 
-
-      const response = await apiRequest.post(API_ENDPOINTS.CREATE_BOOKING, bookingPayload);
-
-     if (response.success) {
-        // ---------------------------------------------------------
-        // 👇 CHANGED: Removed Razorpay Popup, added Direct Verification
-        // ---------------------------------------------------------
-        try {
-           const verifyResponse = await apiRequest.post(API_ENDPOINTS.VERIFY_PAYMENT, {
-              orderId: response.orderId,          // Use real Order ID from backend
-              paymentId: `PAY_TEST_${Date.now()}`, // Fake Payment ID
-              signature: "TEST_SIGNATURE_BYPASS",  // Fake Signature
-              bookingId: response.booking._id,    // Real Booking ID
-           });
-
-           if (verifyResponse.success) {
-              setConfirmedBooking(response.booking);
-              setBookingConfirmed(true);
-              toast.success('Test Payment successful! Booking confirmed.');
-           }
-        } catch (error) {
-           toast.error('Payment verification failed');
-        }
-        // ---------------------------------------------------------
-      }
-    } 
-    catch (error) {
-      console.error('Payment error:', error);
-      toast.error(error.response?.data?.message || 'Payment failed');
+      const razorpay = new window.Razorpay(options);
+      razorpay.open();
+    } catch (error) {
+      console.error("Payment error:", error);
+      toast.error("Payment failed");
     } finally {
       setLoading(false);
     }
@@ -135,7 +162,7 @@ const Payment = () => {
                 </div>
                 <div className="flex items-center space-x-2 text-gray-400">
                   <Film className="w-4 h-4 text-primary" />
-                  <span>{bookingData.show.format || '2D'}</span>
+                  <span>{bookingData.show.format || "2D"}</span>
                 </div>
               </div>
             </div>
@@ -145,15 +172,23 @@ const Payment = () => {
         {/* Step Indicator */}
         <div className="flex items-center justify-center mb-8">
           <div className="flex items-center space-x-4">
-            <div className={`flex items-center space-x-2 ${step >= 1 ? 'text-primary' : 'text-gray-500'}`}>
-              <div className={`w-8 h-8 rounded-full flex items-center justify-center ${step >= 1 ? 'bg-primary' : 'bg-gray-700'}`}>
+            <div
+              className={`flex items-center space-x-2 ${step >= 1 ? "text-primary" : "text-gray-500"}`}
+            >
+              <div
+                className={`w-8 h-8 rounded-full flex items-center justify-center ${step >= 1 ? "bg-primary" : "bg-gray-700"}`}
+              >
                 1
               </div>
               <span>Select Seats</span>
             </div>
             <div className="w-12 h-0.5 bg-gray-700"></div>
-            <div className={`flex items-center space-x-2 ${step >= 2 ? 'text-primary' : 'text-gray-500'}`}>
-              <div className={`w-8 h-8 rounded-full flex items-center justify-center ${step >= 2 ? 'bg-primary' : 'bg-gray-700'}`}>
+            <div
+              className={`flex items-center space-x-2 ${step >= 2 ? "text-primary" : "text-gray-500"}`}
+            >
+              <div
+                className={`w-8 h-8 rounded-full flex items-center justify-center ${step >= 2 ? "bg-primary" : "bg-gray-700"}`}
+              >
                 2
               </div>
               <span>Checkout</span>
@@ -169,9 +204,11 @@ const Payment = () => {
                 initial={{ opacity: 0, x: -20 }}
                 animate={{ opacity: 1, x: 0 }}
               >
-                <h2 className="text-2xl font-bold text-white mb-6">Select Your Seats</h2>
+                <h2 className="text-2xl font-bold text-white mb-6">
+                  Select Your Seats
+                </h2>
                 <SeatMap bookedSeats={bookingData.show.bookedSeats || []} />
-                
+
                 {bookingData.selectedSeats.length > 0 && (
                   <div className="mt-6">
                     <button
@@ -201,34 +238,46 @@ const Payment = () => {
               animate={{ opacity: 1, y: 0 }}
               className="bg-dark-card rounded-xl p-6 sticky top-24"
             >
-              <h3 className="text-xl font-bold text-white mb-4">Booking Summary</h3>
-              
+              <h3 className="text-xl font-bold text-white mb-4">
+                Booking Summary
+              </h3>
+
               {bookingData.selectedSeats.length > 0 ? (
                 <>
                   <div className="space-y-3 mb-4">
                     <div className="flex justify-between text-gray-400">
                       <span>Seats:</span>
                       <span className="text-white font-semibold">
-                        {bookingData.selectedSeats.map(s => `${s.row}${s.number}`).join(', ')}
+                        {bookingData.selectedSeats
+                          .map((s) => `${s.row}${s.number}`)
+                          .join(", ")}
                       </span>
                     </div>
                     <div className="flex justify-between text-gray-400">
                       <span>Tickets ({summary.seatCount}):</span>
-                      <span className="text-white">₹{summary.basePrice.toFixed(2)}</span>
+                      <span className="text-white">
+                        ₹{summary.basePrice.toFixed(2)}
+                      </span>
                     </div>
                     <div className="flex justify-between text-gray-400">
                       <span>Convenience Fee:</span>
-                      <span className="text-white">₹{summary.convenienceFee.toFixed(2)}</span>
+                      <span className="text-white">
+                        ₹{summary.convenienceFee.toFixed(2)}
+                      </span>
                     </div>
                     <div className="flex justify-between text-gray-400">
                       <span>GST (18%):</span>
-                      <span className="text-white">₹{summary.tax.toFixed(2)}</span>
+                      <span className="text-white">
+                        ₹{summary.tax.toFixed(2)}
+                      </span>
                     </div>
                   </div>
-                  
+
                   <div className="border-t border-gray-700 pt-3 flex justify-between text-white font-bold text-lg">
                     <span>Total:</span>
-                    <span className="text-primary">₹{summary.total.toFixed(2)}</span>
+                    <span className="text-primary">
+                      ₹{summary.total.toFixed(2)}
+                    </span>
                   </div>
                 </>
               ) : (
@@ -240,9 +289,8 @@ const Payment = () => {
           </div>
         </div>
       </div>
-      
+
       {/* Load Razorpay Script */}
-     
     </div>
   );
 };

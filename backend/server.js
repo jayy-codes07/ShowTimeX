@@ -85,7 +85,7 @@ const PORT = process.env.PORT || 5000;
 
 app.listen(PORT, () => {
   console.log('\n╔════════════════════════════════════════╗');
-  console.log('║   🎬 CINEBOOK API SERVER RUNNING 🎬   ║');
+  console.log('║   🎬 CINEBOOK API SERVER RUNNING 🎬    ║');
   console.log('╚════════════════════════════════════════╝');
   console.log(`🚀 Server: http://localhost:${PORT}`);
   console.log(`📝 Environment: ${process.env.NODE_ENV || 'development'}`);

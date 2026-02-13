@@ -1,12 +1,47 @@
-const Booking = require('../models/Booking');
-const Show = require('../models/Show');
-const Movie = require('../models/Movie');
+const Booking = require("../models/Booking");
+const Show = require("../models/Show");
+const Movie = require("../models/Movie");
+
+
+const Razorpay = require('razorpay');
+
+const razorpay = new Razorpay({
+  key_id: process.env.RAZORPAY_KEY_ID,
+  key_secret: process.env.RAZORPAY_KEY_SECRET,
+});
+
+const createRazorpayOrder = async (req, res) => {
+  try {
+    const { bookingId } = req.body;
+
+    const booking = await Booking.findById(bookingId);
+    if (!booking) {
+      return res.status(404).json({ success: false });
+    }
+
+    const order = await razorpay.orders.create({
+      amount: booking.totalAmount * 100,
+      currency: 'INR',
+      receipt: booking.bookingId,
+    });
+
+    booking.razorpayOrderId = order.id;
+    await booking.save();
+
+    res.json(order);
+  } catch (err) {
+    res.status(500).json({ message: 'Order creation failed' });
+  }
+};
+
 
 // @desc    Create a new booking
 // @route   POST /api/bookings/create
 // @access  Private
 const createBooking = async (req, res) => {
-    console.log("helloooooooooooooooooooooooooooooooo0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000ooooooooooooooooooooooooooooooooooooooooooooooooooooooooo")
+  console.log(
+    "helloooooooooooooooooooooooooooooooo0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000ooooooooooooooooooooooooooooooooooooooooooooooooooooooooo",
+  );
 
   try {
     const { movieId, showId, seats, email, phone } = req.body;
@@ -15,23 +50,23 @@ const createBooking = async (req, res) => {
     if (!movieId || !showId || !seats || !email || !phone) {
       return res.status(400).json({
         success: false,
-        message: 'Please provide all required fields',
+        message: "Please provide all required fields",
       });
     }
 
     if (!Array.isArray(seats) || seats.length === 0) {
       return res.status(400).json({
         success: false,
-        message: 'Please select at least one seat',
+        message: "Please select at least one seat",
       });
     }
 
     // Verify show exists and get details
-    const show = await Show.findById(showId).populate('movie');
+    const show = await Show.findById(showId).populate("movie");
     if (!show) {
       return res.status(404).json({
         success: false,
-        message: 'Show not found',
+        message: "Show not found",
       });
     }
 
@@ -39,7 +74,7 @@ const createBooking = async (req, res) => {
     if (show.isPast()) {
       return res.status(400).json({
         success: false,
-        message: 'Cannot book tickets for past shows',
+        message: "Cannot book tickets for past shows",
       });
     }
 
@@ -67,24 +102,23 @@ const createBooking = async (req, res) => {
     if (show.bookedSeats.length + seats.length > show.totalSeats) {
       return res.status(400).json({
         success: false,
-        message: 'Not enough seats available',
+        message: "Not enough seats available",
       });
     }
-
 
     const bookingId = `CB-${new Date().getFullYear()}-${Math.floor(100000 + Math.random() * 900000)}`;
 
     // Create booking
     const booking = new Booking({
-    bookingId,              // ✅ FIXED
-    user: req.user._id,
-    movie: movieId,
-    show: showId,
-    seats,
-    email,
-    phone,
+      bookingId,
+      user: req.user._id,
+      movie: movieId,
+      show: showId,
+      seats,
+      email,
+      phone,
+      status: "pending", // 🔴 IMPORTANT
     });
-
 
     // Calculate total amount
     booking.calculateTotal(show.price, seats.length);
@@ -92,33 +126,23 @@ const createBooking = async (req, res) => {
     // Save booking
     await booking.save();
 
-    // Book seats in show
-    try {
-      show.bookSeats(seats);
-      await show.save();
-    } catch (error) {
-      // If seat booking fails, delete the booking
-      await Booking.findByIdAndDelete(booking._id);
-      throw error;
-    }
 
     // Populate booking details
     const populatedBooking = await Booking.findById(booking._id)
-      .populate('movie', 'title poster duration')
-      .populate('show', 'date time theater location format price');
+      .populate("movie", "title poster duration")
+      .populate("show", "date time theater location format price");
 
     res.status(201).json({
       success: true,
-      message: 'Booking created successfully. Please complete payment.',
+      message: "Booking created successfully. Please complete payment.",
       booking: populatedBooking,
       orderId: `ORDER_${booking.bookingId}`,
     });
   } catch (error) {
-
-    console.error('Create Booking Error:', error);
+    console.error("Create Booking Error:", error);
     res.status(500).json({
       success: false,
-      message: error.message || 'Server error while creating booking',
+      message: error.message || "Server error while creating booking",
     });
   }
 };
@@ -126,55 +150,49 @@ const createBooking = async (req, res) => {
 // @desc    Verify payment and confirm booking
 // @route   POST /api/payments/verify
 // @access  Private
+const crypto = require('crypto');
+
 const verifyPayment = async (req, res) => {
   try {
-    const { orderId, paymentId, signature, bookingId } = req.body;
+    const {
+      razorpay_order_id,
+      razorpay_payment_id,
+      razorpay_signature,
+      bookingId,
+    } = req.body;
 
-    if (!orderId || !paymentId || !bookingId) {
-      return res.status(400).json({
-        success: false,
-        message: 'Missing payment details',
-      });
-    }
-
-    // Find booking
-    const booking = await Booking.findById(bookingId);
+    const booking = await Booking.findById(bookingId).populate('show');
     if (!booking) {
-      return res.status(404).json({
-        success: false,
-        message: 'Booking not found',
-      });
+      return res.status(404).json({ success: false });
     }
 
-    // Verify booking belongs to user
-    if (booking.user.toString() !== req.user._id.toString()) {
-      return res.status(403).json({
-        success: false,
-        message: 'Unauthorized access to booking',
-      });
+    // 🔐 Verify signature
+    const sign = razorpay_order_id + '|' + razorpay_payment_id;
+
+    const expectedSign = crypto
+      .createHmac('sha256', process.env.RAZORPAY_KEY_SECRET)
+      .update(sign)
+      .digest('hex');
+
+    if (expectedSign !== razorpay_signature) {
+      return res.status(400).json({ success: false, message: 'Invalid signature' });
     }
 
-    // In production, verify payment signature with Razorpay/Stripe
-    // For now, we'll just confirm the booking
-    await booking.confirmBooking(paymentId, orderId);
+    // ✅ NOW book seats
+    booking.show.bookSeats(booking.seats);
+    await booking.show.save();
 
-    const confirmedBooking = await Booking.findById(bookingId)
-      .populate('movie', 'title poster duration')
-      .populate('show', 'date time theater location format price');
+    // ✅ Confirm booking
+    booking.status = 'confirmed';
+    booking.paymentId = razorpay_payment_id;
+    await booking.save();
 
-    res.status(200).json({
-      success: true,
-      message: 'Payment verified and booking confirmed',
-      booking: confirmedBooking,
-    });
+    res.json({ success: true, booking });
   } catch (error) {
-    console.error('Verify Payment Error:', error);
-    res.status(500).json({
-      success: false,
-      message: error.message || 'Payment verification failed',
-    });
+    res.status(500).json({ success: false });
   }
 };
+
 
 // @desc    Get user bookings
 // @route   GET /api/bookings/user
@@ -194,10 +212,10 @@ const getUserBookings = async (req, res) => {
       bookings,
     });
   } catch (error) {
-    console.error('Get User Bookings Error:', error);
+    console.error("Get User Bookings Error:", error);
     res.status(500).json({
       success: false,
-      message: 'Server error while fetching bookings',
+      message: "Server error while fetching bookings",
     });
   }
 };
@@ -208,25 +226,25 @@ const getUserBookings = async (req, res) => {
 const getBookingById = async (req, res) => {
   try {
     const booking = await Booking.findById(req.params.id)
-      .populate('user', 'name email phone')
-      .populate('movie', 'title poster duration genres languages')
-      .populate('show', 'date time theater location format price');
+      .populate("user", "name email phone")
+      .populate("movie", "title poster duration genres languages")
+      .populate("show", "date time theater location format price");
 
     if (!booking) {
       return res.status(404).json({
         success: false,
-        message: 'Booking not found',
+        message: "Booking not found",
       });
     }
 
     // Check if user owns this booking or is admin
     if (
       booking.user._id.toString() !== req.user._id.toString() &&
-      req.user.role !== 'admin'
+      req.user.role !== "admin"
     ) {
       return res.status(403).json({
         success: false,
-        message: 'Unauthorized access to booking',
+        message: "Unauthorized access to booking",
       });
     }
 
@@ -235,10 +253,10 @@ const getBookingById = async (req, res) => {
       booking,
     });
   } catch (error) {
-    console.error('Get Booking By ID Error:', error);
+    console.error("Get Booking By ID Error:", error);
     res.status(500).json({
       success: false,
-      message: 'Server error while fetching booking',
+      message: "Server error while fetching booking",
     });
   }
 };
@@ -248,12 +266,12 @@ const getBookingById = async (req, res) => {
 // @access  Private
 const cancelBooking = async (req, res) => {
   try {
-    const booking = await Booking.findById(req.params.id).populate('show');
+    const booking = await Booking.findById(req.params.id).populate("show");
 
     if (!booking) {
       return res.status(404).json({
         success: false,
-        message: 'Booking not found',
+        message: "Booking not found",
       });
     }
 
@@ -261,15 +279,15 @@ const cancelBooking = async (req, res) => {
     if (booking.user.toString() !== req.user._id.toString()) {
       return res.status(403).json({
         success: false,
-        message: 'Unauthorized to cancel this booking',
+        message: "Unauthorized to cancel this booking",
       });
     }
 
     // Check if already cancelled
-    if (booking.status === 'cancelled') {
+    if (booking.status === "cancelled") {
       return res.status(400).json({
         success: false,
-        message: 'Booking is already cancelled',
+        message: "Booking is already cancelled",
       });
     }
 
@@ -283,21 +301,21 @@ const cancelBooking = async (req, res) => {
         (seat) =>
           !booking.seats.some(
             (bookedSeat) =>
-              bookedSeat.row === seat.row && bookedSeat.number === seat.number
-          )
+              bookedSeat.row === seat.row && bookedSeat.number === seat.number,
+          ),
       );
       await show.save();
     }
 
     res.status(200).json({
       success: true,
-      message: 'Booking cancelled successfully',
+      message: "Booking cancelled successfully",
     });
   } catch (error) {
-    console.error('Cancel Booking Error:', error);
+    console.error("Cancel Booking Error:", error);
     res.status(500).json({
       success: false,
-      message: error.message || 'Server error while cancelling booking',
+      message: error.message || "Server error while cancelling booking",
     });
   }
 };
@@ -313,9 +331,9 @@ const getAllBookings = async (req, res) => {
     if (status) filter.status = status;
 
     let query = Booking.find(filter)
-      .populate('user', 'name email phone')
-      .populate('movie', 'title poster')
-      .populate('show', 'date time theater')
+      .populate("user", "name email phone")
+      .populate("movie", "title poster")
+      .populate("show", "date time theater")
       .sort({ bookingDate: -1 });
 
     if (limit) {
@@ -330,10 +348,10 @@ const getAllBookings = async (req, res) => {
       bookings,
     });
   } catch (error) {
-    console.error('Get All Bookings Error:', error);
+    console.error("Get All Bookings Error:", error);
     res.status(500).json({
       success: false,
-      message: 'Server error while fetching bookings',
+      message: "Server error while fetching bookings",
     });
   }
 };
@@ -343,13 +361,15 @@ const getAllBookings = async (req, res) => {
 // @access  Private/Admin
 const getAdminStats = async (req, res) => {
   try {
-    const totalBookings = await Booking.countDocuments({ status: 'confirmed' });
+    const totalBookings = await Booking.countDocuments({ status: "confirmed" });
     const totalRevenue = await Booking.aggregate([
-      { $match: { status: 'confirmed' } },
-      { $group: { _id: null, total: { $sum: '$totalAmount' } } },
+      { $match: { status: "confirmed" } },
+      { $group: { _id: null, total: { $sum: "$totalAmount" } } },
     ]);
 
-    const totalUsers = await require('../models/User').countDocuments({ role: 'customer' });
+    const totalUsers = await require("../models/User").countDocuments({
+      role: "customer",
+    });
     const totalMovies = await Movie.countDocuments({ isActive: true });
 
     res.status(200).json({
@@ -362,10 +382,10 @@ const getAdminStats = async (req, res) => {
       },
     });
   } catch (error) {
-    console.error('Get Admin Stats Error:', error);
+    console.error("Get Admin Stats Error:", error);
     res.status(500).json({
       success: false,
-      message: 'Server error while fetching statistics',
+      message: "Server error while fetching statistics",
     });
   }
 };
@@ -389,28 +409,28 @@ const getAdminReports = async (req, res) => {
 
     // Top performing movies
     const topMovies = await Booking.aggregate([
-      { $match: { status: 'confirmed', ...dateFilter } },
+      { $match: { status: "confirmed", ...dateFilter } },
       {
         $group: {
-          _id: '$movie',
+          _id: "$movie",
           bookings: { $sum: 1 },
-          tickets: { $sum: { $size: '$seats' } },
-          revenue: { $sum: '$totalAmount' },
+          tickets: { $sum: { $size: "$seats" } },
+          revenue: { $sum: "$totalAmount" },
         },
       },
       { $sort: { revenue: -1 } },
       { $limit: 10 },
       {
         $lookup: {
-          from: 'movies',
-          localField: '_id',
-          foreignField: '_id',
-          as: 'movieDetails',
+          from: "movies",
+          localField: "_id",
+          foreignField: "_id",
+          as: "movieDetails",
         },
       },
       {
         $project: {
-          title: { $arrayElemAt: ['$movieDetails.title', 0] },
+          title: { $arrayElemAt: ["$movieDetails.title", 0] },
           bookings: 1,
           tickets: 1,
           revenue: 1,
@@ -420,18 +440,18 @@ const getAdminReports = async (req, res) => {
 
     // Recent transactions
     const recentTransactions = await Booking.find({ ...dateFilter })
-      .populate('user', 'name')
-      .populate('movie', 'title')
-      .populate('show', 'date time')
+      .populate("user", "name")
+      .populate("movie", "title")
+      .populate("show", "date time")
       .sort({ bookingDate: -1 })
       .limit(20)
-      .select('bookingId user movie seats totalAmount status bookingDate');
+      .select("bookingId user movie seats totalAmount status bookingDate");
 
     const formattedTransactions = recentTransactions.map((t) => ({
       date: t.bookingDate,
       bookingId: t.bookingId,
-      customer: t.user?.name || 'N/A',
-      movie: t.movie?.title || 'N/A',
+      customer: t.user?.name || "N/A",
+      movie: t.movie?.title || "N/A",
       tickets: t.seats?.length || 0,
       amount: t.totalAmount,
       status: t.status,
@@ -439,13 +459,13 @@ const getAdminReports = async (req, res) => {
 
     // Calculate totals
     const totalStats = await Booking.aggregate([
-      { $match: { status: 'confirmed', ...dateFilter } },
+      { $match: { status: "confirmed", ...dateFilter } },
       {
         $group: {
           _id: null,
-          totalRevenue: { $sum: '$totalAmount' },
+          totalRevenue: { $sum: "$totalAmount" },
           totalBookings: { $sum: 1 },
-          totalTickets: { $sum: { $size: '$seats' } },
+          totalTickets: { $sum: { $size: "$seats" } },
         },
       },
     ]);
@@ -460,16 +480,19 @@ const getAdminReports = async (req, res) => {
       success: true,
       report: {
         ...stats,
-        avgBookingValue: stats.totalBookings > 0 ? stats.totalRevenue / stats.totalBookings : 0,
+        avgBookingValue:
+          stats.totalBookings > 0
+            ? stats.totalRevenue / stats.totalBookings
+            : 0,
         topMovies,
         recentTransactions: formattedTransactions,
       },
     });
   } catch (error) {
-    console.error('Get Admin Reports Error:', error);
+    console.error("Get Admin Reports Error:", error);
     res.status(500).json({
       success: false,
-      message: 'Server error while generating reports',
+      message: "Server error while generating reports",
     });
   }
 };
@@ -483,4 +506,5 @@ module.exports = {
   getAllBookings,
   getAdminStats,
   getAdminReports,
+  createRazorpayOrder 
 };

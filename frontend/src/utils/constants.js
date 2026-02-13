@@ -1,5 +1,6 @@
 // API Base URL
-export const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://showtimex.onrender.com/api';
+export const API_BASE_URL = 'http://localhost:5000/api';
+
 
 // API Endpoints
 export const API_ENDPOINTS = {
@@ -31,6 +32,8 @@ export const API_ENDPOINTS = {
   // Payments
   CREATE_PAYMENT: '/payments/create',
   VERIFY_PAYMENT: '/payments/verify',
+  CREATE_RAZORPAY_ORDER: '/payments/create',
+
 
   // Admin
   ADMIN_STATS: '/admin/stats',
@@ -149,7 +152,7 @@ export const STORAGE_KEYS = {
 };
 
 // Razorpay Configuration (for frontend)
-export const RAZORPAY_KEY = import.meta.env.VITE_RAZORPAY_KEY || 'rzp_test_your_key_here';
+export const RAZORPAY_KEY = import.meta.env.VITE_RAZORPAY_KEY || 'rzp_test_SFZi4Ik4uRXKny';
 
 // Image Placeholder
 export const IMAGE_PLACEHOLDER = 'https://via.placeholder.com/300x450?text=Movie+Poster';
