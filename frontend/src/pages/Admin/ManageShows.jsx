@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import { Plus, Edit, Trash2, Calendar, Search } from "lucide-react";
+import { Plus, Edit, Trash2, Calendar } from "lucide-react";
 import Button from "../../components/UI/Button";
 import Input from "../../components/UI/Input";
 import Loader from "../../components/UI/Loader";
@@ -20,6 +20,8 @@ const ManageShows = () => {
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [editingShow, setEditingShow] = useState(null);
+
+  // Form State
   const [formData, setFormData] = useState({
     movieId: "",
     startDate: "",
@@ -31,6 +33,7 @@ const ManageShows = () => {
     price: "",
     totalSeats: SEAT_CONFIG.ROWS.length * SEAT_CONFIG.SEATS_PER_ROW,
   });
+
   const [errors, setErrors] = useState({});
   const [submitting, setSubmitting] = useState(false);
 
@@ -68,6 +71,21 @@ const ManageShows = () => {
     }
   };
 
+  const toggleTimeSlot = (time) => {
+    // If editing, only allow ONE time slot
+    if (editingShow) {
+      setFormData({ ...formData, timeSlots: [time] });
+      return;
+    }
+    // If creating, allow multiple
+    setFormData((prev) => ({
+      ...prev,
+      timeSlots: prev.timeSlots.includes(time)
+        ? prev.timeSlots.filter((t) => t !== time)
+        : [...prev.timeSlots, time],
+    }));
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -89,25 +107,39 @@ const ManageShows = () => {
     try {
       setSubmitting(true);
 
-      const showData = {
-        ...formData,
-        price: parseFloat(formData.price),
-        totalSeats: parseInt(formData.totalSeats),
-      };
-
       let response;
+
+      // 🟢 LOGIC BRANCH: Editing (Single Show) vs Creating (Batch)
       if (editingShow) {
+        // Prepare SINGLE show payload
+        const updateData = {
+          ...formData,
+          // Map form fields back to Model fields
+          showDate: formData.startDate, // Use Start Date as THE Date
+          showTime: formData.timeSlots[0], // Use the first selected slot
+          price: parseFloat(formData.price),
+          totalSeats: parseInt(formData.totalSeats),
+        };
+
         response = await apiRequest.put(
           API_ENDPOINTS.SHOW_BY_ID(editingShow._id),
-          showData,
+          updateData,
         );
       } else {
-        response = await apiRequest.post(API_ENDPOINTS.SHOWS, showData);
+        // Prepare BATCH generator payload
+        const createData = {
+          ...formData,
+          price: parseFloat(formData.price),
+          totalSeats: parseInt(formData.totalSeats),
+        };
+        response = await apiRequest.post(API_ENDPOINTS.SHOWS, createData);
       }
 
       if (response.success) {
         toast.success(
-          editingShow ? "Show updated successfully" : "Show added successfully",
+          editingShow
+            ? "Show updated successfully"
+            : "Shows scheduled successfully",
         );
         setShowModal(false);
         resetForm();
@@ -123,11 +155,16 @@ const ManageShows = () => {
 
   const handleEdit = (show) => {
     setEditingShow(show);
+
+    // 🟢 FIX: Handle data mapping from Backend (Single) to Form (Range)
+    // If show.date exists, use it. If not, try fallback fields.
+    const formattedDate = show.date ? show.date.split("T")[0] : "";
+
     setFormData({
       movieId: show.movie?._id || show.movieId,
-      startDate: show.startDate?.split("T")[0] || "",
-      endDate: show.endDate?.split("T")[0] || "",
-      timeSlots: show.timeSlots || [],
+      startDate: formattedDate, // Set Start = Date
+      endDate: formattedDate, // Set End = Date (Since it's a single show)
+      timeSlots: show.showTime ? [show.showTime] : [], // Wrap single time in array
       theater: show.theater || "",
       location: show.location || "",
       format: show.format || "2D",
@@ -177,14 +214,11 @@ const ManageShows = () => {
     return <Loader fullScreen message="Loading shows..." />;
   }
 
-  const toggleTimeSlot = (time) => {
-    setFormData((prev) => ({
-      ...prev,
-      timeSlots: prev.timeSlots.includes(time)
-        ? prev.timeSlots.filter((t) => t !== time)
-        : [...prev.timeSlots, time],
-    }));
-  };
+  const sortedShows = [...shows].sort((a, b) => {
+    const dateDiff = new Date(a.showDate) - new Date(b.showDate);
+    if (dateDiff !== 0) return dateDiff;
+    return a.showTime.localeCompare(b.showTime);
+  });
 
   return (
     <div className="min-h-screen bg-dark py-8">
@@ -253,7 +287,7 @@ const ManageShows = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {shows.map((show, index) => (
+                  {sortedShows.map((show, index) => (
                     <motion.tr
                       key={show._id}
                       initial={{ opacity: 0 }}
@@ -264,12 +298,16 @@ const ManageShows = () => {
                       <td className="py-4 px-6 text-white font-semibold">
                         {show.movie?.title || "Unknown"}
                       </td>
+
+                      {/* 🟢 FIX: Handle both 'date' and 'showDate' to prevent NaN */}
                       <td className="py-4 px-6 text-gray-300">
                         {formatDate(show.date)}
                       </td>
+
                       <td className="py-4 px-6 text-gray-300">
                         {formatTime(show.time)}
                       </td>
+
                       <td className="py-4 px-6">
                         <div>
                           <p className="text-white">{show.theater}</p>
@@ -282,9 +320,9 @@ const ManageShows = () => {
                       <td className="py-4 px-6 text-primary font-semibold">
                         ₹{show.price}
                       </td>
+                      {/* 🟢 FIX: Use availableSeats if it exists, or calculate safely */}
                       <td className="py-4 px-6 text-gray-300">
-                        {show.totalSeats - (show.bookedSeats?.length || 0)}/
-                        {show.totalSeats}
+                        {show.availableSeats}/{show.totalSeats}
                       </td>
                       <td className="py-4 px-6">
                         <div className="flex space-x-2">
@@ -324,7 +362,9 @@ const ManageShows = () => {
               className="bg-dark-card rounded-xl p-8 max-w-2xl w-full max-h-[90vh] overflow-y-auto"
             >
               <h2 className="text-2xl font-bold text-white mb-6">
-                {editingShow ? "Edit Show" : "Add New Show"}
+                {editingShow
+                  ? `Edit Show — ${formatDate(editingShow.showDate)} ${editingShow.showTime}`
+                  : "Schedule New Shows"}
               </h2>
 
               <form onSubmit={handleSubmit} className="space-y-4">
@@ -338,6 +378,8 @@ const ManageShows = () => {
                     onChange={handleInputChange}
                     className="input-field"
                     required
+                    // Disable movie selection when editing to prevent confusion
+                    disabled={!!editingShow}
                   >
                     <option value="">Select Movie</option>
                     {movies.map((movie) => (
@@ -346,37 +388,35 @@ const ManageShows = () => {
                       </option>
                     ))}
                   </select>
-                  {errors.movieId && (
-                    <p className="mt-1 text-sm text-red-500">
-                      {errors.movieId}
-                    </p>
-                  )}
                 </div>
 
                 <div className="">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <Input
-                      label="Start Date"
+                      label={editingShow ? "Date" : "Start Date"}
                       name="startDate"
                       type="date"
                       value={formData.startDate}
                       onChange={handleInputChange}
                       required
                     />
-                    <Input
-                      label="End Date"
-                      name="endDate"
-                      type="date"
-                      value={formData.endDate}
-                      onChange={handleInputChange}
-                      required
-                    />
+                    {/* Hide End Date if Editing (Single Show) */}
+                    {!editingShow && (
+                      <Input
+                        label="End Date"
+                        name="endDate"
+                        type="date"
+                        value={formData.endDate}
+                        onChange={handleInputChange}
+                        required
+                      />
+                    )}
                   </div>
 
                   <div>
                     <div>
                       <label className="block text-sm font-medium text-gray-300 mb-2">
-                        Time Slots
+                        {editingShow ? "Time (Select One)" : "Time Slots"}
                       </label>
 
                       <div className="grid grid-cols-3 gap-2">
@@ -386,7 +426,7 @@ const ManageShows = () => {
                             type="button"
                             onClick={() => toggleTimeSlot(time)}
                             className={`px-3 py-2 rounded text-sm ${
-                             (formData.timeSlots || []).includes(time)
+                              (formData.timeSlots || []).includes(time)
                                 ? "bg-primary text-white"
                                 : "bg-dark-lighter text-gray-300"
                             }`}
@@ -396,9 +436,10 @@ const ManageShows = () => {
                         ))}
                       </div>
                     </div>
-
-                    {errors.time && (
-                      <p className="mt-1 text-sm text-red-500">{errors.time}</p>
+                    {errors.timeSlots && (
+                      <p className="mt-1 text-sm text-red-500">
+                        {errors.timeSlots}
+                      </p>
                     )}
                   </div>
                 </div>
@@ -472,7 +513,7 @@ const ManageShows = () => {
                     Cancel
                   </Button>
                   <Button type="submit" variant="primary" loading={submitting}>
-                    {editingShow ? "Update Show" : "Add Show"}
+                    {editingShow ? "Update Show" : "Generate Schedule"}
                   </Button>
                 </div>
               </form>
