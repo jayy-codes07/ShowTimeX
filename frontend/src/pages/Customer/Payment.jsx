@@ -34,7 +34,6 @@ const Payment = () => {
     try {
       setLoading(true);
 
-
       // 1️⃣ Create booking (PENDING)
       const bookingRes = await apiRequest.post(API_ENDPOINTS.CREATE_BOOKING, {
         movieId: bookingData.movie._id,
@@ -196,7 +195,7 @@ const Payment = () => {
                 <h2 className="text-2xl font-bold text-white mb-6">
                   Select Your Seats
                 </h2>
-                <SeatMap bookedSeats={bookingData.show.bookedSeats || []} />
+                <SeatMap bookedSeats={bookingData.show.bookedSeats} totalSeats={bookingData.show.totalSeats}/>
 
                 {bookingData.selectedSeats.length > 0 && (
                   <div className="mt-6">

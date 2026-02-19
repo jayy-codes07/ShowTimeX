@@ -115,8 +115,8 @@ const ManageShows = () => {
         const updateData = {
           ...formData,
           // Map form fields back to Model fields
-          showDate: formData.startDate, // Use Start Date as THE Date
-          showTime: formData.timeSlots[0], // Use the first selected slot
+          date: formData.startDate, // Use Start Date as THE Date
+          time: formData.timeSlots[0], // Use the first selected slot
           price: parseFloat(formData.price),
           totalSeats: parseInt(formData.totalSeats),
         };
@@ -164,7 +164,7 @@ const ManageShows = () => {
       movieId: show.movie?._id || show.movieId,
       startDate: formattedDate, // Set Start = Date
       endDate: formattedDate, // Set End = Date (Since it's a single show)
-      timeSlots: show.showTime ? [show.showTime] : [], // Wrap single time in array
+      timeSlots: show.time ? [show.time] : [], // Wrap single time in array
       theater: show.theater || "",
       location: show.location || "",
       format: show.format || "2D",
@@ -215,9 +215,14 @@ const ManageShows = () => {
   }
 
   const sortedShows = [...shows].sort((a, b) => {
-    const dateDiff = new Date(a.showDate) - new Date(b.showDate);
+    // 🟢 Changed showDate to date
+    const dateDiff = new Date(a.date) - new Date(b.date);
     if (dateDiff !== 0) return dateDiff;
-    return a.showTime.localeCompare(b.showTime);
+
+    // 🟢 Changed showTime to time. Added fallback just in case time is missing
+    const timeA = a.time || "";
+    const timeB = b.time || "";
+    return timeA.localeCompare(timeB);
   });
 
   return (
@@ -363,7 +368,7 @@ const ManageShows = () => {
             >
               <h2 className="text-2xl font-bold text-white mb-6">
                 {editingShow
-                  ? `Edit Show — ${formatDate(editingShow.showDate)} ${editingShow.showTime}`
+                  ? `Edit Show — ${formatDate(editingShow.date)} ${editingShow.time}`
                   : "Schedule New Shows"}
               </h2>
 

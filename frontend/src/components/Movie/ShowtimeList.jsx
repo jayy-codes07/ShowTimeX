@@ -64,9 +64,20 @@ const ShowtimeList = ({ shows, movie }) => {
           {/* Showtimes */}
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
             {theaterShows.map((show) => {
-              const availableSeats = show.totalSeats - (show.bookedSeats?.length || 0);
-              const isAlmostFull = availableSeats < 10;
-              const isFull = availableSeats === 0;
+              const totalBookedCount = show.bookedSeats?.reduce((total, item) => {
+                // If it's a transaction (has a .seats array), count the seats
+                if (item.seats && Array.isArray(item.seats)) {
+                  return total + item.seats.length;
+                }
+                // If it's already a flat seat object (has a .row)
+                if (item.row) {
+                  return total + 1;
+                }
+                return total;
+              }, 0) || 0;
+              const availableSeats = show.totalSeats - totalBookedCount;
+              const isAlmostFull = availableSeats > 0 && availableSeats < 45;
+              const isFull = availableSeats <= 0;
 
               return (
                 <motion.button

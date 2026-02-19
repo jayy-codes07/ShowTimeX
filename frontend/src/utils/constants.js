@@ -152,7 +152,7 @@ export const STORAGE_KEYS = {
 };
 
 // Razorpay Configuration (for frontend)
-export const RAZORPAY_KEY = import.meta.env.VITE_RAZORPAY_KEY || 'rzp_test_SFZi4Ik4uRXKny';
+export const RAZORPAY_KEY = import.meta.env.VITE_RAZORPAY_KEY || 'rzp_test_SHsn3cne86vNc4';
 
 // Image Placeholder
 export const IMAGE_PLACEHOLDER = 'https://via.placeholder.com/300x450?text=Movie+Poster';

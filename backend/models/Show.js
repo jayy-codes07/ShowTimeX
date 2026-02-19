@@ -40,7 +40,7 @@ const showSchema = new mongoose.Schema(
 );
 
 // Indexes
-showSchema.index({ theater: 1, date: 1, showTime: 1 }, { unique: true });
+showSchema.index({ theater: 1, date: 1, time: 1 }, { unique: true });
 showSchema.index({ movie: 1, date: 1 });
 showSchema.index({ isActive: 1 });
 

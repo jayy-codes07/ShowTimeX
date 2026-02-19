@@ -48,7 +48,18 @@ const MovieDetails = () => {
   const fetchShows = async () => {
     try {
       setShowsLoading(true);
-      const response = await movieService.getShowsByMovie(id, selectedDate.toISOString().split('T')[0]);
+
+      // 🟢 THE FIX: Manually build the date string so it doesn't shift backward
+      const year = selectedDate.getFullYear();
+      const month = String(selectedDate.getMonth() + 1).padStart(2, '0');
+      const day = String(selectedDate.getDate()).padStart(2, '0');
+      
+      // This creates a clean "2026-02-20" string based on your local time
+      const localDateString = `${year}-${month}-${day}`;
+
+      console.log(`Asking backend for date: ${localDateString}`);
+
+      const response = await movieService.getShowsByMovie(id, localDateString);
       
       if (response.success) {
         setShows(response.shows || []);

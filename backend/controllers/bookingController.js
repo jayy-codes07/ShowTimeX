@@ -2,26 +2,55 @@ const Booking = require("../models/Booking");
 const Show = require("../models/Show");
 const Movie = require("../models/Movie");
 
-
-const Razorpay = require('razorpay');
-
-const razorpay = new Razorpay({
-  key_id: process.env.RAZORPAY_KEY_ID,
-  key_secret: process.env.RAZORPAY_KEY_SECRET,
-});
+const Razorpay = require("razorpay");
 
 const createRazorpayOrder = async (req, res) => {
   try {
     const { bookingId } = req.body;
 
-    const booking = await Booking.findById(bookingId);
-    if (!booking) {
-      return res.status(404).json({ success: false });
+    // 1. Check if keys are actually loading (Debugging)
+    console.log("Key ID loaded:", !!process.env.RAZORPAY_KEY_ID);
+    console.log("Key Secret loaded:", !!process.env.RAZORPAY_KEY_SECRET);
+
+    if (!process.env.RAZORPAY_KEY_ID || !process.env.RAZORPAY_KEY_SECRET) {
+      return res
+        .status(500)
+        .json({
+          success: false,
+          message: "Server is missing Razorpay keys in .env",
+        });
     }
 
+    // 2. Initialize Razorpay INSIDE the function
+    const razorpay = new Razorpay({
+      key_id: process.env.RAZORPAY_KEY_ID,
+      key_secret: process.env.RAZORPAY_KEY_SECRET,
+    });
+
+    console.log("Frontend is trying to pay for ID:", bookingId);
+
+    if (!bookingId) {
+      return res
+        .status(400)
+        .json({ success: false, message: "No booking ID provided" });
+    }
+
+    let booking = await Booking.findOne({ bookingId: bookingId });
+    if (!booking) {
+      booking = await Booking.findById(bookingId).catch(() => null);
+    }
+
+    if (!booking) {
+      console.log("❌ Could not find booking in the database!");
+      return res
+        .status(404)
+        .json({ success: false, message: "Booking not found" });
+    }
+
+    // 3. Create the order
     const order = await razorpay.orders.create({
-      amount: booking.totalAmount * 100,
-      currency: 'INR',
+      amount: booking.totalAmount * 100, // Make sure totalAmount exists!
+      currency: "INR",
       receipt: booking.bookingId,
     });
 
@@ -30,20 +59,22 @@ const createRazorpayOrder = async (req, res) => {
 
     res.json(order);
   } catch (err) {
-    res.status(500).json({ message: 'Order creation failed' });
+    console.error("Razorpay Order Error:", err);
+    res.status(500).json({
+      success: false,
+      message: err.message,
+    });
   }
 };
-
 
 // @desc    Create a new booking
 // @route   POST /api/bookings/create
 // @access  Private
 const createBooking = async (req, res) => {
-  console.log(
-    "helloooooooooooooooooooooooooooooooo0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000ooooooooooooooooooooooooooooooooooooooooooooooooooooooooo",
-  );
-
   try {
+    console.log(
+      "helloooooooooooooooooooooooooooooooo0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000ooooooooooooooooooooooooooooooooooooooooooooooooooooooooo",
+    );
     const { movieId, showId, seats, email, phone } = req.body;
 
     // Validate required fields
@@ -128,7 +159,6 @@ const createBooking = async (req, res) => {
     // Save booking
     await booking.save();
 
-
     // Populate booking details
     const populatedBooking = await Booking.findById(booking._id)
       .populate("movie", "title poster duration")
@@ -152,7 +182,11 @@ const createBooking = async (req, res) => {
 // @desc    Verify payment and confirm booking
 // @route   POST /api/payments/verify
 // @access  Private
-const crypto = require('crypto');
+
+// @desc    Verify payment and confirm booking
+// @route   POST /api/payments/verify
+// @access  Private
+const crypto = require("crypto");
 
 const verifyPayment = async (req, res) => {
   try {
@@ -163,21 +197,49 @@ const verifyPayment = async (req, res) => {
       bookingId,
     } = req.body;
 
-    const booking = await Booking.findById(bookingId).populate('show');
+    console.log("Verifying payment for ID:", bookingId);
+
+    if (!bookingId) {
+      return res
+        .status(400)
+        .json({
+          success: false,
+          message: "Missing booking ID in verification",
+        });
+    }
+
+    // 🛠️ FIX: Check BOTH the custom CB-ID and the MongoDB _id
+    let booking = await Booking.findOne({ bookingId: bookingId }).populate(
+      "show",
+    );
+
+    // If not found by CB-ID, try finding it by MongoDB _id
     if (!booking) {
-      return res.status(404).json({ success: false });
+      booking = await Booking.findById(bookingId)
+        .populate("show")
+        .catch(() => null);
+    }
+
+    if (!booking) {
+      console.log("❌ Could not find booking during verification!");
+      return res
+        .status(404)
+        .json({ success: false, message: "Booking not found" });
     }
 
     // 🔐 Verify signature
-    const sign = razorpay_order_id + '|' + razorpay_payment_id;
+    const sign = razorpay_order_id + "|" + razorpay_payment_id;
 
     const expectedSign = crypto
-      .createHmac('sha256', process.env.RAZORPAY_KEY_SECRET)
+      .createHmac("sha256", process.env.RAZORPAY_KEY_SECRET)
       .update(sign)
-      .digest('hex');
+      .digest("hex");
 
     if (expectedSign !== razorpay_signature) {
-      return res.status(400).json({ success: false, message: 'Invalid signature' });
+      console.log("❌ Signature mismatch!");
+      return res
+        .status(400)
+        .json({ success: false, message: "Invalid signature" });
     }
 
     // ✅ NOW book seats
@@ -185,16 +247,17 @@ const verifyPayment = async (req, res) => {
     await booking.show.save();
 
     // ✅ Confirm booking
-    booking.status = 'confirmed';
+    booking.status = "confirmed";
     booking.paymentId = razorpay_payment_id;
     await booking.save();
 
+    console.log("✅ Payment verified and seats booked!");
     res.json({ success: true, booking });
   } catch (error) {
-    res.status(500).json({ success: false });
+    console.error("Verify Payment Error:", error);
+    res.status(500).json({ success: false, message: error.message });
   }
 };
-
 
 // @desc    Get user bookings
 // @route   GET /api/bookings/user
@@ -490,6 +553,20 @@ const getAdminReports = async (req, res) => {
         recentTransactions: formattedTransactions,
       },
     });
+    const dailyRevenue = await Booking.aggregate([
+      {
+        $match: { status: "confirmed" },
+      },
+      {
+        $group: {
+          _id: {
+            $dateToString: { format: "%Y-%m-%d", date: "$bookingDate" },
+          },
+          revenue: { $sum: "$totalAmount" },
+        },
+      },
+      { $sort: { _id: 1 } },
+    ]);
   } catch (error) {
     console.error("Get Admin Reports Error:", error);
     res.status(500).json({
@@ -508,5 +585,5 @@ module.exports = {
   getAllBookings,
   getAdminStats,
   getAdminReports,
-  createRazorpayOrder 
+  createRazorpayOrder,
 };
