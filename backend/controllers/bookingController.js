@@ -424,26 +424,107 @@ const getAllBookings = async (req, res) => {
 // @desc    Get admin statistics
 // @route   GET /api/admin/stats
 // @access  Private/Admin
+// @desc    Get admin statistics
+// @route   GET /api/admin/stats
+// @access  Private/Admin
 const getAdminStats = async (req, res) => {
   try {
     const totalBookings = await Booking.countDocuments({ status: "confirmed" });
-    const totalRevenue = await Booking.aggregate([
+    
+    // 1. Basic Stats
+    const revenueAgg = await Booking.aggregate([
       { $match: { status: "confirmed" } },
-      { $group: { _id: null, total: { $sum: "$totalAmount" } } },
+      { 
+        $group: { 
+          _id: null, 
+          total: { $sum: "$totalAmount" },
+          tickets: { $sum: { $size: "$seats" } } 
+        } 
+      },
+    ]);
+    
+    const totalRevenue = revenueAgg[0]?.total || 0;
+    const totalTickets = revenueAgg[0]?.tickets || 0;
+
+    const totalUsers = await require("../models/User").countDocuments({ role: "customer" });
+    const totalMovies = await Movie.countDocuments({ isActive: true });
+
+    // 2. Chart 1: Daily Revenue Raw
+    const sevenDaysAgo = new Date();
+    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+
+    const dailyRevenueRaw = await Booking.aggregate([
+      { $match: { status: "confirmed", bookingDate: { $gte: sevenDaysAgo } } },
+      {
+        $group: {
+          _id: { $dateToString: { format: "%Y-%m-%d", date: "$bookingDate" } },
+          revenue: { $sum: "$totalAmount" },
+        },
+      },
+      { $sort: { _id: 1 } },
     ]);
 
-    const totalUsers = await require("../models/User").countDocuments({
-      role: "customer",
+    const revenueData = dailyRevenueRaw.map((item) => {
+      const d = new Date(item._id);
+      return {
+        date: d.toLocaleDateString("en-US", { weekday: "short" }),
+        revenue: item.revenue,
+      };
     });
-    const totalMovies = await Movie.countDocuments({ isActive: true });
+
+    // 3. Chart 2: Top Movies
+    const topMoviesRaw = await Booking.aggregate([
+      { $match: { status: "confirmed" } },
+      {
+        $group: {
+          _id: "$movie",
+          tickets: { $sum: { $size: "$seats" } },
+        },
+      },
+      { $sort: { tickets: -1 } },
+      { $limit: 4 },
+      {
+        $lookup: {
+          from: "movies",
+          localField: "_id",
+          foreignField: "_id",
+          as: "movieDetails",
+        },
+      },
+      {
+        $project: {
+          title: { $arrayElemAt: ["$movieDetails.title", 0] },
+          tickets: 1,
+        },
+      },
+    ]);
+
+    const movieStatsData = topMoviesRaw.map((m) => ({
+      name: m.title || "Unknown",
+      value: m.tickets,
+    }));
+
+    // 4. Chart 3: Format Popularity
+    const formatStatsData = await Booking.aggregate([
+      { $match: { status: "confirmed" } },
+      { $lookup: { from: "shows", localField: "show", foreignField: "_id", as: "showDetails" } },
+      { $unwind: "$showDetails" },
+      { $group: { _id: "$showDetails.format", value: { $sum: "$totalAmount" } } },
+      { $project: { name: { $ifNull: ["$_id", "2D"] }, value: 1, _id: 0 } },
+      { $sort: { value: -1 } }
+    ]);
 
     res.status(200).json({
       success: true,
       stats: {
         totalBookings,
-        totalRevenue: totalRevenue[0]?.total || 0,
+        totalRevenue,
         totalUsers,
         totalMovies,
+        totalTickets,
+        revenueData,
+        movieStatsData,
+        formatStatsData
       },
     });
   } catch (error) {
@@ -472,8 +553,8 @@ const getAdminReports = async (req, res) => {
       };
     }
 
-    // Top performing movies
-    const topMovies = await Booking.aggregate([
+    // 1. Top performing movies (Raw data)
+    const topMoviesRaw = await Booking.aggregate([
       { $match: { status: "confirmed", ...dateFilter } },
       {
         $group: {
@@ -483,8 +564,8 @@ const getAdminReports = async (req, res) => {
           revenue: { $sum: "$totalAmount" },
         },
       },
-      { $sort: { revenue: -1 } },
-      { $limit: 10 },
+      { $sort: { tickets: -1 } }, // Sort by tickets sold
+      { $limit: 5 },
       {
         $lookup: {
           from: "movies",
@@ -503,7 +584,13 @@ const getAdminReports = async (req, res) => {
       },
     ]);
 
-    // Recent transactions
+    // 🟢 FRONTEND FORMAT: Top Movies Chart
+    const movieStatsData = topMoviesRaw.map((m) => ({
+      name: m.title || "Unknown",
+      value: m.tickets,
+    }));
+
+    // 2. Recent transactions
     const recentTransactions = await Booking.find({ ...dateFilter })
       .populate("user", "name")
       .populate("movie", "title")
@@ -522,7 +609,7 @@ const getAdminReports = async (req, res) => {
       status: t.status,
     }));
 
-    // Calculate totals
+    // 3. Calculate totals
     const totalStats = await Booking.aggregate([
       { $match: { status: "confirmed", ...dateFilter } },
       {
@@ -541,32 +628,52 @@ const getAdminReports = async (req, res) => {
       totalTickets: 0,
     };
 
-    res.status(200).json({
-      success: true,
-      report: {
-        ...stats,
-        avgBookingValue:
-          stats.totalBookings > 0
-            ? stats.totalRevenue / stats.totalBookings
-            : 0,
-        topMovies,
-        recentTransactions: formattedTransactions,
-      },
-    });
-    const dailyRevenue = await Booking.aggregate([
-      {
-        $match: { status: "confirmed" },
-      },
+    // 🟢 FRONTEND FORMAT: Daily Revenue Chart
+    // (Moved UP so it actually executes!)
+    const dailyRevenueRaw = await Booking.aggregate([
+      { $match: { status: "confirmed", ...dateFilter } },
       {
         $group: {
-          _id: {
-            $dateToString: { format: "%Y-%m-%d", date: "$bookingDate" },
-          },
+          _id: { $dateToString: { format: "%Y-%m-%d", date: "$bookingDate" } },
           revenue: { $sum: "$totalAmount" },
         },
       },
       { $sort: { _id: 1 } },
+      { $limit: 7 }
     ]);
+
+    const revenueData = dailyRevenueRaw.map((item) => {
+      const d = new Date(item._id);
+      return {
+        date: d.toLocaleDateString("en-US", { weekday: "short" }),
+        revenue: item.revenue,
+      };
+    });
+
+    // 🟢 FRONTEND FORMAT: Format Popularity Chart (2D, 3D, etc)
+    const formatStatsData = await Booking.aggregate([
+      { $match: { status: "confirmed", ...dateFilter } },
+      { $lookup: { from: "shows", localField: "show", foreignField: "_id", as: "showDetails" } },
+      { $unwind: "$showDetails" },
+      { $group: { _id: "$showDetails.format", value: { $sum: "$totalAmount" } } },
+      { $project: { name: { $ifNull: ["$_id", "2D"] }, value: 1, _id: 0 } },
+      { $sort: { value: -1 } }
+    ]);
+
+    // Send everything to the frontend
+    res.status(200).json({
+      success: true,
+      report: {
+        ...stats,
+        avgBookingValue: stats.totalBookings > 0 ? stats.totalRevenue / stats.totalBookings : 0,
+        topMovies: topMoviesRaw,
+        recentTransactions: formattedTransactions,
+        // Send the nicely formatted chart arrays here!
+        revenueData,
+        movieStatsData,
+        formatStatsData,
+      },
+    });
   } catch (error) {
     console.error("Get Admin Reports Error:", error);
     res.status(500).json({
