@@ -29,13 +29,15 @@ const RevenueChart = ({ data }) => {
           tick={{ fontSize: 13, fill: '#9CA3AF' }}
           dy={10}
         />
-        <YAxis 
+       <YAxis 
           stroke="#9CA3AF" 
           axisLine={false}
           tickLine={false}
           tick={{ fontSize: 13, fill: '#9CA3AF' }}
-          tickFormatter={(value) => value >= 1000 ? `₹${value / 1000}k` : `₹${value}`}
+          // 🟢 FIX 1: Add Math.round() so 15.111k becomes just 15k
+          tickFormatter={(value) => value >= 1000 ? `₹${Math.round(value / 1000)}k` : `₹${Math.round(value)}`}
         />
+        
         <Tooltip
           cursor={{ fill: '#374151', opacity: 0.3 }}
           contentStyle={{
@@ -46,6 +48,8 @@ const RevenueChart = ({ data }) => {
             boxShadow: "0 10px 15px -3px rgba(0, 0, 0, 0.1)"
           }}
           itemStyle={{ color: "#818CF8", fontWeight: "bold" }}
+          // 🟢 FIX 2: Add this formatter to clean up the hover popup!
+          formatter={(value) => [`₹${Math.round(value).toLocaleString()}`, "Revenue"]}
         />
         <Bar 
           dataKey="revenue" 

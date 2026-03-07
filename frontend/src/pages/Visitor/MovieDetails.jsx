@@ -89,7 +89,7 @@ const MovieDetails = () => {
       {/* Hero Section with Backdrop */}
       <div className="relative h-[50vh] md:h-[60vh] overflow-hidden">
         <div
-          className="absolute inset-0 bg-cover bg-center"
+          className="absolute inset-0 bg-cover bg-top"
           style={{
             backgroundImage: `url(${movie.backdrop || movie.poster || IMAGE_PLACEHOLDER})`,
           }}

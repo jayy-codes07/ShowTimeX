@@ -1,4 +1,6 @@
 const Movie = require('../models/Movie');
+const { triggerN8n } = require('../n8nService');
+const User = require('../models/User');
 
 // @desc    Get all movies
 // @route   GET /api/movies
@@ -145,6 +147,19 @@ const searchMovies = async (req, res) => {
 const createMovie = async (req, res) => {
   try {
     const movie = await Movie.create(req.body);
+
+    // 🔔 Trigger n8n - notify all users about new movie
+    const subscribers = await User.find({ role: 'customer' }, 'email').lean();
+    await triggerN8n('new-movie', {
+      movieTitle: movie.title,
+      genre: movie.genres?.join(', ') || '',
+      language: movie.languages?.join(', ') || '',
+      releaseDate: movie.releaseDate,
+      description: movie.description,
+      posterUrl: movie.poster || '',
+      status: movie.status,
+      subscribers: subscribers.map(u => u.email),
+    });
 
     res.status(201).json({
       success: true,

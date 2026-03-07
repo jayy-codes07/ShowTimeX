@@ -54,34 +54,45 @@ const Reports = () => {
     return <Loader fullScreen message="Loading reports..." />;
   }
 
+ // Helper to format the change string (adds a '+' if positive)
+  const formatChange = (val) => `${val > 0 ? '+' : ''}${val || 0}%`;
+
   const summaryCards = [
     {
       title: 'Total Revenue',
-      value: `₹${reportData?.totalRevenue?.toLocaleString() || '0'}`,
+      value: `₹${Math.round(reportData?.totalRevenue || 0).toLocaleString()}`,
       icon: DollarSign,
       color: 'bg-green-500',
-      change: '+15.3%',
+      // 🟢 DYNAMIC: Read the revenue change from the backend
+      change: formatChange(reportData?.changes?.revenue),
+      isPositive: (reportData?.changes?.revenue || 0) >= 0,
     },
     {
       title: 'Total Bookings',
       value: reportData?.totalBookings?.toLocaleString() || '0',
       icon: Ticket,
       color: 'bg-blue-500',
-      change: '+8.7%',
+      // 🟢 DYNAMIC: Read the bookings change from the backend
+      change: formatChange(reportData?.changes?.bookings),
+      isPositive: (reportData?.changes?.bookings || 0) >= 0,
     },
     {
       title: 'Total Tickets',
       value: reportData?.totalTickets?.toLocaleString() || '0',
       icon: TrendingUp,
       color: 'bg-purple-500',
-      change: '+12.1%',
+      // 🟢 DYNAMIC: Read the tickets change from the backend
+      change: formatChange(reportData?.changes?.tickets),
+      isPositive: (reportData?.changes?.tickets || 0) >= 0,
     },
     {
       title: 'Avg. Booking Value',
-      value: `₹${reportData?.avgBookingValue?.toFixed(2) || '0'}`,
+      value: `₹${Math.round(reportData?.avgBookingValue || 0).toLocaleString()}`,
       icon: Calendar,
       color: 'bg-primary',
-      change: '+6.4%',
+      // 🟢 DYNAMIC: Read the average value change from the backend
+      change: formatChange(reportData?.changes?.avgValue),
+      isPositive: (reportData?.changes?.avgValue || 0) >= 0,
     },
   ];
 

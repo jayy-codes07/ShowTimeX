@@ -15,7 +15,7 @@ import {
   BarChart3,
   ArrowUpRight,
   ArrowDownRight,
-  MonitorPlay,
+  MonitorPlay 
 } from "lucide-react";
 import Loader from "../../components/UI/Loader";
 import { apiRequest } from "../../services/api";
@@ -25,12 +25,12 @@ import toast from "react-hot-toast";
 const Dashboard = () => {
   const [stats, setStats] = useState(null);
   const [recentBookings, setRecentBookings] = useState([]);
-
+  
   // Chart State
   const [revenueData, setRevenueData] = useState([]);
   const [movieStatsData, setMovieStatsData] = useState([]);
   const [formatStatsData, setFormatStatsData] = useState([]);
-
+  
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -45,13 +45,10 @@ const Dashboard = () => {
         apiRequest.get(API_ENDPOINTS.ADMIN_BOOKINGS + "?limit=5"),
       ]);
 
-      // 🟢 THE FIX: Safely check for either 'report' or 'stats' from the backend
       const backendData = statsRes.report || statsRes.stats;
 
       if (statsRes.success && backendData) {
         setStats(backendData);
-
-        // Populate the charts
         setRevenueData(backendData.revenueData || []);
         setMovieStatsData(backendData.movieStatsData || []);
         setFormatStatsData(backendData.formatStatsData || []);
@@ -70,56 +67,59 @@ const Dashboard = () => {
 
   if (loading) return <Loader fullScreen message="Loading dashboard..." />;
 
-  // 🟢 THE FIX: Updated the cards to match the exact names coming from your backend
+  // 🟢 DYNAMIC: Helper function to safely format the percentage
+  const formatChange = (val) => {
+    if (val === undefined || val === null) return "0%";
+    return `${val > 0 ? '+' : ''}${val}%`;
+  };
+
+  // 🟢 DYNAMIC: Cards are now perfectly rounded and read from your backend changes!
   const statCards = [
     {
       title: "Total Revenue",
-      value: `₹${stats?.totalRevenue?.toLocaleString() || "0"}`,
-      change: "+12.5%",
-      isPositive: true,
+      value: `₹${Math.round(stats?.totalRevenue || 0).toLocaleString()}`,
+      change: formatChange(stats?.changes?.revenue),
+      isPositive: (stats?.changes?.revenue || 0) >= 0,
       icon: DollarSign,
       color: "bg-green-500",
     },
     {
       title: "Total Bookings",
       value: stats?.totalBookings?.toLocaleString() || "0",
-      change: "+8.2%",
-      isPositive: true,
+      change: formatChange(stats?.changes?.bookings),
+      isPositive: (stats?.changes?.bookings || 0) >= 0,
       icon: Ticket,
       color: "bg-blue-500",
     },
     {
-      title: "Total Tickets Sold", // Changed from "Active Users" because your backend sends Tickets!
+      title: "Total Tickets Sold",
       value: stats?.totalTickets?.toLocaleString() || "0",
-      change: "+5.7%",
-      isPositive: true,
-      icon: Users,
+      change: formatChange(stats?.changes?.tickets),
+      isPositive: (stats?.changes?.tickets || 0) >= 0,
+      icon: TrendingUp,
       color: "bg-purple-500",
     },
     {
-      title: "Total Movies",
-      value: stats?.totalMovies?.toLocaleString() || "0",
-      change: "+2",
-      isPositive: true,
-      icon: Film,
+      title: "Avg. Booking Value",
+      // Safely calculate the average if the backend didn't explicitly send it
+      value: `₹${Math.round(
+        stats?.avgBookingValue || 
+        (stats?.totalBookings > 0 ? stats.totalRevenue / stats.totalBookings : 0)
+      ).toLocaleString()}`,
+      change: formatChange(stats?.changes?.avgValue),
+      isPositive: (stats?.changes?.avgValue || 0) >= 0,
+      icon: Calendar,
       color: "bg-primary",
     },
   ];
+
   return (
     <div className="min-h-screen bg-dark py-8">
       <div className="container-custom">
         {/* Header */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="mb-8"
-        >
-          <h1 className="text-3xl md:text-4xl font-bold text-white mb-2">
-            Admin Dashboard
-          </h1>
-          <p className="text-gray-400">
-            Welcome back! Here's what's happening today.
-          </p>
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="mb-8">
+          <h1 className="text-3xl md:text-4xl font-bold text-white mb-2">Admin Dashboard</h1>
+          <p className="text-gray-400">Welcome back! Here's what's happening today.</p>
         </motion.div>
 
         {/* Stats Grid */}
@@ -136,14 +136,10 @@ const Dashboard = () => {
                 className="bg-dark-card rounded-xl p-6 hover:shadow-xl transition-shadow border border-gray-800"
               >
                 <div className="flex items-center justify-between mb-4">
-                  <div
-                    className={`w-12 h-12 ${stat.color} rounded-lg flex items-center justify-center`}
-                  >
+                  <div className={`w-12 h-12 ${stat.color} rounded-lg flex items-center justify-center`}>
                     <Icon className="w-6 h-6 text-white" />
                   </div>
-                  <div
-                    className={`flex items-center space-x-1 text-sm ${stat.isPositive ? "text-green-500" : "text-red-500"}`}
-                  >
+                  <div className={`flex items-center space-x-1 text-sm ${stat.isPositive ? "text-green-500" : "text-red-500"}`}>
                     <ChangeIcon className="w-4 h-4" />
                     <span>{stat.change}</span>
                   </div>
@@ -157,6 +153,7 @@ const Dashboard = () => {
 
         {/* HORIZONTALLY SCROLLABLE CHARTS SECTION */}
         <div className="flex overflow-x-auto gap-6 pb-4 mb-8 snap-x snap-mandatory [&::-webkit-scrollbar]:h-2 [&::-webkit-scrollbar-thumb]:bg-gray-700 [&::-webkit-scrollbar-track]:bg-dark-lighter">
+          
           {/* Chart 1: Revenue Trend */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -167,16 +164,14 @@ const Dashboard = () => {
             <div className="flex items-center justify-between mb-6">
               <div>
                 <h2 className="text-xl font-bold text-white">Revenue Trend</h2>
-                <p className="text-sm text-gray-500">Daily earnings</p>
+                <p className="text-sm text-gray-500">Daily earnings over the last 7 days</p>
               </div>
               <BarChart3 className="w-6 h-6 text-primary" />
             </div>
             {revenueData.length > 0 ? (
-              <RevenueChart data={revenueData} />
+               <RevenueChart data={revenueData} />
             ) : (
-              <p className="text-gray-500 flex items-center justify-center h-[300px]">
-                No revenue data yet
-              </p>
+               <p className="text-gray-500 flex items-center justify-center h-[300px]">No revenue data yet</p>
             )}
           </motion.div>
 
@@ -197,9 +192,7 @@ const Dashboard = () => {
             {movieStatsData.length > 0 ? (
               <LeaderboardChart data={movieStatsData} />
             ) : (
-              <p className="text-gray-500 flex items-center justify-center h-[250px]">
-                No movie data yet
-              </p>
+              <p className="text-gray-500 flex items-center justify-center h-[250px]">No movie data yet</p>
             )}
           </motion.div>
 
@@ -213,24 +206,22 @@ const Dashboard = () => {
             <div className="flex items-center justify-between mb-6">
               <div>
                 <h2 className="text-xl font-bold text-white">Format Revenue</h2>
-                <p className="text-sm text-gray-500">
-                  Earnings across screen types
-                </p>
+                <p className="text-sm text-gray-500">Earnings across screen types</p>
               </div>
               <MonitorPlay className="w-6 h-6 text-blue-500" />
             </div>
             {formatStatsData.length > 0 ? (
               <MovieDistributionChart data={formatStatsData} />
             ) : (
-              <p className="text-gray-500 flex items-center justify-center h-[300px]">
-                No format data yet
-              </p>
+              <p className="text-gray-500 flex items-center justify-center h-[300px]">No format data yet</p>
             )}
           </motion.div>
+
         </div>
 
         {/* Bottom Section: Recent Bookings & Quick Actions */}
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+          
           {/* Recent Bookings */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -240,10 +231,7 @@ const Dashboard = () => {
           >
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-xl font-bold text-white">Recent Bookings</h2>
-              <Link
-                to="/admin/reports"
-                className="text-primary hover:text-primary-light text-sm"
-              >
+              <Link to="/admin/reports" className="text-primary hover:text-primary-light text-sm">
                 View All →
               </Link>
             </div>
@@ -253,57 +241,28 @@ const Dashboard = () => {
                 <table className="w-full">
                   <thead>
                     <tr className="border-b border-gray-700">
-                      <th className="text-left py-3 px-4 text-gray-400 font-semibold text-sm">
-                        Booking ID
-                      </th>
-                      <th className="text-left py-3 px-4 text-gray-400 font-semibold text-sm">
-                        Customer
-                      </th>
-                      <th className="text-left py-3 px-4 text-gray-400 font-semibold text-sm">
-                        Movie
-                      </th>
-                      <th className="text-left py-3 px-4 text-gray-400 font-semibold text-sm">
-                        Seats
-                      </th>
-                      <th className="text-left py-3 px-4 text-gray-400 font-semibold text-sm">
-                        Amount
-                      </th>
-                      <th className="text-left py-3 px-4 text-gray-400 font-semibold text-sm">
-                        Status
-                      </th>
+                      <th className="text-left py-3 px-4 text-gray-400 font-semibold text-sm">Booking ID</th>
+                      <th className="text-left py-3 px-4 text-gray-400 font-semibold text-sm">Customer</th>
+                      <th className="text-left py-3 px-4 text-gray-400 font-semibold text-sm">Movie</th>
+                      <th className="text-left py-3 px-4 text-gray-400 font-semibold text-sm">Seats</th>
+                      <th className="text-left py-3 px-4 text-gray-400 font-semibold text-sm">Amount</th>
+                      <th className="text-left py-3 px-4 text-gray-400 font-semibold text-sm">Status</th>
                     </tr>
                   </thead>
                   <tbody>
                     {recentBookings.map((booking) => (
-                      <tr
-                        key={booking._id}
-                        className="border-b border-gray-800 hover:bg-dark-lighter transition"
-                      >
-                        <td className="py-3 px-4 text-white text-sm">
-                          {booking.bookingId}
-                        </td>
-                        <td className="py-3 px-4 text-white text-sm">
-                          {booking.user?.name}
-                        </td>
-                        <td className="py-3 px-4 text-white text-sm">
-                          {booking.movie?.title}
-                        </td>
-                        <td className="py-3 px-4 text-white text-sm">
-                          {booking.seats?.length}
-                        </td>
-                        <td className="py-3 px-4 text-primary font-semibold text-sm">
-                          ₹{booking.totalAmount?.toFixed(2)}
-                        </td>
+                      <tr key={booking._id} className="border-b border-gray-800 hover:bg-dark-lighter transition">
+                        <td className="py-3 px-4 text-white text-sm">{booking.bookingId}</td>
+                        <td className="py-3 px-4 text-white text-sm">{booking.user?.name}</td>
+                        <td className="py-3 px-4 text-white text-sm">{booking.movie?.title}</td>
+                        <td className="py-3 px-4 text-white text-sm">{booking.seats?.length}</td>
+                        <td className="py-3 px-4 text-primary font-semibold text-sm">₹{booking.totalAmount?.toFixed(2)}</td>
                         <td className="py-3 px-4">
-                          <span
-                            className={`inline-block px-2 py-1 rounded text-xs font-semibold ${
-                              booking.status === "confirmed"
-                                ? "bg-green-500/20 text-green-500"
-                                : booking.status === "cancelled"
-                                  ? "bg-red-500/20 text-red-500"
-                                  : "bg-yellow-500/20 text-yellow-500"
-                            }`}
-                          >
+                          <span className={`inline-block px-2 py-1 rounded text-xs font-semibold ${
+                            booking.status === "confirmed" ? "bg-green-500/20 text-green-500" :
+                            booking.status === "cancelled" ? "bg-red-500/20 text-red-500" :
+                            "bg-yellow-500/20 text-yellow-500"
+                          }`}>
                             {booking.status}
                           </span>
                         </td>
@@ -313,9 +272,7 @@ const Dashboard = () => {
                 </table>
               </div>
             ) : (
-              <p className="text-gray-400 text-center py-8">
-                No recent bookings
-              </p>
+              <p className="text-gray-400 text-center py-8">No recent bookings</p>
             )}
           </motion.div>
 
@@ -328,56 +285,36 @@ const Dashboard = () => {
           >
             <h2 className="text-xl font-bold text-white mb-6">Quick Actions</h2>
             <div className="space-y-4">
-              <Link
-                to="/admin/movies"
-                className="block p-4 bg-dark-lighter rounded-lg hover:bg-dark hover:border hover:border-primary transition group"
-              >
+              <Link to="/admin/movies" className="block p-4 bg-dark-lighter rounded-lg hover:bg-dark hover:border hover:border-primary transition group">
                 <div className="flex items-center space-x-3">
                   <Film className="w-5 h-5 text-primary" />
                   <div className="flex-grow">
-                    <p className="text-white font-semibold group-hover:text-primary transition">
-                      Manage Movies
-                    </p>
-                    <p className="text-gray-500 text-xs mt-1">
-                      Add or edit movies
-                    </p>
+                    <p className="text-white font-semibold group-hover:text-primary transition">Manage Movies</p>
+                    <p className="text-gray-500 text-xs mt-1">Add or edit movies</p>
                   </div>
                 </div>
               </Link>
-              <Link
-                to="/admin/shows"
-                className="block p-4 bg-dark-lighter rounded-lg hover:bg-dark hover:border hover:border-primary transition group"
-              >
+              <Link to="/admin/shows" className="block p-4 bg-dark-lighter rounded-lg hover:bg-dark hover:border hover:border-primary transition group">
                 <div className="flex items-center space-x-3">
                   <Calendar className="w-5 h-5 text-primary" />
                   <div className="flex-grow">
-                    <p className="text-white font-semibold group-hover:text-primary transition">
-                      Manage Shows
-                    </p>
-                    <p className="text-gray-500 text-xs mt-1">
-                      Schedule showtimes
-                    </p>
+                    <p className="text-white font-semibold group-hover:text-primary transition">Manage Shows</p>
+                    <p className="text-gray-500 text-xs mt-1">Schedule showtimes</p>
                   </div>
                 </div>
               </Link>
-              <Link
-                to="/admin/reports"
-                className="block p-4 bg-dark-lighter rounded-lg hover:bg-dark hover:border hover:border-primary transition group"
-              >
+              <Link to="/admin/reports" className="block p-4 bg-dark-lighter rounded-lg hover:bg-dark hover:border hover:border-primary transition group">
                 <div className="flex items-center space-x-3">
                   <TrendingUp className="w-5 h-5 text-primary" />
                   <div className="flex-grow">
-                    <p className="text-white font-semibold group-hover:text-primary transition">
-                      View Reports
-                    </p>
-                    <p className="text-gray-500 text-xs mt-1">
-                      Sales analytics
-                    </p>
+                    <p className="text-white font-semibold group-hover:text-primary transition">View Reports</p>
+                    <p className="text-gray-500 text-xs mt-1">Sales analytics</p>
                   </div>
                 </div>
               </Link>
             </div>
           </motion.div>
+
         </div>
       </div>
     </div>

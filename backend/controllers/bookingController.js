@@ -1,7 +1,7 @@
 const Booking = require("../models/Booking");
 const Show = require("../models/Show");
 const Movie = require("../models/Movie");
-
+const { triggerN8n } = require('../n8nService');
 const Razorpay = require("razorpay");
 
 const createRazorpayOrder = async (req, res) => {
@@ -247,9 +247,29 @@ const verifyPayment = async (req, res) => {
     await booking.show.save();
 
     // ✅ Confirm booking
+    // ✅ Confirm booking
     booking.status = "confirmed";
     booking.paymentId = razorpay_payment_id;
     await booking.save();
+
+    // Populate for email details
+    const confirmedBooking = await Booking.findById(booking._id)
+      .populate('user', 'name email')
+      .populate('movie', 'title')
+      .populate('show', 'date time theater');
+
+    // 🔔 Trigger n8n - send confirmation email
+    await triggerN8n('ticket-booked', {
+      userName: confirmedBooking.user?.name || 'Customer',
+      userEmail: confirmedBooking.user?.email || booking.email,
+      movieTitle: confirmedBooking.movie?.title || 'Movie',
+      showDate: confirmedBooking.show?.date,
+      showTime: confirmedBooking.show?.time,
+      theater: confirmedBooking.show?.theater,
+      seats: booking.seats.map(s => `${s.row}${s.number}`),
+      bookingId: booking.bookingId,
+      totalAmount: booking.totalAmount,
+    });
 
     console.log("✅ Payment verified and seats booked!");
     res.json({ success: true, booking });
@@ -430,19 +450,19 @@ const getAllBookings = async (req, res) => {
 const getAdminStats = async (req, res) => {
   try {
     const totalBookings = await Booking.countDocuments({ status: "confirmed" });
-    
+
     // 1. Basic Stats
     const revenueAgg = await Booking.aggregate([
       { $match: { status: "confirmed" } },
-      { 
-        $group: { 
-          _id: null, 
+      {
+        $group: {
+          _id: null,
           total: { $sum: "$totalAmount" },
-          tickets: { $sum: { $size: "$seats" } } 
-        } 
+          tickets: { $sum: { $size: "$seats" } }
+        }
       },
     ]);
-    
+
     const totalRevenue = revenueAgg[0]?.total || 0;
     const totalTickets = revenueAgg[0]?.tickets || 0;
 
@@ -514,6 +534,47 @@ const getAdminStats = async (req, res) => {
       { $sort: { value: -1 } }
     ]);
 
+    // ---------------------------------------------------------
+    // 🟢 DYNAMIC PERCENTAGE MATH (Current 30 Days vs Previous 30 Days)
+    // ---------------------------------------------------------
+    const thirtyDaysAgo = new Date();
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+
+    const sixtyDaysAgo = new Date();
+    sixtyDaysAgo.setDate(sixtyDaysAgo.getDate() - 60);
+
+    // Get stats for the last 30 days
+    const currentPeriod = await Booking.aggregate([
+      { $match: { status: "confirmed", bookingDate: { $gte: thirtyDaysAgo } } },
+      { $group: { _id: null, revenue: { $sum: "$totalAmount" }, bookings: { $sum: 1 }, tickets: { $sum: { $size: "$seats" } } } }
+    ]);
+
+    // Get stats for the 30 days before that
+    const prevPeriod = await Booking.aggregate([
+      { $match: { status: "confirmed", bookingDate: { $gte: sixtyDaysAgo, $lt: thirtyDaysAgo } } },
+      { $group: { _id: null, revenue: { $sum: "$totalAmount" }, bookings: { $sum: 1 }, tickets: { $sum: { $size: "$seats" } } } }
+    ]);
+
+    // Helper function to calculate percentage change safely
+    const calcChange = (current, previous) => {
+      if (!previous || previous === 0) return current > 0 ? 100 : 0;
+      return (((current - previous) / previous) * 100).toFixed(1);
+    };
+
+    const currStats = currentPeriod[0] || { revenue: 0, bookings: 0, tickets: 0 };
+    const prvStats = prevPeriod[0] || { revenue: 0, bookings: 0, tickets: 0 };
+
+    const percentageChanges = {
+      revenue: parseFloat(calcChange(currStats.revenue, prvStats.revenue)),
+      bookings: parseFloat(calcChange(currStats.bookings, prvStats.bookings)),
+      tickets: parseFloat(calcChange(currStats.tickets, prvStats.tickets)),
+      avgValue: parseFloat(calcChange(
+        currStats.bookings > 0 ? currStats.revenue / currStats.bookings : 0,
+        prvStats.bookings > 0 ? prvStats.revenue / prvStats.bookings : 0
+      ))
+    };
+    // ---------------------------------------------------------
+
     res.status(200).json({
       success: true,
       stats: {
@@ -524,7 +585,8 @@ const getAdminStats = async (req, res) => {
         totalTickets,
         revenueData,
         movieStatsData,
-        formatStatsData
+        formatStatsData,
+        changes: percentageChanges
       },
     });
   } catch (error) {
@@ -536,24 +598,89 @@ const getAdminStats = async (req, res) => {
   }
 };
 
-// @desc    Get admin reports
+// @desc    Get admin reports with dynamic date range percentage changes
 // @route   GET /api/admin/reports
 // @access  Private/Admin
 const getAdminReports = async (req, res) => {
   try {
     const { startDate, endDate } = req.query;
 
-    let dateFilter = {};
+    // 1. Calculate Current Period Filter
+    let currentStart = new Date();
+    currentStart.setDate(currentStart.getDate() - 30); // Default to last 30 days
+    let currentEnd = new Date();
+
     if (startDate && endDate) {
-      dateFilter = {
-        bookingDate: {
-          $gte: new Date(startDate),
-          $lte: new Date(endDate),
-        },
-      };
+      currentStart = new Date(startDate);
+      currentEnd = new Date(endDate);
+      // Set to end of day to capture all bookings on the final day
+      currentEnd.setHours(23, 59, 59, 999); 
     }
 
-    // 1. Top performing movies (Raw data)
+    const dateFilter = {
+      bookingDate: { $gte: currentStart, $lte: currentEnd },
+    };
+
+    // 2. Calculate PREVIOUS Period Filter (for custom % change)
+    // Find out how many days the user selected
+    const diffTime = Math.abs(currentEnd - currentStart);
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) || 1;
+
+    // Shift dates backward by that exact number of days
+    const prevEnd = new Date(currentStart);
+    const prevStart = new Date(currentStart);
+    prevStart.setDate(prevStart.getDate() - diffDays);
+
+    const prevDateFilter = {
+      bookingDate: { $gte: prevStart, $lt: prevEnd },
+    };
+
+    // 3. Current Period Totals
+    const totalStats = await Booking.aggregate([
+      { $match: { status: "confirmed", ...dateFilter } },
+      {
+        $group: {
+          _id: null,
+          totalRevenue: { $sum: "$totalAmount" },
+          totalBookings: { $sum: 1 },
+          totalTickets: { $sum: { $size: "$seats" } },
+        },
+      },
+    ]);
+
+    const stats = totalStats[0] || { totalRevenue: 0, totalBookings: 0, totalTickets: 0 };
+    const currentAvg = stats.totalBookings > 0 ? stats.totalRevenue / stats.totalBookings : 0;
+
+    // 4. Previous Period Totals
+    const prevTotalStats = await Booking.aggregate([
+      { $match: { status: "confirmed", ...prevDateFilter } },
+      {
+        $group: {
+          _id: null,
+          totalRevenue: { $sum: "$totalAmount" },
+          totalBookings: { $sum: 1 },
+          totalTickets: { $sum: { $size: "$seats" } },
+        },
+      },
+    ]);
+
+    const prevStats = prevTotalStats[0] || { totalRevenue: 0, totalBookings: 0, totalTickets: 0 };
+    const prevAvg = prevStats.totalBookings > 0 ? prevStats.totalRevenue / prevStats.totalBookings : 0;
+
+    // 5. Calculate Percentage Changes
+    const calcChange = (current, previous) => {
+      if (!previous || previous === 0) return current > 0 ? 100 : 0;
+      return (((current - previous) / previous) * 100).toFixed(1);
+    };
+
+    const changes = {
+      revenue: parseFloat(calcChange(stats.totalRevenue, prevStats.totalRevenue)),
+      bookings: parseFloat(calcChange(stats.totalBookings, prevStats.totalBookings)),
+      tickets: parseFloat(calcChange(stats.totalTickets, prevStats.totalTickets)),
+      avgValue: parseFloat(calcChange(currentAvg, prevAvg)),
+    };
+
+    // 6. Top performing movies
     const topMoviesRaw = await Booking.aggregate([
       { $match: { status: "confirmed", ...dateFilter } },
       {
@@ -564,16 +691,9 @@ const getAdminReports = async (req, res) => {
           revenue: { $sum: "$totalAmount" },
         },
       },
-      { $sort: { tickets: -1 } }, // Sort by tickets sold
-      { $limit: 5 },
-      {
-        $lookup: {
-          from: "movies",
-          localField: "_id",
-          foreignField: "_id",
-          as: "movieDetails",
-        },
-      },
+      { $sort: { revenue: -1 } },
+      { $limit: 10 },
+      { $lookup: { from: "movies", localField: "_id", foreignField: "_id", as: "movieDetails" } },
       {
         $project: {
           title: { $arrayElemAt: ["$movieDetails.title", 0] },
@@ -584,17 +704,10 @@ const getAdminReports = async (req, res) => {
       },
     ]);
 
-    // 🟢 FRONTEND FORMAT: Top Movies Chart
-    const movieStatsData = topMoviesRaw.map((m) => ({
-      name: m.title || "Unknown",
-      value: m.tickets,
-    }));
-
-    // 2. Recent transactions
+    // 7. Recent transactions
     const recentTransactions = await Booking.find({ ...dateFilter })
       .populate("user", "name")
       .populate("movie", "title")
-      .populate("show", "date time")
       .sort({ bookingDate: -1 })
       .limit(20)
       .select("bookingId user movie seats totalAmount status bookingDate");
@@ -609,77 +722,20 @@ const getAdminReports = async (req, res) => {
       status: t.status,
     }));
 
-    // 3. Calculate totals
-    const totalStats = await Booking.aggregate([
-      { $match: { status: "confirmed", ...dateFilter } },
-      {
-        $group: {
-          _id: null,
-          totalRevenue: { $sum: "$totalAmount" },
-          totalBookings: { $sum: 1 },
-          totalTickets: { $sum: { $size: "$seats" } },
-        },
-      },
-    ]);
-
-    const stats = totalStats[0] || {
-      totalRevenue: 0,
-      totalBookings: 0,
-      totalTickets: 0,
-    };
-
-    // 🟢 FRONTEND FORMAT: Daily Revenue Chart
-    // (Moved UP so it actually executes!)
-    const dailyRevenueRaw = await Booking.aggregate([
-      { $match: { status: "confirmed", ...dateFilter } },
-      {
-        $group: {
-          _id: { $dateToString: { format: "%Y-%m-%d", date: "$bookingDate" } },
-          revenue: { $sum: "$totalAmount" },
-        },
-      },
-      { $sort: { _id: 1 } },
-      { $limit: 7 }
-    ]);
-
-    const revenueData = dailyRevenueRaw.map((item) => {
-      const d = new Date(item._id);
-      return {
-        date: d.toLocaleDateString("en-US", { weekday: "short" }),
-        revenue: item.revenue,
-      };
-    });
-
-    // 🟢 FRONTEND FORMAT: Format Popularity Chart (2D, 3D, etc)
-    const formatStatsData = await Booking.aggregate([
-      { $match: { status: "confirmed", ...dateFilter } },
-      { $lookup: { from: "shows", localField: "show", foreignField: "_id", as: "showDetails" } },
-      { $unwind: "$showDetails" },
-      { $group: { _id: "$showDetails.format", value: { $sum: "$totalAmount" } } },
-      { $project: { name: { $ifNull: ["$_id", "2D"] }, value: 1, _id: 0 } },
-      { $sort: { value: -1 } }
-    ]);
-
-    // Send everything to the frontend
+    // Send everything to the frontend!
     res.status(200).json({
       success: true,
       report: {
         ...stats,
-        avgBookingValue: stats.totalBookings > 0 ? stats.totalRevenue / stats.totalBookings : 0,
+        avgBookingValue: currentAvg,
+        changes, // 🟢 This magically feeds your custom % UI!
         topMovies: topMoviesRaw,
         recentTransactions: formattedTransactions,
-        // Send the nicely formatted chart arrays here!
-        revenueData,
-        movieStatsData,
-        formatStatsData,
       },
     });
   } catch (error) {
     console.error("Get Admin Reports Error:", error);
-    res.status(500).json({
-      success: false,
-      message: "Server error while generating reports",
-    });
+    res.status(500).json({ success: false, message: "Server error while generating reports" });
   }
 };
 
