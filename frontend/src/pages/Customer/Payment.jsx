@@ -195,7 +195,12 @@ const Payment = () => {
                 <h2 className="text-2xl font-bold text-white mb-6">
                   Select Your Seats
                 </h2>
-                <SeatMap bookedSeats={bookingData.show.bookedSeats} totalSeats={bookingData.show.totalSeats}/>
+                <SeatMap
+                  bookedSeats={bookingData.show.bookedSeats}
+                  lockedSeats={bookingData.show.lockedSeats}
+                  myLockedSeats={bookingData.show.myLockedSeats}
+                  totalSeats={bookingData.show.totalSeats}
+                />
 
                 {bookingData.selectedSeats.length > 0 && (
                   <div className="mt-6">

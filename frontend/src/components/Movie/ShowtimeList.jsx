@@ -75,7 +75,29 @@ const ShowtimeList = ({ shows, movie }) => {
                 }
                 return total;
               }, 0) || 0;
-              const availableSeats = show.totalSeats - totalBookedCount;
+              const totalLockedCount = show.lockedSeats?.reduce((total, item) => {
+                if (item.seats && Array.isArray(item.seats)) {
+                  return total + item.seats.length;
+                }
+                if (item.row) {
+                  return total + 1;
+                }
+                return total;
+              }, 0) || 0;
+              const myLockedCount = show.myLockedSeats?.reduce((total, item) => {
+                if (item.seats && Array.isArray(item.seats)) {
+                  return total + item.seats.length;
+                }
+                if (item.row) {
+                  return total + 1;
+                }
+                return total;
+              }, 0) || 0;
+              const effectiveLocked = Math.max(totalLockedCount - myLockedCount, 0);
+              const availableSeats = Math.max(
+                show.totalSeats - totalBookedCount - effectiveLocked,
+                0
+              );
               const isAlmostFull = availableSeats > 0 && availableSeats < 45;
               const isFull = availableSeats <= 0;
 

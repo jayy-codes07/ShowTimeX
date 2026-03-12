@@ -19,6 +19,8 @@ export const API_ENDPOINTS = {
   SHOWS: '/shows',
   SHOW_BY_ID: (id) => `/shows/${id}`,
   SHOWS_BY_MOVIE: (movieId) => `/shows/movie/${movieId}`,
+  LOCK_SEATS: (showId) => `/shows/${showId}/lock`,
+  UNLOCK_SEATS: (showId) => `/shows/${showId}/unlock`,
 
   // Bookings
   BOOKINGS: '/bookings',

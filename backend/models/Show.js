@@ -34,6 +34,27 @@ const showSchema = new mongoose.Schema(
       ],
       default: [],
     },
+    // Temporary seat holds to prevent double booking
+    seatLocks: {
+      type: [
+        {
+          user: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "User",
+            required: true,
+          },
+          seats: [
+            {
+              row: String,
+              number: Number,
+            },
+          ],
+          expiresAt: { type: Date, required: true },
+          createdAt: { type: Date, default: Date.now },
+        },
+      ],
+      default: [],
+    },
     isActive: { type: Boolean, default: true },
   },
   { timestamps: true }

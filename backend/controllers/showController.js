@@ -1,5 +1,28 @@
 const Show = require("../models/Show");
 const Movie = require("../models/Movie");
+const {
+  uniqueSeats,
+  getActiveLocks,
+  buildLockResponse,
+  isSeatLockedByOther,
+  upsertUserLock,
+  removeUserLockedSeats,
+} = require("../utils/seatLocks");
+
+const DEFAULT_LOCK_MINUTES = parseInt(process.env.SEAT_LOCK_MINUTES || "10", 10);
+const MAX_LOCK_MINUTES = 30;
+const MAX_LOCK_SEATS = 10;
+
+const formatShowForClient = (show, userId) => {
+  const showObj = show.toObject ? show.toObject() : { ...show };
+  const { lockedSeats, myLockedSeats } = buildLockResponse(show, userId);
+  showObj.lockedSeats = lockedSeats;
+  if (userId) {
+    showObj.myLockedSeats = myLockedSeats;
+  }
+  delete showObj.seatLocks;
+  return showObj;
+};
 
 // @desc    Get all shows (Filtered)
 // @route   GET /api/shows
@@ -25,10 +48,13 @@ const getAllShows = async (req, res) => {
       .populate("movie", "title poster duration genres languages certificate")
       .sort({ date: 1, time: 1 }); // Sorted by specific date/time
 
+    const userId = req.user?._id;
+    const formattedShows = shows.map((show) => formatShowForClient(show, userId));
+
     res.status(200).json({
       success: true,
-      count: shows.length,
-      shows,
+      count: formattedShows.length,
+      shows: formattedShows,
     });
   } catch (error) {
     console.error("Get All Shows Error:", error);
@@ -74,10 +100,13 @@ const getShowsByMovie = async (req, res) => {
       // 🟢 FIX 3: Changed 'showDate' to 'date' and 'showTime' to 'time' to match your DB schema
       .sort({ date: 1, time: 1 });
 
+    const userId = req.user?._id;
+    const formattedShows = shows.map((show) => formatShowForClient(show, userId));
+
     res.status(200).json({
       success: true,
-      count: shows.length,
-      shows,
+      count: formattedShows.length,
+      shows: formattedShows,
     });
   } catch (error) {
     console.error("Get Shows By Movie Error:", error);
@@ -190,9 +219,8 @@ const getShowById = async (req, res) => {
         .json({ success: false, message: "Show not found" });
     }
 
-    // 🟢 FIX 2: Data Transformation for React
-    // Convert the complex Mongoose document into a plain Javascript object
-    const showObj = show.toObject();
+    const userId = req.user?._id;
+    const showObj = formatShowForClient(show, userId);
 
     // Extract all seats from all transactions and put them in one simple list
     let flatBookedSeats = [];
@@ -216,6 +244,109 @@ const getShowById = async (req, res) => {
     res
       .status(500)
       .json({ success: false, message: "Server error while fetching show" });
+  }
+};
+
+// @desc    Lock seats for a short duration
+// @route   POST /api/shows/:id/lock
+// @access  Private
+const lockSeats = async (req, res) => {
+  try {
+    const { seats, holdMinutes } = req.body;
+    const requestedSeats = uniqueSeats(seats);
+
+    if (!requestedSeats.length) {
+      return res.status(400).json({
+        success: false,
+        message: "Please select at least one seat to lock",
+      });
+    }
+
+    if (requestedSeats.length > MAX_LOCK_SEATS) {
+      return res.status(400).json({
+        success: false,
+        message: `You can lock a maximum of ${MAX_LOCK_SEATS} seats`,
+      });
+    }
+
+    const show = await Show.findById(req.params.id);
+    if (!show) {
+      return res.status(404).json({ success: false, message: "Show not found" });
+    }
+
+    const activeLocks = getActiveLocks(show);
+    for (const seat of requestedSeats) {
+      if (show.isSeatBooked(seat.row, seat.number)) {
+        return res.status(409).json({
+          success: false,
+          message: `Seat ${seat.row}${seat.number} is already booked`,
+        });
+      }
+      if (isSeatLockedByOther(activeLocks, seat, req.user._id)) {
+        return res.status(409).json({
+          success: false,
+          message: `Seat ${seat.row}${seat.number} is temporarily locked`,
+        });
+      }
+    }
+
+    const minutes = Math.min(
+      Math.max(parseInt(holdMinutes || DEFAULT_LOCK_MINUTES, 10), 1),
+      MAX_LOCK_MINUTES
+    );
+    const lockResult = upsertUserLock(show, req.user._id, requestedSeats, minutes);
+    await show.save();
+
+    res.status(200).json({
+      success: true,
+      message: "Seats locked successfully",
+      ...lockResult,
+    });
+  } catch (error) {
+    console.error("Lock Seats Error:", error);
+    res.status(500).json({
+      success: false,
+      message: error.message || "Server error while locking seats",
+    });
+  }
+};
+
+// @desc    Unlock seats
+// @route   POST /api/shows/:id/unlock
+// @access  Private
+const unlockSeats = async (req, res) => {
+  try {
+    const { seats } = req.body;
+    const show = await Show.findById(req.params.id);
+
+    if (!show) {
+      return res.status(404).json({ success: false, message: "Show not found" });
+    }
+
+    if (!seats || seats.length === 0) {
+      const activeLocks = getActiveLocks(show);
+      show.seatLocks = activeLocks.filter(
+        (lock) => !lock.user || lock.user.toString() !== req.user._id.toString()
+      );
+    } else {
+      removeUserLockedSeats(show, req.user._id, seats);
+    }
+
+    await show.save();
+
+    const { lockedSeats, myLockedSeats } = buildLockResponse(show, req.user._id);
+    res.status(200).json({
+      success: true,
+      message: "Seats unlocked",
+      lockedSeats,
+      myLockedSeats,
+    });
+  } catch (error) {
+    console.error("Unlock Seats Error:", error);
+    res.status(500).json({
+      success: false,
+      message: error.message || "Server error while unlocking seats",
+    });
   }
 };
 // @desc    Update a show
@@ -303,4 +434,6 @@ module.exports = {
   createShow,
   updateShow,
   deleteShow,
+  lockSeats,
+  unlockSeats,
 };

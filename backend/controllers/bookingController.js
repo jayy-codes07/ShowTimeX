@@ -3,6 +3,15 @@ const Show = require("../models/Show");
 const Movie = require("../models/Movie");
 const { triggerN8n } = require('../n8nService');
 const Razorpay = require("razorpay");
+const {
+  uniqueSeats,
+  getActiveLocks,
+  isSeatLockedByOther,
+  upsertUserLock,
+  removeUserLockedSeats,
+} = require("../utils/seatLocks");
+
+const DEFAULT_LOCK_MINUTES = parseInt(process.env.SEAT_LOCK_MINUTES || "10", 10);
 
 const createRazorpayOrder = async (req, res) => {
   try {
@@ -76,6 +85,7 @@ const createBooking = async (req, res) => {
       "helloooooooooooooooooooooooooooooooo0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000ooooooooooooooooooooooooooooooooooooooooooooooooooooooooo",
     );
     const { movieId, showId, seats, email, phone } = req.body;
+    const seatsToBook = uniqueSeats(seats);
 
     // Validate required fields
     if (!movieId || !showId || !seats || !email || !phone) {
@@ -85,7 +95,7 @@ const createBooking = async (req, res) => {
       });
     }
 
-    if (!Array.isArray(seats) || seats.length === 0) {
+    if (!Array.isArray(seats) || seatsToBook.length === 0) {
       return res.status(400).json({
         success: false,
         message: "Please select at least one seat",
@@ -120,7 +130,7 @@ const createBooking = async (req, res) => {
     // -------------------------------------------------------------
 
     // NOW you can safely run the loop because bookedSeats is guaranteed to exist
-    for (const seat of seats) {
+    for (const seat of seatsToBook) {
       if (show.isSeatBooked(seat.row, seat.number)) {
         return res.status(400).json({
           success: false,
@@ -129,15 +139,29 @@ const createBooking = async (req, res) => {
       }
     }
 
+    const activeLocks = getActiveLocks(show);
+    for (const seat of seatsToBook) {
+      if (isSeatLockedByOther(activeLocks, seat, req.user._id)) {
+        return res.status(409).json({
+          success: false,
+          message: `Seat ${seat.row}${seat.number} is temporarily locked`,
+        });
+      }
+    }
+
     // Check if enough seats available (No need for extra variables now)
     // Check if enough seats available
     // FIX: Use availableSeats virtual because bookedSeats.length is not accurate for nested arrays
-    if (show.availableSeats < seats.length) {
+    if (show.availableSeats < seatsToBook.length) {
       return res.status(400).json({
         success: false,
         message: "Not enough seats available",
       });
     }
+
+    // Lock seats while user completes payment
+    upsertUserLock(show, req.user._id, seatsToBook, DEFAULT_LOCK_MINUTES);
+    await show.save();
 
     const bookingId = `CB-${new Date().getFullYear()}-${Math.floor(100000 + Math.random() * 900000)}`;
 
@@ -147,14 +171,14 @@ const createBooking = async (req, res) => {
       user: req.user._id,
       movie: movieId,
       show: showId,
-      seats,
+      seats: seatsToBook,
       email,
       phone,
       status: "pending", // 🔴 IMPORTANT
     });
 
     // Calculate total amount
-    booking.calculateTotal(show.price, seats.length);
+    booking.calculateTotal(show.price, seatsToBook.length);
 
     // Save booking
     await booking.save();
@@ -242,13 +266,32 @@ const verifyPayment = async (req, res) => {
         .json({ success: false, message: "Invalid signature" });
     }
 
+    const activeLocks = getActiveLocks(booking.show);
+    for (const seat of booking.seats || []) {
+      if (booking.show.isSeatBooked(seat.row, seat.number)) {
+        return res.status(400).json({
+          success: false,
+          message: `Seat ${seat.row}${seat.number} is already booked`,
+        });
+      }
+      if (isSeatLockedByOther(activeLocks, seat, booking.user)) {
+        return res.status(409).json({
+          success: false,
+          message: `Seat ${seat.row}${seat.number} is temporarily locked`,
+        });
+      }
+    }
+
     // ✅ NOW book seats
     booking.show.bookSeats(booking.seats);
+    removeUserLockedSeats(booking.show, booking.user, booking.seats);
     await booking.show.save();
 
     // ✅ Confirm booking
     // ✅ Confirm booking
     booking.status = "confirmed";
+    booking.paymentStatus = "completed";
+    booking.orderId = razorpay_order_id;
     booking.paymentId = razorpay_payment_id;
     await booking.save();
 

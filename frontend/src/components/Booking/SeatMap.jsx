@@ -1,12 +1,25 @@
 import React, { useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { Monitor } from 'lucide-react';
-import { SEAT_CONFIG } from '../../utils/constants';
+import { SEAT_CONFIG, API_ENDPOINTS } from '../../utils/constants';
 import { useBooking } from '../../context/BookingContext';
+import { apiRequest } from '../../services/api';
+import toast from 'react-hot-toast';
 
 // 🟢 FIX 1: Accept totalSeats as a prop (default to 120 if missing)
-const SeatMap = ({ bookedSeats = [], totalSeats = 120 }) => {
-  const { toggleSeat, isSeatSelected } = useBooking();
+const SeatMap = ({
+  bookedSeats = [],
+  totalSeats = 120,
+  lockedSeats = [],
+  myLockedSeats = [],
+}) => {
+  const {
+    bookingData,
+    addSeat,
+    removeSeat,
+    isSeatSelected,
+    updateShowLocks,
+  } = useBooking();
 
   const flatBookedSeats = useMemo(() => {
     if (!Array.isArray(bookedSeats)) return [];
@@ -21,13 +34,89 @@ const SeatMap = ({ bookedSeats = [], totalSeats = 120 }) => {
     }, []);
   }, [bookedSeats]);
 
-  const handleSeatClick = (row, number) => {
+  const flatLockedSeats = useMemo(() => {
+    if (!Array.isArray(lockedSeats)) return [];
+    return lockedSeats.reduce((acc, curr) => {
+      if (curr.seats && Array.isArray(curr.seats)) {
+        return [...acc, ...curr.seats];
+      }
+      if (curr.row) {
+        return [...acc, curr];
+      }
+      return acc;
+    }, []);
+  }, [lockedSeats]);
+
+  const flatMyLockedSeats = useMemo(() => {
+    if (!Array.isArray(myLockedSeats)) return [];
+    return myLockedSeats.reduce((acc, curr) => {
+      if (curr.seats && Array.isArray(curr.seats)) {
+        return [...acc, ...curr.seats];
+      }
+      if (curr.row) {
+        return [...acc, curr];
+      }
+      return acc;
+    }, []);
+  }, [myLockedSeats]);
+
+  const handleSeatClick = async (row, number) => {
+    const showId = bookingData.show?._id;
+    if (!showId) return;
+
     const isBooked = flatBookedSeats.some(
       (seat) => seat.row === row && seat.number === number
     );
+    const isLockedByMe = flatMyLockedSeats.some(
+      (seat) => seat.row === row && seat.number === number
+    );
+    const isLockedByOther =
+      flatLockedSeats.some(
+        (seat) => seat.row === row && seat.number === number
+      ) && !isLockedByMe;
 
-    if (!isBooked) {
-      toggleSeat({ row, number });
+    if (isBooked || isLockedByOther) {
+      return;
+    }
+
+    try {
+      if (isSeatSelected(row, number)) {
+        const response = await apiRequest.post(
+          API_ENDPOINTS.UNLOCK_SEATS(showId),
+          { seats: [{ row, number }] }
+        );
+        removeSeat({ row, number });
+        updateShowLocks(response.lockedSeats || [], response.myLockedSeats || []);
+        return;
+      }
+
+      if (
+        bookingData.selectedSeats.length >= SEAT_CONFIG.MAX_SEATS_PER_BOOKING
+      ) {
+        toast.error(
+          `You can select maximum ${SEAT_CONFIG.MAX_SEATS_PER_BOOKING} seats per booking`
+        );
+        return;
+      }
+
+      const response = await apiRequest.post(
+        API_ENDPOINTS.LOCK_SEATS(showId),
+        { seats: [{ row, number }], holdMinutes: 10 }
+      );
+
+      const added = addSeat({ row, number });
+      if (!added) {
+        await apiRequest.post(API_ENDPOINTS.UNLOCK_SEATS(showId), {
+          seats: [{ row, number }],
+        });
+        return;
+      }
+
+      updateShowLocks(response.lockedSeats || [], response.myLockedSeats || []);
+    } catch (error) {
+      const message =
+        error.response?.data?.message || "Failed to lock seat";
+      toast.error(message);
     }
   };
 
@@ -35,9 +124,16 @@ const SeatMap = ({ bookedSeats = [], totalSeats = 120 }) => {
     const isBooked = flatBookedSeats.some(
       (seat) => seat.row === row && seat.number === number
     );
+    const isLockedByMe = flatMyLockedSeats.some(
+      (seat) => seat.row === row && seat.number === number
+    );
+    const isLockedByOther =
+      flatLockedSeats.some(
+        (seat) => seat.row === row && seat.number === number
+      ) && !isLockedByMe;
     const isSelected = isSeatSelected(row, number);
 
-    if (isBooked) return 'booked';
+    if (isBooked || isLockedByOther) return 'booked';
     if (isSelected) return 'selected';
     return 'available';
   };
