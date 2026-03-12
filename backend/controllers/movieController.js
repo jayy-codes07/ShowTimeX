@@ -146,9 +146,20 @@ const searchMovies = async (req, res) => {
 // @access  Private/Admin
 const createMovie = async (req, res) => {
   try {
-    const movie = await Movie.create(req.body);
+    // ✅ ADD THIS BLOCK - handle poster & backdrop (file upload OR TMDB URL)
+    const movieData = { ...req.body };
 
-    // 🔔 Trigger n8n - notify all users about new movie
+    if (req.files?.poster) {
+      movieData.poster = `/uploads/${req.files.poster[0].filename}`;
+    }
+    if (req.files?.backdrop) {
+      movieData.backdrop = `/uploads/${req.files.backdrop[0].filename}`;
+    }
+
+    // ✅ CHANGE: Movie.create(req.body) → Movie.create(movieData)
+    const movie = await Movie.create(movieData);
+
+    // 🔔 Trigger n8n - notify all users about new movie (unchanged)
     const subscribers = await User.find({ role: 'customer' }, 'email').lean();
     await triggerN8n('new-movie', {
       movieTitle: movie.title,

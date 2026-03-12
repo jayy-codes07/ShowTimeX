@@ -1,32 +1,32 @@
-import React, { useEffect, useState } from 'react';
-import { motion } from 'framer-motion';
-import { Plus, Edit, Trash2, Search, Film } from 'lucide-react';
-import Button from '../../components/UI/Button';
-import Input from '../../components/UI/Input';
-import Loader from '../../components/UI/Loader';
-import { movieService } from '../../services/movieService';
-import { GENRES, LANGUAGES, CERTIFICATES } from '../../utils/constants';
-import toast from 'react-hot-toast';
+import React, { useEffect, useState } from "react";
+import { motion } from "framer-motion";
+import { Plus, Edit, Trash2, Search, Film } from "lucide-react";
+import Button from "../../components/UI/Button";
+import Input from "../../components/UI/Input";
+import Loader from "../../components/UI/Loader";
+import { movieService } from "../../services/movieService";
+import { GENRES, LANGUAGES, CERTIFICATES } from "../../utils/constants";
+import toast from "react-hot-toast";
 
 const ManageMovies = () => {
   const [movies, setMovies] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [editingMovie, setEditingMovie] = useState(null);
-  const [searchQuery, setSearchQuery] = useState('');
+  const [searchQuery, setSearchQuery] = useState("");
   const [formData, setFormData] = useState({
-    title: '',
-    description: '',
-    duration: '',
-    releaseDate: '',
-    rating: '',
-    certificate: '',
+    title: "",
+    description: "",
+    duration: "",
+    releaseDate: "",
+    rating: "",
+    certificate: "",
     genres: [],
     languages: [],
-    director: '',
-    cast: '',
-    poster: '',
-    backdrop: '',
+    director: "",
+    cast: "",
+    poster: "",
+    backdrop: "",
   });
   const [errors, setErrors] = useState({});
   const [submitting, setSubmitting] = useState(false);
@@ -43,8 +43,8 @@ const ManageMovies = () => {
         setMovies(response.movies || []);
       }
     } catch (error) {
-      console.error('Error fetching movies:', error);
-      toast.error('Failed to load movies');
+      console.error("Error fetching movies:", error);
+      toast.error("Failed to load movies");
     } finally {
       setLoading(false);
     }
@@ -54,14 +54,14 @@ const ManageMovies = () => {
     const { name, value } = e.target;
     setFormData({ ...formData, [name]: value });
     if (errors[name]) {
-      setErrors({ ...errors, [name]: '' });
+      setErrors({ ...errors, [name]: "" });
     }
   };
 
   const handleMultiSelect = (field, value) => {
     const current = formData[field];
     const updated = current.includes(value)
-      ? current.filter(item => item !== value)
+      ? current.filter((item) => item !== value)
       : [...current, value];
     setFormData({ ...formData, [field]: updated });
   };
@@ -71,9 +71,10 @@ const ManageMovies = () => {
 
     // Basic validation
     const newErrors = {};
-    if (!formData.title.trim()) newErrors.title = 'Title is required';
-    if (!formData.duration) newErrors.duration = 'Duration is required';
-    if (!formData.releaseDate) newErrors.releaseDate = 'Release date is required';
+    if (!formData.title.trim()) newErrors.title = "Title is required";
+    if (!formData.duration) newErrors.duration = "Duration is required";
+    if (!formData.releaseDate)
+      newErrors.releaseDate = "Release date is required";
 
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
@@ -82,13 +83,16 @@ const ManageMovies = () => {
 
     try {
       setSubmitting(true);
-      
+
       // Prepare data
       const movieData = {
         ...formData,
         duration: parseInt(formData.duration),
         rating: parseFloat(formData.rating) || 0,
-        cast: formData.cast.split(',').map(c => c.trim()).filter(Boolean),
+        cast: formData.cast
+          .split(",")
+          .map((c) => c.trim())
+          .filter(Boolean),
       };
 
       let response;
@@ -99,14 +103,18 @@ const ManageMovies = () => {
       }
 
       if (response.success) {
-        toast.success(editingMovie ? 'Movie updated successfully' : 'Movie added successfully');
+        toast.success(
+          editingMovie
+            ? "Movie updated successfully"
+            : "Movie added successfully",
+        );
         setShowModal(false);
         resetForm();
         fetchMovies();
       }
     } catch (error) {
-      console.error('Error saving movie:', error);
-      toast.error(error.response?.data?.message || 'Failed to save movie');
+      console.error("Error saving movie:", error);
+      toast.error(error.response?.data?.message || "Failed to save movie");
     } finally {
       setSubmitting(false);
     }
@@ -116,59 +124,95 @@ const ManageMovies = () => {
     setEditingMovie(movie);
     setFormData({
       title: movie.title,
-      description: movie.description || '',
-      duration: movie.duration?.toString() || '',
-      releaseDate: movie.releaseDate?.split('T')[0] || '',
-      rating: movie.rating?.toString() || '',
-      certificate: movie.certificate || '',
+      description: movie.description || "",
+      duration: movie.duration?.toString() || "",
+      releaseDate: movie.releaseDate?.split("T")[0] || "",
+      rating: movie.rating?.toString() || "",
+      certificate: movie.certificate || "",
       genres: movie.genres || [],
       languages: movie.languages || [],
-      director: movie.director || '',
-      cast: movie.cast?.join(', ') || '',
-      poster: movie.poster || '',
-      backdrop: movie.backdrop || '',
+      director: movie.director || "",
+      cast: movie.cast?.join(", ") || "",
+      poster: movie.poster || "",
+      backdrop: movie.backdrop || "",
     });
     setShowModal(true);
   };
 
   const handleDelete = async (movieId) => {
-    if (!window.confirm('Are you sure you want to delete this movie?')) {
+    if (!window.confirm("Are you sure you want to delete this movie?")) {
       return;
     }
 
     try {
       const response = await movieService.deleteMovie(movieId);
       if (response.success) {
-        toast.success('Movie deleted successfully');
+        toast.success("Movie deleted successfully");
         fetchMovies();
       }
     } catch (error) {
-      console.error('Error deleting movie:', error);
-      toast.error('Failed to delete movie');
+      console.error("Error deleting movie:", error);
+      toast.error("Failed to delete movie");
     }
   };
 
   const resetForm = () => {
     setFormData({
-      title: '',
-      description: '',
-      duration: '',
-      releaseDate: '',
-      rating: '',
-      certificate: '',
+      title: "",
+      description: "",
+      duration: "",
+      releaseDate: "",
+      rating: "",
+      certificate: "",
       genres: [],
       languages: [],
-      director: '',
-      cast: '',
-      poster: '',
-      backdrop: '',
+      director: "",
+      cast: "",
+      poster: "",
+      backdrop: "",
     });
     setEditingMovie(null);
     setErrors({});
   };
 
-  const filteredMovies = movies.filter(movie =>
-    movie.title.toLowerCase().includes(searchQuery.toLowerCase())
+ const fetchTMDBImages = async () => {
+  if (!formData.title.trim()) {
+    toast.error('Enter a movie title first');
+    return;
+  }
+
+  const toastId = toast.loading(`Searching "${formData.title}" on TMDB...`);
+
+  try {
+    const res = await fetch(
+      `http://localhost:5000/api/tmdb/search?title=${encodeURIComponent(formData.title.trim())}`
+    );
+
+    const data = await res.json();
+    toast.dismiss(toastId);
+
+    console.log('TMDB response:', data); // check browser console
+
+    if (data.success) {
+      setFormData(prev => ({ 
+        ...prev, 
+        poster: data.poster || prev.poster,
+        backdrop: data.backdrop || prev.backdrop,
+      }));
+      toast.success(`Found: "${data.tmdbTitle}" - Images fetched!`);
+    } else {
+      toast.error(data.message || 'Not found on TMDB');
+    }
+
+  } catch (error) {
+    toast.dismiss(toastId);
+    console.error('Fetch error:', error);
+    toast.error('Cannot connect to server. Is backend running?');
+  }
+};
+
+  const filteredMovies = movies.filter((movie) =>
+    movie.title.toLowerCase().includes(searchQuery.toLowerCase()),
   );
 
   if (loading) {
@@ -185,8 +229,12 @@ const ManageMovies = () => {
           className="flex flex-col md:flex-row md:items-center md:justify-between mb-8"
         >
           <div>
-            <h1 className="text-3xl md:text-4xl font-bold text-white mb-2">Manage Movies</h1>
-            <p className="text-gray-400">Add, edit, or remove movies from your catalog</p>
+            <h1 className="text-3xl md:text-4xl font-bold text-white mb-2">
+              Manage Movies
+            </h1>
+            <p className="text-gray-400">
+              Add, edit, or remove movies from your catalog
+            </p>
           </div>
           <Button
             variant="primary"
@@ -227,11 +275,21 @@ const ManageMovies = () => {
               <table className="w-full">
                 <thead className="bg-dark-lighter">
                   <tr>
-                    <th className="text-left py-4 px-6 text-gray-400 font-semibold">Movie</th>
-                    <th className="text-left py-4 px-6 text-gray-400 font-semibold">Duration</th>
-                    <th className="text-left py-4 px-6 text-gray-400 font-semibold">Rating</th>
-                    <th className="text-left py-4 px-6 text-gray-400 font-semibold">Release Date</th>
-                    <th className="text-left py-4 px-6 text-gray-400 font-semibold">Actions</th>
+                    <th className="text-left py-4 px-6 text-gray-400 font-semibold">
+                      Movie
+                    </th>
+                    <th className="text-left py-4 px-6 text-gray-400 font-semibold">
+                      Duration
+                    </th>
+                    <th className="text-left py-4 px-6 text-gray-400 font-semibold">
+                      Rating
+                    </th>
+                    <th className="text-left py-4 px-6 text-gray-400 font-semibold">
+                      Release Date
+                    </th>
+                    <th className="text-left py-4 px-6 text-gray-400 font-semibold">
+                      Actions
+                    </th>
                   </tr>
                 </thead>
                 <tbody>
@@ -251,15 +309,21 @@ const ManageMovies = () => {
                             className="w-12 h-16 object-cover rounded"
                           />
                           <div>
-                            <p className="text-white font-semibold">{movie.title}</p>
+                            <p className="text-white font-semibold">
+                              {movie.title}
+                            </p>
                             <p className="text-gray-500 text-sm">
-                              {movie.genres?.slice(0, 2).join(', ')}
+                              {movie.genres?.slice(0, 2).join(", ")}
                             </p>
                           </div>
                         </div>
                       </td>
-                      <td className="py-4 px-6 text-gray-300">{movie.duration} min</td>
-                      <td className="py-4 px-6 text-yellow-500 font-semibold">{movie.rating}/10</td>
+                      <td className="py-4 px-6 text-gray-300">
+                        {movie.duration} min
+                      </td>
+                      <td className="py-4 px-6 text-yellow-500 font-semibold">
+                        {movie.rating}/10
+                      </td>
                       <td className="py-4 px-6 text-gray-300">
                         {new Date(movie.releaseDate).toLocaleDateString()}
                       </td>
@@ -301,7 +365,7 @@ const ManageMovies = () => {
               className="bg-dark-card rounded-xl p-8 max-w-2xl w-full mb-8 mt-[300px]"
             >
               <h2 className="text-2xl font-bold text-white mb-6">
-                {editingMovie ? 'Edit Movie' : 'Add New Movie'}
+                {editingMovie ? "Edit Movie" : "Add New Movie"}
               </h2>
 
               <form onSubmit={handleSubmit} className="space-y-4">
@@ -345,7 +409,9 @@ const ManageMovies = () => {
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-300 mb-2">Certificate</label>
+                    <label className="block text-sm font-medium text-gray-300 mb-2">
+                      Certificate
+                    </label>
                     <select
                       name="certificate"
                       value={formData.certificate}
@@ -353,8 +419,10 @@ const ManageMovies = () => {
                       className="input-field"
                     >
                       <option value="">Select Certificate</option>
-                      {CERTIFICATES.map(cert => (
-                        <option key={cert} value={cert}>{cert}</option>
+                      {CERTIFICATES.map((cert) => (
+                        <option key={cert} value={cert}>
+                          {cert}
+                        </option>
                       ))}
                     </select>
                   </div>
@@ -367,7 +435,9 @@ const ManageMovies = () => {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-2">Description</label>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">
+                    Description
+                  </label>
                   <textarea
                     name="description"
                     value={formData.description}
@@ -385,31 +455,70 @@ const ManageMovies = () => {
                   placeholder="Actor 1, Actor 2, Actor 3"
                 />
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <Input
-                    label="Poster URL"
-                    name="poster"
-                    value={formData.poster}
-                    onChange={handleInputChange}
-                  />
-                  <Input
-                    label="Backdrop URL"
-                    name="backdrop"
-                    value={formData.backdrop}
-                    onChange={handleInputChange}
-                  />
+                {/* Auto-fetch button */}
+                <div className="flex justify-start">
+                  <button
+                    type="button"
+                    onClick={fetchTMDBImages}
+                    className="flex items-center gap-2 bg-yellow-500/20 hover:bg-yellow-500/30 
+               text-yellow-400 px-4 py-2 rounded-lg text-sm font-medium transition"
+                  >
+                     Auto-fetch HD Images from TMDB
+                  </button>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-300 mb-2">Genres</label>
+                    <Input
+                      label="Poster URL"
+                      name="poster"
+                      value={formData.poster}
+                      onChange={handleInputChange}
+                    />
+                    {/* Preview */}
+                    {formData.poster && (
+                      <img
+                        src={formData.poster}
+                        alt="Poster preview"
+                        className="mt-2 w-20 h-28 object-cover rounded-lg border border-gray-700"
+                        onError={(e) => (e.target.style.display = "none")}
+                      />
+                    )}
+                  </div>
+                  <div>
+                    <Input
+                      label="Backdrop URL"
+                      name="backdrop"
+                      value={formData.backdrop}
+                      onChange={handleInputChange}
+                    />
+                    {/* Preview */}
+                    {formData.backdrop && (
+                      <img
+                        src={formData.backdrop}
+                        alt="Backdrop preview"
+                        className="mt-2 w-full h-20 object-cover rounded-lg border border-gray-700"
+                        onError={(e) => (e.target.style.display = "none")}
+                      />
+                    )}
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-300 mb-2">
+                      Genres
+                    </label>
                     <div className="max-h-32 overflow-y-auto bg-dark-lighter rounded p-2">
-                      {GENRES.map(genre => (
-                        <label key={genre} className="flex items-center space-x-2 py-1 cursor-pointer">
+                      {GENRES.map((genre) => (
+                        <label
+                          key={genre}
+                          className="flex items-center space-x-2 py-1 cursor-pointer"
+                        >
                           <input
                             type="checkbox"
                             checked={formData.genres.includes(genre)}
-                            onChange={() => handleMultiSelect('genres', genre)}
+                            onChange={() => handleMultiSelect("genres", genre)}
                             className="w-4 h-4"
                           />
                           <span className="text-sm text-gray-300">{genre}</span>
@@ -418,17 +527,26 @@ const ManageMovies = () => {
                     </div>
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-300 mb-2">Languages</label>
+                    <label className="block text-sm font-medium text-gray-300 mb-2">
+                      Languages
+                    </label>
                     <div className="max-h-32 overflow-y-auto bg-dark-lighter rounded p-2">
-                      {LANGUAGES.map(language => (
-                        <label key={language} className="flex items-center space-x-2 py-1 cursor-pointer">
+                      {LANGUAGES.map((language) => (
+                        <label
+                          key={language}
+                          className="flex items-center space-x-2 py-1 cursor-pointer"
+                        >
                           <input
                             type="checkbox"
                             checked={formData.languages.includes(language)}
-                            onChange={() => handleMultiSelect('languages', language)}
+                            onChange={() =>
+                              handleMultiSelect("languages", language)
+                            }
                             className="w-4 h-4"
                           />
-                          <span className="text-sm text-gray-300">{language}</span>
+                          <span className="text-sm text-gray-300">
+                            {language}
+                          </span>
                         </label>
                       ))}
                     </div>
@@ -447,7 +565,7 @@ const ManageMovies = () => {
                     Cancel
                   </Button>
                   <Button type="submit" variant="primary" loading={submitting}>
-                    {editingMovie ? 'Update Movie' : 'Add Movie'}
+                    {editingMovie ? "Update Movie" : "Add Movie"}
                   </Button>
                 </div>
               </form>

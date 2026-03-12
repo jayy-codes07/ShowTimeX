@@ -94,7 +94,7 @@ const MovieDetails = () => {
             backgroundImage: `url(${movie.backdrop || movie.poster || IMAGE_PLACEHOLDER})`,
           }}
         >
-          <div className="absolute inset-0 bg-gradient-to-t from-dark via-dark/80 to-dark/30"></div>
+          <div className="absolute inset-0 bg-gradient-to-t from-dark via-dark/60 to-dark/10"></div>
         </div>
 
         <div className="container-custom relative h-full flex items-end pb-8">
@@ -103,12 +103,12 @@ const MovieDetails = () => {
             <motion.div
               initial={{ opacity: 0, x: -50 }}
               animate={{ opacity: 1, x: 0 }}
-              className="flex-shrink-0"
+              className="flex-shrink-0 ml-2 md:ml-0"
             >
               <img
                 src={movie.poster || IMAGE_PLACEHOLDER}
                 alt={movie.title}
-                className="w-48 md:w-64 rounded-xl shadow-2xl"
+                className="w-48 md:w-64 rounded-xl shadow-2xl  object-cover aspect-[2/3]"
                 onError={(e) => {
                   e.target.src = IMAGE_PLACEHOLDER;
                 }}

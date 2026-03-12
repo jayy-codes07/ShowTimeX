@@ -2,6 +2,8 @@ const express = require('express');
 const cors = require('cors');
 const dotenv = require('dotenv');
 const connectDB = require('./config/db');
+const multer = require('multer');
+const path = require('path');
 
 // Load environment variables
 dotenv.config();
@@ -23,6 +25,17 @@ app.use((req, res, next) => {
   next();
 });
 
+const storage = multer.diskStorage({
+  destination: './uploads/',
+  filename: (req, file, cb) => {
+    cb(null, Date.now() + path.extname(file.originalname));
+  }
+});
+
+const upload = multer({ storage });
+
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+app.use('/api/tmdb', require('./routes/tmdbRoutes')); // new TMDB proxy route
 
 // Routes
 app.use('/api/auth', require('./routes/authRoutes'));
