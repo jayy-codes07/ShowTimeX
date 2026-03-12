@@ -1,8 +1,6 @@
 const User = require('../models/User');
-const { generateToken } = require('../middleware/authMiddleware');
-
-// @desc    Register a new user
-// @route   POST /api/auth/register
+const { generateToken } = require('../middleware/authMiddleware');// @desc    Register a new user
+// // @route   POST /api/auth/register
 // @access  Public
 const register = async (req, res) => {
   try {

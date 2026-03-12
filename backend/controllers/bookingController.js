@@ -675,7 +675,7 @@ const getAdminReports = async (req, res) => {
       currentStart = new Date(startDate);
       currentEnd = new Date(endDate);
       // Set to end of day to capture all bookings on the final day
-      currentEnd.setHours(23, 59, 59, 999); 
+      currentEnd.setHours(23, 59, 59, 999);
     }
 
     const dateFilter = {
@@ -766,11 +766,19 @@ const getAdminReports = async (req, res) => {
     ]);
 
     // 7. Recent transactions
+    // 7. Recent transactions - ADD pagination
+    const { page = 1, limit = 10 } = req.query; // ✅ read page & limit
+    const skip = (parseInt(page) - 1) * parseInt(limit);
+
+    // ✅ Count total matching transactions
+    const totalTransactions = await Booking.countDocuments({ ...dateFilter });
+
     const recentTransactions = await Booking.find({ ...dateFilter })
       .populate("user", "name")
       .populate("movie", "title")
       .sort({ bookingDate: -1 })
-      .limit(20)
+      .skip(skip)                    // ✅ skip records
+      .limit(parseInt(limit))        // ✅ only fetch 10
       .select("bookingId user movie seats totalAmount status bookingDate");
 
     const formattedTransactions = recentTransactions.map((t) => ({
@@ -783,17 +791,24 @@ const getAdminReports = async (req, res) => {
       status: t.status,
     }));
 
-    // Send everything to the frontend!
+    // ✅ Send pagination info with response
     res.status(200).json({
       success: true,
       report: {
         ...stats,
         avgBookingValue: currentAvg,
-        changes, // 🟢 This magically feeds your custom % UI!
+        changes,
         topMovies: topMoviesRaw,
         recentTransactions: formattedTransactions,
+        pagination: {                                              // ✅ added
+          total: totalTransactions,
+          page: parseInt(page),
+          limit: parseInt(limit),
+          hasMore: skip + parseInt(limit) < totalTransactions,
+        }
       },
     });
+
   } catch (error) {
     console.error("Get Admin Reports Error:", error);
     res.status(500).json({ success: false, message: "Server error while generating reports" });
