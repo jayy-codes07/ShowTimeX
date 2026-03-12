@@ -86,7 +86,11 @@ const SeatMap = ({
           { seats: [{ row, number }] }
         );
         removeSeat({ row, number });
-        updateShowLocks(response.lockedSeats || [], response.myLockedSeats || []);
+        updateShowLocks(
+          response.lockedSeats || [],
+          response.myLockedSeats || [],
+          response.myLockExpiresAt || response.expiresAt || null
+        );
         return;
       }
 
@@ -112,7 +116,11 @@ const SeatMap = ({
         return;
       }
 
-      updateShowLocks(response.lockedSeats || [], response.myLockedSeats || []);
+      updateShowLocks(
+        response.lockedSeats || [],
+        response.myLockedSeats || [],
+        response.myLockExpiresAt || response.expiresAt || null
+      );
     } catch (error) {
       const message =
         error.response?.data?.message || "Failed to lock seat";
@@ -133,7 +141,8 @@ const SeatMap = ({
       ) && !isLockedByMe;
     const isSelected = isSeatSelected(row, number);
 
-    if (isBooked || isLockedByOther) return 'booked';
+    if (isBooked) return 'booked';
+    if (isLockedByOther) return 'locked';
     if (isSelected) return 'selected';
     return 'available';
   };
@@ -142,6 +151,7 @@ const SeatMap = ({
     const baseClass = 'seat';
     switch (status) {
       case 'booked': return `${baseClass} seat-booked`;
+      case 'locked': return `${baseClass} seat-locked`;
       case 'selected': return `${baseClass} seat-selected`;
       default: return `${baseClass} seat-available`;
     }
@@ -207,7 +217,11 @@ const SeatMap = ({
                             onClick={() => handleSeatClick(row, seatNumber)}
                             disabled={status === 'booked'}
                             className={getSeatClass(status)}
-                            title={`${row}${seatNumber} - ${status}`}
+                            title={
+                              status === 'locked'
+                                ? `${row}${seatNumber} - Locked by another user`
+                                : `${row}${seatNumber} - ${status}`
+                            }
                           >
                             {seatNumber}
                           </motion.button>
@@ -232,6 +246,10 @@ const SeatMap = ({
           <div className="flex items-center space-x-2">
             <div className="seat seat-selected pointer-events-none"></div>
             <span className="text-sm text-gray-400">Selected</span>
+          </div>
+          <div className="flex items-center space-x-2">
+            <div className="seat seat-locked pointer-events-none"></div>
+            <span className="text-sm text-gray-400">Locked</span>
           </div>
           <div className="flex items-center space-x-2">
             <div className="seat seat-booked pointer-events-none"></div>

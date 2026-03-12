@@ -43,6 +43,20 @@ const getMyLockedSeats = (locks, userId) => {
   return out;
 };
 
+const getMyLockExpiresAt = (locks, userId) => {
+  if (!userId) return null;
+  let latest = null;
+  for (const lock of locks) {
+    if (lock.user && lock.user.toString() === userId.toString()) {
+      const exp = lock.expiresAt ? new Date(lock.expiresAt) : null;
+      if (exp && (!latest || exp > latest)) {
+        latest = exp;
+      }
+    }
+  }
+  return latest ? latest.toISOString() : null;
+};
+
 const isSeatLockedByOther = (locks, seat, userId) => {
   const key = `${seat.row}:${seat.number}`;
   return locks.some((lock) => {
@@ -57,6 +71,7 @@ const buildLockResponse = (show, userId) => {
   return {
     lockedSeats: flattenLockedSeats(activeLocks),
     myLockedSeats: getMyLockedSeats(activeLocks, userId),
+    myLockExpiresAt: getMyLockExpiresAt(activeLocks, userId),
   };
 };
 
@@ -82,8 +97,8 @@ const upsertUserLock = (show, userId, seats, holdMinutes) => {
   }
 
   show.seatLocks = otherLocks;
-  const { lockedSeats, myLockedSeats } = buildLockResponse(show, userId);
-  return { lockedSeats, myLockedSeats, expiresAt };
+  const { lockedSeats, myLockedSeats, myLockExpiresAt } = buildLockResponse(show, userId);
+  return { lockedSeats, myLockedSeats, myLockExpiresAt, expiresAt };
 };
 
 const removeUserLockedSeats = (show, userId, seatsToRemove) => {
@@ -130,6 +145,7 @@ module.exports = {
   getActiveLocks,
   flattenLockedSeats,
   getMyLockedSeats,
+  getMyLockExpiresAt,
   isSeatLockedByOther,
   buildLockResponse,
   upsertUserLock,

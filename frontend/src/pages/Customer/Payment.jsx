@@ -21,6 +21,7 @@ const Payment = () => {
   const [bookingConfirmed, setBookingConfirmed] = useState(false);
   const [confirmedBooking, setConfirmedBooking] = useState(null);
   const [step, setStep] = useState(1); // 1: Select Seats, 2: Checkout
+  const [lockRemaining, setLockRemaining] = useState(null);
 
   useEffect(() => {
     // Redirect if no booking data
@@ -29,6 +30,26 @@ const Payment = () => {
       navigate("/");
     }
   }, [bookingData, navigate]);
+
+  useEffect(() => {
+    const expiry = bookingData.show?.myLockExpiresAt
+      ? new Date(bookingData.show.myLockExpiresAt)
+      : null;
+
+    if (!expiry) {
+      setLockRemaining(null);
+      return;
+    }
+
+    const tick = () => {
+      const diff = expiry.getTime() - Date.now();
+      setLockRemaining(diff > 0 ? diff : 0);
+    };
+
+    tick();
+    const intervalId = setInterval(tick, 1000);
+    return () => clearInterval(intervalId);
+  }, [bookingData.show?.myLockExpiresAt]);
 
   const handlePayment = async (formData) => {
     try {
@@ -195,6 +216,16 @@ const Payment = () => {
                 <h2 className="text-2xl font-bold text-white mb-6">
                   Select Your Seats
                 </h2>
+                {lockRemaining !== null && bookingData.selectedSeats.length > 0 && (
+                  <div className="mb-4 rounded-lg border border-amber-500/40 bg-amber-500/10 px-4 py-3 text-sm text-amber-200">
+                    Seats locked for{" "}
+                    <span className="font-semibold">
+                      {String(Math.floor(lockRemaining / 60000)).padStart(2, "0")}:
+                      {String(Math.floor((lockRemaining % 60000) / 1000)).padStart(2, "0")}
+                    </span>
+                    . Complete checkout before the timer ends.
+                  </div>
+                )}
                 <SeatMap
                   bookedSeats={bookingData.show.bookedSeats}
                   lockedSeats={bookingData.show.lockedSeats}

@@ -122,11 +122,11 @@ export const BookingProvider = ({ children }) => {
     isSeatSelected,
     clearBooking,
     getBookingSummary,
-    updateShowLocks: (lockedSeats = [], myLockedSeats = []) =>
+    updateShowLocks: (lockedSeats = [], myLockedSeats = [], myLockExpiresAt = null) =>
       setBookingData((prev) => ({
         ...prev,
         show: prev.show
-          ? { ...prev.show, lockedSeats, myLockedSeats }
+          ? { ...prev.show, lockedSeats, myLockedSeats, myLockExpiresAt }
           : prev.show,
       })),
   };

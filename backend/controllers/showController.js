@@ -15,10 +15,11 @@ const MAX_LOCK_SEATS = 10;
 
 const formatShowForClient = (show, userId) => {
   const showObj = show.toObject ? show.toObject() : { ...show };
-  const { lockedSeats, myLockedSeats } = buildLockResponse(show, userId);
+  const { lockedSeats, myLockedSeats, myLockExpiresAt } = buildLockResponse(show, userId);
   showObj.lockedSeats = lockedSeats;
   if (userId) {
     showObj.myLockedSeats = myLockedSeats;
+    showObj.myLockExpiresAt = myLockExpiresAt;
   }
   delete showObj.seatLocks;
   return showObj;
@@ -274,6 +275,10 @@ const lockSeats = async (req, res) => {
       return res.status(404).json({ success: false, message: "Show not found" });
     }
 
+    if (!show.bookedSeats) {
+      show.bookedSeats = [];
+    }
+
     const activeLocks = getActiveLocks(show);
     for (const seat of requestedSeats) {
       if (show.isSeatBooked(seat.row, seat.number)) {
@@ -334,12 +339,13 @@ const unlockSeats = async (req, res) => {
 
     await show.save();
 
-    const { lockedSeats, myLockedSeats } = buildLockResponse(show, req.user._id);
+    const { lockedSeats, myLockedSeats, myLockExpiresAt } = buildLockResponse(show, req.user._id);
     res.status(200).json({
       success: true,
       message: "Seats unlocked",
       lockedSeats,
       myLockedSeats,
+      myLockExpiresAt,
     });
   } catch (error) {
     console.error("Unlock Seats Error:", error);

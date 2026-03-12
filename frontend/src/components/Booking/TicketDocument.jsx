@@ -13,35 +13,35 @@ import logo from "./../../assets/images/Showtime_logo.png";
 // Define the Dark Theme Styles
 const styles = StyleSheet.create({
   page: {
-    backgroundColor: "#111111", // Main dark background
+    backgroundColor: "#f1faee",
     padding: 30,
     fontFamily: "Helvetica",
   },
   card: {
-    backgroundColor: "#1a1a1a", // Your 'bg-dark-card'
-    borderRadius: 10,
+    backgroundColor: "#f1faee",
+    borderRadius: 14,
     overflow: "hidden",
     borderWidth: 2,
-    borderColor: "#374151", // border-gray-700
+    borderColor: "#457b9d",
     borderStyle: "dashed",
   },
 
   // --- HEADER ---
   header: {
-    backgroundColor: "#DC2626", // Replaces gradient (PDF doesn't support gradients easily)
-    padding: 20,
+    backgroundColor: "#1d3557",
+    padding: 18,
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
   },
   headerLabel: {
-    color: "rgba(255,255,255,0.9)",
+    color: "rgba(241, 250, 238, 0.85)",
     fontSize: 10,
     marginBottom: 4,
     textTransform: "uppercase",
   },
   bookingId: {
-    color: "#ffffff",
+    color: "#f1faee",
     fontSize: 18,
     fontFamily: "Courier-Bold", // Monospace font for ID
     letterSpacing: 1,
@@ -51,16 +51,38 @@ const styles = StyleSheet.create({
     height: 40,
     objectFit: "contain",
   },
+  passRow: {
+    backgroundColor: "rgba(168, 218, 220, 0.7)",
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+  },
+  passTag: {
+    fontSize: 10,
+    letterSpacing: 2,
+    color: "#1d3557",
+    textTransform: "uppercase",
+    fontFamily: "Helvetica-Bold",
+  },
+  admitTag: {
+    fontSize: 10,
+    letterSpacing: 1.5,
+    color: "#e63946",
+    textTransform: "uppercase",
+    fontFamily: "Helvetica-Bold",
+  },
 
   // --- MOVIE INFO ---
   section: {
     padding: 20,
     borderBottomWidth: 1,
-    borderBottomColor: "#374151", // border-gray-700
+    borderBottomColor: "rgba(69, 123, 157, 0.5)",
   },
   movieTitle: {
     fontSize: 24,
-    color: "#ffffff",
+    color: "#1d3557",
     fontFamily: "Helvetica-Bold",
     textAlign: "center",
     marginBottom: 20,
@@ -79,19 +101,19 @@ const styles = StyleSheet.create({
   },
   label: {
     fontSize: 9,
-    color: "#9CA3AF", // text-gray-400
+    color: "rgba(29, 53, 87, 0.75)",
     textTransform: "uppercase",
     marginBottom: 4,
     letterSpacing: 0.5,
   },
   value: {
     fontSize: 12,
-    color: "#ffffff",
+    color: "#1d3557",
     fontFamily: "Helvetica-Bold",
   },
   subValue: {
     fontSize: 10,
-    color: "#9CA3AF",
+    color: "rgba(29, 53, 87, 0.7)",
     marginTop: 2,
   },
 
@@ -105,12 +127,11 @@ const styles = StyleSheet.create({
     flexWrap: "wrap",
     justifyContent: "center",
     marginBottom: 20,
-    gap: 5, // Note: 'gap' works in newer react-pdf versions, otherwise use margin
   },
   seatBadge: {
-    backgroundColor: "#1F2937", // bg-gray-800
+    backgroundColor: "#a8dadc",
     borderWidth: 1,
-    borderColor: "#4B5563", // border-gray-600
+    borderColor: "#457b9d",
     borderRadius: 4,
     paddingVertical: 6,
     paddingHorizontal: 10,
@@ -118,7 +139,7 @@ const styles = StyleSheet.create({
     minWidth: 40,
   },
   seatText: {
-    color: "#ffffff",
+    color: "#1d3557",
     fontSize: 10,
     fontFamily: "Courier-Bold",
     textAlign: "center",
@@ -126,11 +147,13 @@ const styles = StyleSheet.create({
 
   // --- PRICE BOX ---
   priceBox: {
-    backgroundColor: "rgba(31, 41, 55, 0.5)", // bg-gray-800/50
+    backgroundColor: "rgba(168, 218, 220, 0.5)",
     borderRadius: 8,
     padding: 15,
     width: "80%", // Limit width like 'max-w-sm'
     alignSelf: "center",
+    borderWidth: 1,
+    borderColor: "rgba(69, 123, 157, 0.55)",
   },
   priceRow: {
     flexDirection: "row",
@@ -139,35 +162,35 @@ const styles = StyleSheet.create({
   },
   priceLabel: {
     fontSize: 10,
-    color: "#9CA3AF",
+    color: "rgba(29, 53, 87, 0.75)",
   },
   priceValue: {
     fontSize: 10,
-    color: "#9CA3AF",
+    color: "rgba(29, 53, 87, 0.75)",
   },
   divider: {
     borderTopWidth: 1,
-    borderTopColor: "#374151",
+    borderTopColor: "rgba(69, 123, 157, 0.55)",
     marginVertical: 6,
   },
   totalLabel: {
     fontSize: 12,
-    color: "#ffffff",
+    color: "#1d3557",
     fontFamily: "Helvetica-Bold",
   },
   totalValue: {
     fontSize: 14,
-    color: "#DC2626", // text-primary (red)
+    color: "#e63946",
     fontFamily: "Helvetica-Bold",
   },
 
   // --- FOOTER (QR) ---
   footer: {
-    backgroundColor: "#151515",
+    backgroundColor: "#1d3557",
     padding: 20,
     alignItems: "center",
     borderTopWidth: 1,
-    borderTopColor: "#374151",
+    borderTopColor: "rgba(69, 123, 157, 0.6)",
   },
   qrContainer: {
     backgroundColor: "#ffffff",
@@ -180,10 +203,15 @@ const styles = StyleSheet.create({
     height: 100,
   },
   footerText: {
-    color: "#6B7280", // text-gray-500
+    color: "rgba(241, 250, 238, 0.85)",
     fontSize: 9,
     textTransform: "uppercase",
     letterSpacing: 1.5,
+  },
+  perforation: {
+    borderTopWidth: 1,
+    borderTopColor: "rgba(69, 123, 157, 0.6)",
+    borderStyle: "dashed",
   },
 });
 
@@ -199,6 +227,10 @@ const TicketDocument = ({ booking }) => {
               <Text style={styles.bookingId}>{booking.bookingId}</Text>
             </View>
             <Image src={logo} style={styles.logo} />
+          </View>
+          <View style={styles.passRow}>
+            <Text style={styles.passTag}>Entry Pass</Text>
+            <Text style={styles.admitTag}>Admit One</Text>
           </View>
 
           {/* Movie Info */}
@@ -272,6 +304,7 @@ const TicketDocument = ({ booking }) => {
           </View>
 
           {/* Footer QR */}
+          <View style={styles.perforation} />
           <View style={styles.footer}>
             <View style={styles.qrContainer}>
               <Image

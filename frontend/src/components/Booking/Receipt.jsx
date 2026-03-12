@@ -1,4 +1,4 @@
-import React, { useRef } from 'react';
+import React, { useRef, useState } from 'react';
 import { motion } from 'framer-motion';
 import { Download, CheckCircle, Calendar, Clock, MapPin, Home, Clapperboard } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
@@ -12,6 +12,7 @@ import logo from './../../assets/images/Showtime_logo.png'
 const Receipt = ({ booking }) => {
   const navigate = useNavigate();
   const receiptRef = useRef(null);
+  const [qrError, setQrError] = useState(false);
 
   const handleDownload = async () => {
     const element = receiptRef.current;
@@ -163,16 +164,28 @@ const Receipt = ({ booking }) => {
         {/* QR Code Footer */}
         <div className="p-6 bg-[#151515] border-t border-gray-700 flex flex-col items-center justify-center">
             <div className="bg-white p-2 rounded-lg mb-3">
-                 <img 
-                    src={`https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${booking.bookingId}`} 
-                    alt="Booking QR" 
-                    className="w-32 h-32"
-                    crossOrigin="anonymous" 
-                 />
+                 {!qrError ? (
+                   <img 
+                      src={`https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${booking.bookingId}`} 
+                      alt="Booking QR" 
+                      className="w-32 h-32"
+                      crossOrigin="anonymous"
+                      onError={() => setQrError(true)}
+                   />
+                 ) : (
+                   <div className="w-32 h-32 flex items-center justify-center text-center text-xs text-gray-800">
+                     QR unavailable
+                   </div>
+                 )}
             </div>
             <p className="text-gray-500 text-xs text-center uppercase tracking-widest">
                 Scan at entrance
             </p>
+            {qrError && (
+              <p className="mt-2 text-xs text-gray-400 text-center">
+                Manual code: {booking.bookingId}
+              </p>
+            )}
         </div>
       </div>
 

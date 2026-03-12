@@ -79,9 +79,38 @@ showSchema.virtual("availableSeats").get(function () {
 // 1. Check if show is in the past
 showSchema.methods.isPast = function () {
   const now = new Date();
-  // Combine date and time for accurate check? 
-  // For simplicity, just checking the date:
-  return now > this.date;
+  const showDateTime = this.getShowDateTime();
+  return now > showDateTime;
+};
+
+// Combine date + time into a single Date for accurate comparisons
+showSchema.methods.getShowDateTime = function () {
+  const baseDate = new Date(this.date);
+  if (!this.time || typeof this.time !== "string") {
+    return baseDate;
+  }
+
+  const timeStr = this.time.trim();
+  const match12 = timeStr.match(/^(\d{1,2}):(\d{2})\s*(AM|PM)$/i);
+  if (match12) {
+    let hours = parseInt(match12[1], 10);
+    const minutes = parseInt(match12[2], 10);
+    const meridiem = match12[3].toUpperCase();
+    if (hours === 12) hours = 0;
+    if (meridiem === "PM") hours += 12;
+    baseDate.setHours(hours, minutes, 0, 0);
+    return baseDate;
+  }
+
+  const match24 = timeStr.match(/^(\d{1,2}):(\d{2})$/);
+  if (match24) {
+    const hours = parseInt(match24[1], 10);
+    const minutes = parseInt(match24[2], 10);
+    baseDate.setHours(hours, minutes, 0, 0);
+    return baseDate;
+  }
+
+  return baseDate;
 };
 
 // 2. Check if specific seats are already booked

@@ -425,13 +425,31 @@ const cancelBooking = async (req, res) => {
     // Remove seats from show
     const show = await Show.findById(booking.show._id);
     if (show) {
-      show.bookedSeats = show.bookedSeats.filter(
-        (seat) =>
-          !booking.seats.some(
-            (bookedSeat) =>
-              bookedSeat.row === seat.row && bookedSeat.number === seat.number,
-          ),
+      const seatsToRemove = new Set(
+        (booking.seats || []).map((s) => `${s.row}:${s.number}`)
       );
+
+      const updatedBookedSeats = [];
+      for (const entry of show.bookedSeats || []) {
+        if (entry && Array.isArray(entry.seats)) {
+          const remainingSeats = entry.seats.filter(
+            (s) => !seatsToRemove.has(`${s.row}:${s.number}`)
+          );
+          if (remainingSeats.length > 0) {
+            updatedBookedSeats.push({ ...entry.toObject?.() || entry, seats: remainingSeats });
+          }
+          continue;
+        }
+
+        if (entry && entry.row) {
+          const key = `${entry.row}:${entry.number}`;
+          if (!seatsToRemove.has(key)) {
+            updatedBookedSeats.push(entry);
+          }
+        }
+      }
+
+      show.bookedSeats = updatedBookedSeats;
       await show.save();
     }
 
