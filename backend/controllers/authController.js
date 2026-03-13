@@ -4,7 +4,7 @@ const { generateToken } = require('../middleware/authMiddleware');// @desc    Re
 // @access  Public
 const register = async (req, res) => {
   try {
-    const { name, email, phone, password, role } = req.body;
+    const { name, email, phone, password } = req.body;
 
     // Validate required fields
     if (!name || !email || !phone || !password) {
@@ -29,7 +29,7 @@ const register = async (req, res) => {
       email,
       phone,
       password,
-      role: role || 'customer', // Default to customer if not specified
+      role: 'customer', // Role is always customer for public registration
     });
 
     // Generate token

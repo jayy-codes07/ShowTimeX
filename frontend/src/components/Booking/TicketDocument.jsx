@@ -13,35 +13,35 @@ import logo from "./../../assets/images/Showtime_logo.png";
 // Define the Dark Theme Styles
 const styles = StyleSheet.create({
   page: {
-    backgroundColor: "#f1faee",
+    backgroundColor: "#111111",
     padding: 30,
     fontFamily: "Helvetica",
   },
   card: {
-    backgroundColor: "#f1faee",
+    backgroundColor: "#1a1a1a",
     borderRadius: 14,
     overflow: "hidden",
     borderWidth: 2,
-    borderColor: "#457b9d",
+    borderColor: "#374151",
     borderStyle: "dashed",
   },
 
   // --- HEADER ---
   header: {
-    backgroundColor: "#1d3557",
+    backgroundColor: "#E50914",
     padding: 18,
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
   },
   headerLabel: {
-    color: "rgba(241, 250, 238, 0.85)",
+    color: "rgba(255, 255, 255, 0.9)",
     fontSize: 10,
     marginBottom: 4,
     textTransform: "uppercase",
   },
   bookingId: {
-    color: "#f1faee",
+    color: "#ffffff",
     fontSize: 18,
     fontFamily: "Courier-Bold", // Monospace font for ID
     letterSpacing: 1,
@@ -52,7 +52,7 @@ const styles = StyleSheet.create({
     objectFit: "contain",
   },
   passRow: {
-    backgroundColor: "rgba(168, 218, 220, 0.7)",
+    backgroundColor: "#111827",
     paddingVertical: 10,
     paddingHorizontal: 20,
     flexDirection: "row",
@@ -62,14 +62,14 @@ const styles = StyleSheet.create({
   passTag: {
     fontSize: 10,
     letterSpacing: 2,
-    color: "#1d3557",
+    color: "#e5e7eb",
     textTransform: "uppercase",
     fontFamily: "Helvetica-Bold",
   },
   admitTag: {
     fontSize: 10,
     letterSpacing: 1.5,
-    color: "#e63946",
+    color: "#fca5a5",
     textTransform: "uppercase",
     fontFamily: "Helvetica-Bold",
   },
@@ -78,11 +78,11 @@ const styles = StyleSheet.create({
   section: {
     padding: 20,
     borderBottomWidth: 1,
-    borderBottomColor: "rgba(69, 123, 157, 0.5)",
+    borderBottomColor: "#374151",
   },
   movieTitle: {
     fontSize: 24,
-    color: "#1d3557",
+    color: "#ffffff",
     fontFamily: "Helvetica-Bold",
     textAlign: "center",
     marginBottom: 20,
@@ -101,19 +101,19 @@ const styles = StyleSheet.create({
   },
   label: {
     fontSize: 9,
-    color: "rgba(29, 53, 87, 0.75)",
+    color: "#9ca3af",
     textTransform: "uppercase",
     marginBottom: 4,
     letterSpacing: 0.5,
   },
   value: {
     fontSize: 12,
-    color: "#1d3557",
+    color: "#ffffff",
     fontFamily: "Helvetica-Bold",
   },
   subValue: {
     fontSize: 10,
-    color: "rgba(29, 53, 87, 0.7)",
+    color: "#9ca3af",
     marginTop: 2,
   },
 
@@ -129,9 +129,9 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   seatBadge: {
-    backgroundColor: "#a8dadc",
+    backgroundColor: "#111827",
     borderWidth: 1,
-    borderColor: "#457b9d",
+    borderColor: "#4b5563",
     borderRadius: 4,
     paddingVertical: 6,
     paddingHorizontal: 10,
@@ -139,7 +139,7 @@ const styles = StyleSheet.create({
     minWidth: 40,
   },
   seatText: {
-    color: "#1d3557",
+    color: "#ffffff",
     fontSize: 10,
     fontFamily: "Courier-Bold",
     textAlign: "center",
@@ -147,13 +147,13 @@ const styles = StyleSheet.create({
 
   // --- PRICE BOX ---
   priceBox: {
-    backgroundColor: "rgba(168, 218, 220, 0.5)",
+    backgroundColor: "rgba(31, 41, 55, 0.6)",
     borderRadius: 8,
     padding: 15,
     width: "80%", // Limit width like 'max-w-sm'
     alignSelf: "center",
     borderWidth: 1,
-    borderColor: "rgba(69, 123, 157, 0.55)",
+    borderColor: "#374151",
   },
   priceRow: {
     flexDirection: "row",
@@ -162,35 +162,35 @@ const styles = StyleSheet.create({
   },
   priceLabel: {
     fontSize: 10,
-    color: "rgba(29, 53, 87, 0.75)",
+    color: "#9ca3af",
   },
   priceValue: {
     fontSize: 10,
-    color: "rgba(29, 53, 87, 0.75)",
+    color: "#9ca3af",
   },
   divider: {
     borderTopWidth: 1,
-    borderTopColor: "rgba(69, 123, 157, 0.55)",
+    borderTopColor: "#374151",
     marginVertical: 6,
   },
   totalLabel: {
     fontSize: 12,
-    color: "#1d3557",
+    color: "#ffffff",
     fontFamily: "Helvetica-Bold",
   },
   totalValue: {
     fontSize: 14,
-    color: "#e63946",
+    color: "#E50914",
     fontFamily: "Helvetica-Bold",
   },
 
   // --- FOOTER (QR) ---
   footer: {
-    backgroundColor: "#1d3557",
+    backgroundColor: "#151515",
     padding: 20,
     alignItems: "center",
     borderTopWidth: 1,
-    borderTopColor: "rgba(69, 123, 157, 0.6)",
+    borderTopColor: "#374151",
   },
   qrContainer: {
     backgroundColor: "#ffffff",
@@ -202,15 +202,26 @@ const styles = StyleSheet.create({
     width: 100,
     height: 100,
   },
+  qrFallback: {
+    fontSize: 8,
+    color: "#9ca3af",
+    marginTop: 6,
+  },
+  qrFallbackId: {
+    fontSize: 9,
+    color: "#e5e7eb",
+    marginTop: 2,
+    fontFamily: "Courier-Bold",
+  },
   footerText: {
-    color: "rgba(241, 250, 238, 0.85)",
+    color: "#9ca3af",
     fontSize: 9,
     textTransform: "uppercase",
     letterSpacing: 1.5,
   },
   perforation: {
     borderTopWidth: 1,
-    borderTopColor: "rgba(69, 123, 157, 0.6)",
+    borderTopColor: "#374151",
     borderStyle: "dashed",
   },
 });
@@ -312,6 +323,8 @@ const TicketDocument = ({ booking }) => {
                 style={styles.qrImage}
               />
             </View>
+            <Text style={styles.qrFallback}>If QR is not readable, use:</Text>
+            <Text style={styles.qrFallbackId}>{booking.bookingId}</Text>
             <Text style={styles.footerText}>Scan at entrance</Text>
           </View>
         </View>

@@ -16,6 +16,7 @@ import RevenueChart from "../../components/Admin/RevenueChart";
 import MovieDistributionChart from "../../components/Admin/MovieDistributionChart";
 import LeaderboardChart from "../../components/Admin/LeaderboardChart";
 import Loader from "../../components/UI/Loader";
+import AnimatedCounter from "../../components/UI/AnimatedCounter";
 import { useTheme } from "../../context/ThemeContext";
 import { apiRequest } from "../../services/api";
 import { API_ENDPOINTS } from "../../utils/constants";
@@ -31,7 +32,7 @@ const Dashboard = () => {
   const [loading, setLoading] = useState(true);
 
   const currencySymbol = "\u20B9";
-  const panelClassName = "rounded-2xl border border-gray-800 bg-dark-card p-4 shadow-sm sm:p-6";
+  const panelClassName = "premium-glass-panel p-5 sm:p-7";
 
   useEffect(() => {
     fetchDashboardData();
@@ -80,38 +81,43 @@ const Dashboard = () => {
   const statCards = [
     {
       title: "Total Revenue",
-      value: `${currencySymbol}${Math.round(stats?.totalRevenue || 0).toLocaleString()}`,
+      value: stats?.totalRevenue || 0,
+      isCurrency: true,
       change: formatChange(stats?.changes?.revenue),
       isPositive: (stats?.changes?.revenue || 0) >= 0,
       icon: DollarSign,
       color: "bg-green-500",
+      glowColor: "stat-glow-green",
     },
     {
       title: "Total Bookings",
-      value: stats?.totalBookings?.toLocaleString() || "0",
+      value: stats?.totalBookings || 0,
+      isCurrency: false,
       change: formatChange(stats?.changes?.bookings),
       isPositive: (stats?.changes?.bookings || 0) >= 0,
       icon: Ticket,
       color: "bg-blue-500",
+      glowColor: "stat-glow-blue",
     },
     {
       title: "Total Tickets Sold",
-      value: stats?.totalTickets?.toLocaleString() || "0",
+      value: stats?.totalTickets || 0,
+      isCurrency: false,
       change: formatChange(stats?.changes?.tickets),
       isPositive: (stats?.changes?.tickets || 0) >= 0,
       icon: TrendingUp,
       color: "bg-purple-500",
+      glowColor: "stat-glow-purple",
     },
     {
       title: "Avg. Booking Value",
-      value: `${currencySymbol}${Math.round(
-        stats?.avgBookingValue ||
-          (stats?.totalBookings > 0 ? stats.totalRevenue / stats.totalBookings : 0),
-      ).toLocaleString()}`,
+      value: stats?.avgBookingValue || (stats?.totalBookings > 0 ? stats.totalRevenue / stats.totalBookings : 0),
+      isCurrency: true,
       change: formatChange(stats?.changes?.avgValue),
       isPositive: (stats?.changes?.avgValue || 0) >= 0,
       icon: Calendar,
       color: "bg-primary",
+      glowColor: "stat-glow-orange",
     },
   ];
 
@@ -144,14 +150,15 @@ const Dashboard = () => {
           animate={{ opacity: 1, y: 0 }}
           className="mb-8 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between"
         >
-          <div>
-            <h1 className="mb-2 text-3xl font-bold text-white md:text-4xl">Admin Dashboard</h1>
-            <p className="text-gray-400">
+          <div className="flex-1">
+            <h1 className="mb-2 text-3xl font-extrabold md:text-5xl text-gradient-primary tracking-tight">Admin Dashboard</h1>
+            <p className="text-gray-400 text-lg">
               Welcome back. Here is the live performance snapshot for your cinema.
             </p>
           </div>
-          <div className="inline-flex w-fit items-center rounded-full border border-gray-800 bg-dark-card px-4 py-2 text-sm text-gray-500">
-            Updated from current bookings and revenue data
+          <div className="inline-flex w-fit items-center gap-2 rounded-full border border-gray-800 bg-dark-card px-4 py-2 text-sm text-gray-500 shadow-sm backdrop-blur-md">
+            <div className="h-2 w-2 rounded-full bg-green-500 animate-pulse" />
+            Live from current bookings
           </div>
         </motion.div>
 
@@ -219,23 +226,29 @@ const Dashboard = () => {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.25 + index * 0.08 }}
-                className={`${panelClassName} transition-all duration-300 hover:-translate-y-1 hover:shadow-xl`}
+                className={`${panelClassName} transition-all duration-300 hover:-translate-y-1.5 hover:shadow-2xl group`}
               >
-                <div className="mb-4 flex items-center justify-between">
-                  <div className={`flex h-12 w-12 items-center justify-center rounded-lg ${stat.color}`}>
-                    <Icon className="h-6 w-6 text-white" />
+                <div className="mb-5 flex items-center justify-between">
+                  <div className={`relative flex h-14 w-14 items-center justify-center rounded-2xl ${stat.color} ${stat.glowColor} transition-transform duration-300 group-hover:scale-110`}>
+                    <Icon className="h-7 w-7 text-white" />
                   </div>
                   <div
-                    className={`flex items-center space-x-1 text-sm ${
-                      stat.isPositive ? "text-green-500" : "text-red-500"
+                    className={`flex items-center space-x-1 text-sm font-semibold px-2 py-1 rounded-full ${
+                      stat.isPositive ? "bg-green-500/10 text-green-500" : "bg-red-500/10 text-red-500"
                     }`}
                   >
                     <ChangeIcon className="h-4 w-4" />
                     <span>{stat.change}</span>
                   </div>
                 </div>
-                <h3 className="mb-1 text-sm text-gray-400">{stat.title}</h3>
-                <p className="text-2xl font-bold text-white">{stat.value}</p>
+                <h3 className="mb-2 text-sm font-medium text-gray-400">{stat.title}</h3>
+                <p className="text-[2rem] leading-none font-bold text-white tracking-tight">
+                  <AnimatedCounter 
+                    value={stat.value} 
+                    isCurrency={stat.isCurrency} 
+                    prefix={stat.isCurrency ? currencySymbol : ""} 
+                  />
+                </p>
               </motion.div>
             );
           })}
@@ -346,24 +359,24 @@ const Dashboard = () => {
                   {recentBookings.map((booking) => (
                     <tr
                       key={booking._id}
-                      className="admin-table-row border-b border-gray-800"
+                      className="table-row-premium border-b border-gray-800/50 last:border-0"
                     >
-                      <td className="px-4 py-3 text-sm text-white">{booking.bookingId}</td>
-                      <td className="px-4 py-3 text-sm text-white">{booking.user?.name}</td>
-                      <td className="px-4 py-3 text-sm text-white">{booking.movie?.title}</td>
-                      <td className="px-4 py-3 text-sm text-white">{booking.seats?.length}</td>
-                      <td className="px-4 py-3 text-sm font-semibold money-value">
+                      <td className="px-4 py-4 text-sm font-medium text-gray-300">{booking.bookingId}</td>
+                      <td className="px-4 py-4 text-sm text-white font-medium">{booking.user?.name}</td>
+                      <td className="px-4 py-4 text-sm text-gray-300">{booking.movie?.title}</td>
+                      <td className="px-4 py-4 text-sm text-gray-300">{booking.seats?.length}</td>
+                      <td className="px-4 py-4 text-sm font-bold money-value text-white">
                         {currencySymbol}
                         {booking.totalAmount?.toFixed(2)}
                       </td>
-                      <td className="px-4 py-3">
+                      <td className="px-4 py-4">
                         <span
-                          className={`inline-block rounded px-2 py-1 text-xs font-semibold ${
+                          className={`inline-block rounded-full px-3 py-1 text-xs font-bold tracking-wide uppercase ${
                             booking.status === "confirmed"
-                              ? "bg-green-500/20 text-green-500"
+                              ? "bg-green-500/10 text-green-500 border border-green-500/20 shadow-[0_0_10px_rgba(34,197,94,0.1)]"
                               : booking.status === "cancelled"
-                                ? "bg-red-500/20 text-red-500"
-                                : "bg-yellow-500/20 text-yellow-500"
+                                ? "bg-red-500/10 text-red-500 border border-red-500/20 shadow-[0_0_10px_rgba(239,68,68,0.1)]"
+                                : "bg-yellow-500/10 text-yellow-500 border border-yellow-500/20 shadow-[0_0_10px_rgba(234,179,8,0.1)]"
                           }`}
                         >
                           {booking.status}

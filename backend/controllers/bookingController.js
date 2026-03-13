@@ -1,6 +1,8 @@
+const crypto = require("crypto");
 const Booking = require("../models/Booking");
 const Show = require("../models/Show");
 const Movie = require("../models/Movie");
+const User = require("../models/User");
 const { triggerN8n } = require('../n8nService');
 const Razorpay = require("razorpay");
 const {
@@ -17,9 +19,7 @@ const createRazorpayOrder = async (req, res) => {
   try {
     const { bookingId } = req.body;
 
-    // 1. Check if keys are actually loading (Debugging)
-    console.log("Key ID loaded:", !!process.env.RAZORPAY_KEY_ID);
-    console.log("Key Secret loaded:", !!process.env.RAZORPAY_KEY_SECRET);
+    // Check if keys are configured
 
     if (!process.env.RAZORPAY_KEY_ID || !process.env.RAZORPAY_KEY_SECRET) {
       return res
@@ -36,7 +36,7 @@ const createRazorpayOrder = async (req, res) => {
       key_secret: process.env.RAZORPAY_KEY_SECRET,
     });
 
-    console.log("Frontend is trying to pay for ID:", bookingId);
+
 
     if (!bookingId) {
       return res
@@ -81,9 +81,6 @@ const createRazorpayOrder = async (req, res) => {
 // @access  Private
 const createBooking = async (req, res) => {
   try {
-    console.log(
-      "helloooooooooooooooooooooooooooooooo0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000ooooooooooooooooooooooooooooooooooooooooooooooooooooooooo",
-    );
     const { movieId, showId, seats, email, phone } = req.body;
     const seatsToBook = uniqueSeats(seats);
 
@@ -207,11 +204,6 @@ const createBooking = async (req, res) => {
 // @route   POST /api/payments/verify
 // @access  Private
 
-// @desc    Verify payment and confirm booking
-// @route   POST /api/payments/verify
-// @access  Private
-const crypto = require("crypto");
-
 const verifyPayment = async (req, res) => {
   try {
     const {
@@ -287,7 +279,6 @@ const verifyPayment = async (req, res) => {
     removeUserLockedSeats(booking.show, booking.user, booking.seats);
     await booking.show.save();
 
-    // ✅ Confirm booking
     // ✅ Confirm booking
     booking.status = "confirmed";
     booking.paymentStatus = "completed";
@@ -505,9 +496,6 @@ const getAllBookings = async (req, res) => {
 // @desc    Get admin statistics
 // @route   GET /api/admin/stats
 // @access  Private/Admin
-// @desc    Get admin statistics
-// @route   GET /api/admin/stats
-// @access  Private/Admin
 const getAdminStats = async (req, res) => {
   try {
     const totalBookings = await Booking.countDocuments({ status: "confirmed" });
@@ -527,7 +515,7 @@ const getAdminStats = async (req, res) => {
     const totalRevenue = revenueAgg[0]?.total || 0;
     const totalTickets = revenueAgg[0]?.tickets || 0;
 
-    const totalUsers = await require("../models/User").countDocuments({ role: "customer" });
+    const totalUsers = await User.countDocuments({ role: "customer" });
     const totalMovies = await Movie.countDocuments({ isActive: true });
 
     // 2. Chart 1: Daily Revenue Raw
@@ -765,8 +753,7 @@ const getAdminReports = async (req, res) => {
       },
     ]);
 
-    // 7. Recent transactions
-    // 7. Recent transactions - ADD pagination
+    // 7. Recent transactions (with pagination)
     const { page = 1, limit = 10 } = req.query; // ✅ read page & limit
     const skip = (parseInt(page) - 1) * parseInt(limit);
 

@@ -274,100 +274,291 @@
   color: rgba(40, 54, 24, 0.55);
 }
 
+  --app-seat-available-text: #283618;
+  --app-seat-selected: #bc6c25;
+  --app-seat-selected-text: #fefae0;
+  --app-seat-booked: rgba(40, 54, 24, 0.18);
+  --app-seat-booked-text: rgba(40, 54, 24, 0.55);
+  --app-seat-locked: rgba(96, 108, 56, 0.35);
+  --app-seat-locked-text: #283618;
+  color: var(--app-text-strong);
+  background-color: var(--app-bg);
+  background-image: var(--app-bg-image);
+}
+
+.bg-dark {
+  background-color: transparent;
+}
+
+.bg-dark-card {
+  background-color: var(--app-surface-card);
+  border: 1px solid var(--app-border);
+  box-shadow: var(--app-shadow-card);
+  backdrop-filter: blur(18px);
+}
+
+.bg-dark-lighter {
+  background-color: var(--app-surface-soft);
+  border: 1px solid var(--app-border);
+  backdrop-filter: blur(16px);
+}
+
+.bg-primary {
+  background-color: var(--app-accent);
+}
+
+.bg-primary\/10 {
+  background-color: var(--app-accent-soft);
+}
+
+.bg-primary\/20 {
+  background-color: var(--app-accent-soft-strong);
+}
+
+.text-primary {
+  color: var(--app-accent);
+}
+
+.border-primary {
+  border-color: var(--app-border-strong);
+}
+
+.ring-primary,
+.focus\:ring-primary:focus {
+  --tw-ring-color: var(--app-accent-ring);
+}
+
+.focus\:border-transparent:focus {
+  border-color: var(--app-border-strong);
+}
+
+.text-white {
+  color: var(--app-text-strong);
+}
+
+.text-gray-300 {
+  color: var(--app-text-body);
+}
+
+.text-gray-400 {
+  color: var(--app-text-muted);
+}
+
+.text-gray-500 {
+  color: var(--app-text-subtle);
+}
+
+.border-gray-700,
+.border-gray-800 {
+  border-color: var(--app-border);
+}
+
+.bg-gray-800 {
+  background-color: var(--app-surface-soft);
+}
+
+.bg-gray-700 {
+  background-color: var(--app-surface-strong);
+}
+
+.bg-gray-600 {
+  background-color: var(--app-accent-soft-strong);
+}
+
+.bg-gray-500 {
+  background-color: var(--app-border-strong);
+}
+
+.bg-red-500,
+.bg-red-600,
+.bg-red-700 {
+  background-color: var(--app-accent);
+}
+
+.bg-red-500\/20,
+.bg-red-500\/30 {
+  background-color: var(--app-accent-soft);
+}
+
+.text-red-500 {
+  color: var(--app-accent);
+}
+
+.bg-black\/80,
+.bg-black\/70,
+.bg-black\/60 {
+  background-color: var(--app-overlay-surface);
+}
+
+.hover\:bg-dark-card:hover,
+.hover\:bg-dark-lighter:hover,
+.hover\:bg-gray-700:hover,
+.hover\:bg-gray-800:hover {
+  background-color: var(--app-surface-strong);
+}
+
+.hover\:bg-red-500\/30:hover,
+.hover\:bg-red-700:hover {
+  background-color: var(--app-accent-soft-strong);
+}
+
+.hover\:bg-primary:hover,
+.hover\:bg-primary-dark:hover {
+  background-color: var(--app-accent-strong);
+}
+
+.hover\:text-white:hover {
+  color: var(--app-text-strong);
+}
+
+.hover\:text-primary:hover,
+.hover\:text-primary-light:hover {
+  color: var(--app-accent);
+}
+
+.seat-available {
+  background-color: var(--app-seat-available);
+  color: var(--app-seat-available-text);
+}
+
+.seat-selected {
+  background-color: var(--app-seat-selected);
+  color: var(--app-seat-selected-text);
+}
+
+.seat-booked {
+  background-color: var(--app-seat-booked);
+  color: var(--app-seat-booked-text);
+}
+
+.seat-locked {
+  background-color: var(--app-seat-locked);
+  color: var(--app-seat-locked-text);
+}
+
+.theme-light .from-dark {
+  --tw-gradient-from: rgba(254, 250, 224, 0.98) var(--tw-gradient-from-position);
+  --tw-gradient-to: rgba(254, 250, 224, 0) var(--tw-gradient-to-position);
+  --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to);
+}
+
+.theme-light .via-dark\/60,
+.theme-light .via-dark\/50,
+.theme-light .via-dark\/10 {
+  --tw-gradient-stops: var(--tw-gradient-from),
+    rgba(247, 241, 215, 0.78) var(--tw-gradient-via-position),
+    var(--tw-gradient-to);
+}
+
+.theme-light .to-transparent {
+  --tw-gradient-to: rgba(247, 241, 215, 0) var(--tw-gradient-to-position);
+}
+
+.theme-light .seat-available {
+  background-color: rgba(221, 161, 94, 0.55);
+  color: #283618;
+}
+
+.theme-light .seat-selected {
+  background-color: #bc6c25;
+  color: #fefae0;
+}
+
+.theme-light .seat-booked {
+  background-color: rgba(40, 54, 24, 0.18);
+  color: rgba(40, 54, 24, 0.55);
+}
+
 .theme-light .seat-locked {
   background-color: rgba(96, 108, 56, 0.35);
   color: #283618;
 }
 
-.ticket-card {
+.receipt-card {
+  --ticket-cutout: #141414;
   position: relative;
   overflow: hidden;
-  border-radius: 18px;
-  border: 1px solid rgba(230, 57, 70, 0.5);
-  background: linear-gradient(135deg, rgba(69, 123, 157, 0.45), rgba(29, 53, 87, 0.95));
-  box-shadow: 0 22px 55px rgba(9, 16, 28, 0.4);
 }
 
-.ticket-notch {
+.receipt-card.exporting {
+  --ticket-cutout: #ffffff;
+}
+
+.receipt-notch {
   position: absolute;
   top: 50%;
-  width: 22px;
-  height: 22px;
+  width: 26px;
+  height: 26px;
   border-radius: 999px;
-  background: #1d3557;
-  border: 1px solid rgba(230, 57, 70, 0.6);
+  background: var(--ticket-cutout);
+  border: 1px solid rgba(255, 255, 255, 0.08);
   transform: translateY(-50%);
   z-index: 2;
 }
 
-.ticket-notch-left {
-  left: -11px;
+.receipt-notch-left {
+  left: -13px;
 }
 
-.ticket-notch-right {
-  right: -11px;
+.receipt-notch-right {
+  right: -13px;
 }
 
-.ticket-perf {
+.receipt-perf {
   height: 1px;
   margin: 0 24px;
   background-image: repeating-linear-gradient(
     to right,
-    rgba(230, 57, 70, 0.7),
-    rgba(230, 57, 70, 0.7) 8px,
+    rgba(229, 9, 20, 0.55),
+    rgba(229, 9, 20, 0.55) 8px,
     transparent 8px,
     transparent 16px
   );
-  opacity: 0.8;
+  opacity: 0.7;
 }
 
-.ticket-chip {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  padding: 6px 12px;
-  border-radius: 999px;
-  background: rgba(230, 57, 70, 0.25);
-  color: #f1faee;
-  font-size: 11px;
-  letter-spacing: 1.5px;
-  text-transform: uppercase;
-  font-weight: 600;
+.receipt-preview {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  overflow-x: auto;
+  padding-bottom: 8px;
 }
 
-.ticket-qr {
-  background: linear-gradient(120deg, rgba(69, 123, 157, 0.4), rgba(29, 53, 87, 0.95));
+.receipt-preview-inner {
+  width: 520px;
+  flex: 0 0 520px;
+  transform-origin: top center;
 }
 
-.theme-light .ticket-card {
-  border: 1px solid rgba(69, 123, 157, 0.55);
-  background: linear-gradient(135deg, rgba(168, 218, 220, 0.7), rgba(241, 250, 238, 0.95));
-  box-shadow: 0 24px 50px rgba(29, 53, 87, 0.18);
+@media (max-width: 640px) {
+  .receipt-preview-inner {
+    transform: scale(0.92);
+  }
 }
 
-.theme-light .ticket-notch {
-  background: #f1faee;
-  border-color: rgba(230, 57, 70, 0.6);
+@media (max-width: 520px) {
+  .receipt-preview-inner {
+    transform: scale(0.86);
+  }
 }
 
-.theme-light .ticket-perf {
-  background-image: repeating-linear-gradient(
-    to right,
-    rgba(230, 57, 70, 0.65),
-    rgba(230, 57, 70, 0.65) 8px,
-    transparent 8px,
-    transparent 16px
+@media (max-width: 440px) {
+  .receipt-preview-inner {
+    transform: scale(0.8);
+  }
+    rgba(10, 11, 14, 0.85) 0%,
+    rgba(10, 11, 14, 0.4) 42%,
+    rgba(10, 11, 14, 0) 100%
   );
-  opacity: 0.85;
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  transition: opacity 0.3s ease;
 }
 
-.theme-light .ticket-chip {
-  background: rgba(230, 57, 70, 0.2);
-  color: #1d3557;
-}
-
-.theme-light .ticket-qr {
-  background: linear-gradient(120deg, rgba(168, 218, 220, 0.5), rgba(241, 250, 238, 0.95));
+.group:hover .movie-card-overlay {
+  opacity: 1;
 }
 
 .theme-light .movie-card-overlay {
@@ -377,6 +568,15 @@
     rgba(254, 250, 224, 0.3) 42%,
     rgba(254, 250, 224, 0) 100%
   );
+}
+
+/* Light theme: keep Book Now button orange on hover */
+.theme-light .bg-primary {
+  background-color: var(--app-accent);
+}
+
+.theme-light .hover\:bg-primary-dark:hover {
+  background-color: #a85b1e;
 }
 
 .theme-light .movie-details-hero-overlay {
@@ -780,6 +980,22 @@ body.theme-light::-webkit-scrollbar-thumb:hover {
   
   .bg-gradient-dark {
     background: linear-gradient(to bottom, rgba(20, 20, 20, 0) 0%, rgba(20, 20, 20, 1) 100%);
+  }
+
+  .hover-lift {
+    @apply transition-transform duration-300 ease-out;
+  }
+  
+  .hover-lift:hover {
+    transform: translateY(-2px);
+  }
+  
+  .active-press {
+    @apply transition-transform duration-100 ease-out;
+  }
+  
+  .active-press:active {
+    transform: scale(0.97);
   }
 }
 

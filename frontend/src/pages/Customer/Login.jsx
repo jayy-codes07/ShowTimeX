@@ -1,12 +1,13 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Mail, Lock, Film } from 'lucide-react';
+import { Mail, Lock } from 'lucide-react';
 import Input from '../../components/UI/Input';
 import Button from '../../components/UI/Button';
 import { useAuth } from '../../context/AuthContext';
 import { validateForm } from '../../utils/validators';
 import toast from 'react-hot-toast';
+import logo from '../../assets/images/Showtime_logo.png';
 
 const Login = () => {
   const navigate = useNavigate();
@@ -73,7 +74,7 @@ const Login = () => {
         {/* Logo */}
         <div className="text-center mb-8">
           <div className="flex justify-center mb-4">
-            <Film className="w-16 h-16 text-primary" />
+            <img src={logo} className="h-14 w-auto" alt="ShowTimeX" />
           </div>
           <h2 className="text-3xl font-bold text-white">Welcome Back</h2>
           <p className="text-gray-400 mt-2">Login to book your favorite movies</p>
@@ -106,7 +107,7 @@ const Login = () => {
               required
             />
 
-            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex items-center">
               <label className="flex items-center space-x-2 cursor-pointer">
                 <input
                   type="checkbox"
@@ -114,13 +115,6 @@ const Login = () => {
                 />
                 <span className="text-sm text-gray-400">Remember me</span>
               </label>
-
-              <Link
-                to="/forgot-password"
-                className="text-sm text-primary hover:text-primary-light transition"
-              >
-                Forgot password?
-              </Link>
             </div>
 
             <Button
@@ -161,7 +155,8 @@ const Login = () => {
         <div className="mt-6 bg-dark-card rounded-xl p-4">
           <p className="text-sm text-gray-400 text-center mb-2">Demo Credentials:</p>
           <div className="text-xs text-gray-500 space-y-1">
-            <p>Admin: admin@showtime.com / Admin@123</p>
+            <p>Admin: admin@cinebook.com / Admin@123</p>
+            <p>User: user@cinebook.com / User@123</p>
           </div>
         </div>
       </motion.div>

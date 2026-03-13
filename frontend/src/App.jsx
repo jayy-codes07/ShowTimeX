@@ -1,10 +1,12 @@
 import React from "react";
-import { Routes, Route, Navigate } from "react-router-dom";
+import { Routes, Route, useLocation } from "react-router-dom";
+import { AnimatePresence } from "framer-motion";
 import { Toaster } from "react-hot-toast";
 import { AuthProvider } from "./context/AuthContext";
 import { BookingProvider } from "./context/BookingContext";
 import { ThemeProvider } from "./context/ThemeContext";
 import ReceiptPage from "./pages/Customer/ReceiptPage";
+import PageTransition from "./components/Common/PageTransition";
 
 
 // Layouts
@@ -32,8 +34,11 @@ import Reports from "./pages/Admin/Reports";
 // Protected Route Component
 import ProtectedRoute from "./components/Common/ProtectedRoute";
 import AllMovies from "./pages/Visitor/Allmovies";
+import NotFound from "./pages/NotFound";
 
 function App() {
+  const location = useLocation();
+
   return (
     <ThemeProvider>
       <AuthProvider>
@@ -41,88 +46,90 @@ function App() {
           <div className="min-h-screen flex flex-col bg-dark">
             <Navbar />
             <main className="flex-grow">
-              <Routes>
-                {/* Public Routes */}
-                <Route path="/" element={<HomePage />} />
-                <Route path="/movie/:id" element={<MovieDetails />} />
-                <Route path="/search" element={<SearchPage />} />
-                <Route path="/login" element={<Login />} />
-                <Route path="/register" element={<Register />} />
-                <Route path="/movies" element={<AllMovies />} />
+              <AnimatePresence mode="wait">
+                <Routes location={location} key={location.pathname}>
+                  {/* Public Routes */}
+                  <Route path="/" element={<PageTransition><HomePage /></PageTransition>} />
+                  <Route path="/movie/:id" element={<PageTransition><MovieDetails /></PageTransition>} />
+                  <Route path="/search" element={<PageTransition><SearchPage /></PageTransition>} />
+                  <Route path="/login" element={<PageTransition><Login /></PageTransition>} />
+                  <Route path="/register" element={<PageTransition><Register /></PageTransition>} />
+                  <Route path="/movies" element={<PageTransition><AllMovies /></PageTransition>} />
 
-                {/* Customer Protected Routes */}
-                <Route
-                  path="/payment"
-                  element={
-                    <ProtectedRoute allowedRoles={["customer", "admin"]}>
-                      <Payment />
-                    </ProtectedRoute>
-                  }
-                />
+                  {/* Customer Protected Routes */}
+                  <Route
+                    path="/payment"
+                    element={
+                      <ProtectedRoute allowedRoles={["customer", "admin"]}>
+                        <PageTransition><Payment /></PageTransition>
+                      </ProtectedRoute>
+                    }
+                  />
 
-                <Route
-                  path="/receipt/:bookingId"
-                  element={
-                    <ProtectedRoute allowedRoles={["customer", "admin"]}>
-                      <ReceiptPage />
-                    </ProtectedRoute>
-                  }
-                />
+                  <Route
+                    path="/receipt/:bookingId"
+                    element={
+                      <ProtectedRoute allowedRoles={["customer", "admin"]}>
+                        <PageTransition><ReceiptPage /></PageTransition>
+                      </ProtectedRoute>
+                    }
+                  />
 
-                <Route
-                  path="/my-tickets"
-                  element={
-                    <ProtectedRoute allowedRoles={["customer", "admin"]}>
-                      <MyTickets />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/profile"
-                  element={
-                    <ProtectedRoute allowedRoles={["customer", "admin"]}>
-                      <Profile />
-                    </ProtectedRoute>
-                  }
-                />
+                  <Route
+                    path="/my-tickets"
+                    element={
+                      <ProtectedRoute allowedRoles={["customer", "admin"]}>
+                        <PageTransition><MyTickets /></PageTransition>
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/profile"
+                    element={
+                      <ProtectedRoute allowedRoles={["customer", "admin"]}>
+                        <PageTransition><Profile /></PageTransition>
+                      </ProtectedRoute>
+                    }
+                  />
 
-                {/* Admin Protected Routes */}
-                <Route
-                  path="/admin/dashboard"
-                  element={
-                    <ProtectedRoute allowedRoles={["admin"]}>
-                      <Dashboard />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/admin/movies"
-                  element={
-                    <ProtectedRoute allowedRoles={["admin"]}>
-                      <ManageMovies />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/admin/shows"
-                  element={
-                    <ProtectedRoute allowedRoles={["admin"]}>
-                      <ManageShows />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/admin/reports"
-                  element={
-                    <ProtectedRoute allowedRoles={["admin"]}>
-                      <Reports />
-                    </ProtectedRoute>
-                  }
-                />
+                  {/* Admin Protected Routes */}
+                  <Route
+                    path="/admin/dashboard"
+                    element={
+                      <ProtectedRoute allowedRoles={["admin"]}>
+                        <PageTransition><Dashboard /></PageTransition>
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/admin/movies"
+                    element={
+                      <ProtectedRoute allowedRoles={["admin"]}>
+                        <PageTransition><ManageMovies /></PageTransition>
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/admin/shows"
+                    element={
+                      <ProtectedRoute allowedRoles={["admin"]}>
+                        <PageTransition><ManageShows /></PageTransition>
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/admin/reports"
+                    element={
+                      <ProtectedRoute allowedRoles={["admin"]}>
+                        <PageTransition><Reports /></PageTransition>
+                      </ProtectedRoute>
+                    }
+                  />
 
-                {/* 404 Route */}
-                <Route path="*" element={<Navigate to="/" replace />} />
-              </Routes>
+                  {/* 404 Route */}
+                  <Route path="*" element={<PageTransition><NotFound /></PageTransition>} />
+                </Routes>
+              </AnimatePresence>
             </main>
             <Footer />
 
@@ -139,7 +146,7 @@ function App() {
                 },
                 success: {
                   style: {
-                    border: "1px solid #ef4444", // Green border
+                    border: "1px solid #22c55e", // Green border for success
                   },
                   iconTheme: {
                     primary: "#22c55e", // Green icon

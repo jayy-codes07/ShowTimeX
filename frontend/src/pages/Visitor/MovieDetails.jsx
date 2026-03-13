@@ -78,8 +78,6 @@ const MovieDetails = () => {
       // This creates a clean "2026-02-20" string based on your local time
       const localDateString = `${year}-${month}-${day}`;
 
-      console.log(`Asking backend for date: ${localDateString}`);
-
       const response = await movieService.getShowsByMovie(id, localDateString);
       
       if (response.success) {

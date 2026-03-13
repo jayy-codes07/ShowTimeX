@@ -107,7 +107,7 @@ const Footer = () => {
 
         <div className="mt-10 border-t border-gray-800 pt-6 text-center">
           <p className="text-sm text-gray-400">
-            © {currentYear} ShowTimeX. Final year project.
+            © {currentYear} ShowTimeX. All rights reserved.
           </p>
         </div>
       </div>
