@@ -325,9 +325,9 @@ const Reports = () => {
   return (
     <div className="min-h-screen bg-dark py-8">
       <div className="container-custom">
-        {/* Header */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
+          {/* Header */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           className="flex flex-col md:flex-row md:items-center md:justify-between mb-8"
         >
@@ -340,7 +340,7 @@ const Reports = () => {
             </p>
           </div>
           {/* Replace the single Button with these two */}
-          <div className="flex gap-3 mt-4 md:mt-0">
+          <div className="mt-4 flex w-full flex-col gap-3 sm:w-auto sm:flex-row md:mt-0">
             <Button
               variant="secondary"
               icon={<Download className="w-4 h-4" />}
@@ -363,7 +363,7 @@ const Reports = () => {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
-          className="bg-dark-card rounded-xl p-6 mb-8"
+          className="bg-dark-card rounded-xl p-4 sm:p-6 mb-8"
         >
           <h3 className="text-lg font-bold text-white mb-4">Date Range</h3>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
@@ -398,7 +398,7 @@ const Reports = () => {
         </motion.div>
 
         {/* Summary Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 sm:gap-6 mb-8">
           {summaryCards.map((card, index) => {
             const Icon = card.icon;
             return (
@@ -407,7 +407,7 @@ const Reports = () => {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: index * 0.1 + 0.2 }}
-                className="bg-dark-card rounded-xl p-6"
+                className="bg-dark-card rounded-xl p-4 sm:p-6"
               >
                 <div className="flex items-center justify-between mb-4">
                   <div
@@ -431,14 +431,14 @@ const Reports = () => {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.6 }}
-          className="bg-dark-card rounded-xl p-6 mb-8"
+          className="bg-dark-card rounded-xl p-4 sm:p-6 mb-8"
         >
           <h2 className="text-xl font-bold text-white mb-6">
             Top Performing Movies
           </h2>
           {reportData?.topMovies && reportData.topMovies.length > 0 ? (
             <div className="overflow-x-auto">
-              <table className="w-full">
+              <table className="w-full min-w-[700px]">
                 <thead className="border-b border-gray-700">
                   <tr>
                     <th className="text-left py-3 px-4 text-gray-400 font-semibold">
@@ -462,7 +462,7 @@ const Reports = () => {
                   {reportData.topMovies.map((movie, index) => (
                     <tr
                       key={index}
-                      className="border-b border-gray-800 hover:bg-dark-lighter transition"
+                      className="admin-table-row border-b border-gray-800"
                     >
                       <td className="py-3 px-4">
                         <span
@@ -488,7 +488,7 @@ const Reports = () => {
                       <td className="py-3 px-4 text-gray-300">
                         {movie.tickets}
                       </td>
-                      <td className="py-3 px-4 text-primary font-bold">
+                      <td className="py-3 px-4 money-value font-bold">
                         ₹{movie.revenue?.toLocaleString()}
                       </td>
                     </tr>
@@ -507,10 +507,10 @@ const Reports = () => {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.7 }}
-          className="bg-dark-card rounded-xl p-6"
+          className="bg-dark-card rounded-xl p-4 sm:p-6"
         >
           {/* Header with count */}
-          <div className="flex items-center justify-between mb-6">
+          <div className="mb-6 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
             <h2 className="text-xl font-bold text-white">
               Recent Transactions
             </h2>
@@ -522,7 +522,7 @@ const Reports = () => {
           {transactions.length > 0 ? (
             <>
               <div className="overflow-x-auto">
-                <table className="w-full">
+                <table className="w-full min-w-[860px]">
                   <thead className="border-b border-gray-700">
                     <tr>
                       <th className="text-left py-3 px-4 text-gray-400 font-semibold">
@@ -553,7 +553,7 @@ const Reports = () => {
                     {transactions.map((transaction, index) => (
                       <tr
                         key={index}
-                        className="border-b border-gray-800 hover:bg-dark-lighter transition"
+                        className="admin-table-row border-b border-gray-800"
                       >
                         <td className="py-3 px-4 text-gray-300 text-sm">
                           {formatDate(transaction.date)}
@@ -570,7 +570,7 @@ const Reports = () => {
                         <td className="py-3 px-4 text-gray-300 text-sm">
                           {transaction.tickets}
                         </td>
-                        <td className="py-3 px-4 text-primary font-semibold text-sm">
+                        <td className="py-3 px-4 money-value font-semibold text-sm">
                           ₹{transaction.amount?.toFixed(2)}
                         </td>
                         <td className="py-3 px-4">
@@ -598,8 +598,7 @@ const Reports = () => {
                   <button
                     onClick={handleLoadMore}
                     disabled={loadingMore}
-                    className="bg-dark-lighter hover:bg-gray-700 text-white px-6 py-2 
-                       rounded-lg text-sm font-medium transition disabled:opacity-50"
+                    className="w-full sm:w-auto rounded-lg bg-dark-lighter px-6 py-2 text-sm font-medium text-white transition hover:bg-gray-700 disabled:opacity-50"
                   >
                     {loadingMore ? (
                       <span className="flex items-center gap-2">

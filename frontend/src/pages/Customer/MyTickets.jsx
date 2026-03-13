@@ -257,7 +257,7 @@ const MyTickets = () => {
                           <p className="text-gray-500 text-sm">
                             Total Amount Paid
                           </p>
-                          <p className="text-2xl font-bold text-primary">
+                          <p className="money-value text-2xl font-bold">
                             Rs. {booking.totalAmount?.toFixed(2)}
                           </p>
                         </div>

@@ -156,7 +156,7 @@ const Receipt = ({ booking }) => {
             </div>
             <div className="border-t border-gray-700 pt-2 mt-2 flex justify-between items-center">
               <span className="text-white font-bold">Total Paid</span>
-              <span className="text-primary font-bold text-xl">₹{booking.totalAmount?.toFixed(2)}</span>
+              <span className="money-value text-xl font-bold">₹{booking.totalAmount?.toFixed(2)}</span>
             </div>
           </div>
         </div>

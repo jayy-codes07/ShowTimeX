@@ -115,7 +115,7 @@ const Profile = () => {
           animate={{ opacity: 1, y: 0 }}
           className="mb-8"
         >
-          <div className="flex items-center space-x-4 mb-2">
+          <div className="mb-2 flex flex-col items-center gap-4 text-center sm:flex-row sm:items-start sm:text-left">
             <div className="w-16 h-16 bg-primary rounded-full flex items-center justify-center">
               <User className="w-8 h-8 text-white" />
             </div>
@@ -127,10 +127,10 @@ const Profile = () => {
         </motion.div>
 
         {/* Tabs */}
-        <div className="flex space-x-2 mb-6 border-b border-gray-700">
+        <div className="mb-6 flex space-x-2 overflow-x-auto border-b border-gray-700 scrollbar-hide">
           <button
             onClick={() => setActiveTab('profile')}
-            className={`px-6 py-3 font-semibold transition border-b-2 ${
+            className={`px-4 sm:px-6 py-3 font-semibold transition border-b-2 whitespace-nowrap ${
               activeTab === 'profile'
                 ? 'border-primary text-white'
                 : 'border-transparent text-gray-400 hover:text-white'
@@ -140,7 +140,7 @@ const Profile = () => {
           </button>
           <button
             onClick={() => setActiveTab('password')}
-            className={`px-6 py-3 font-semibold transition border-b-2 ${
+            className={`px-4 sm:px-6 py-3 font-semibold transition border-b-2 whitespace-nowrap ${
               activeTab === 'password'
                 ? 'border-primary text-white'
                 : 'border-transparent text-gray-400 hover:text-white'
@@ -158,7 +158,7 @@ const Profile = () => {
           transition={{ duration: 0.3 }}
         >
           {activeTab === 'profile' ? (
-            <div className="bg-dark-card rounded-xl p-8">
+            <div className="bg-dark-card rounded-xl p-5 sm:p-8">
               <h2 className="text-2xl font-bold text-white mb-6">Update Profile</h2>
               
               <form onSubmit={handleProfileSubmit} className="space-y-6">
@@ -198,7 +198,7 @@ const Profile = () => {
                   required
                 />
 
-                <div className="flex justify-end space-x-4 pt-4">
+                <div className="flex flex-col-reverse gap-3 pt-4 sm:flex-row sm:justify-end">
                   <Button
                     type="button"
                     variant="secondary"
@@ -225,7 +225,7 @@ const Profile = () => {
               </form>
             </div>
           ) : (
-            <div className="bg-dark-card rounded-xl p-8">
+            <div className="bg-dark-card rounded-xl p-5 sm:p-8">
               <h2 className="text-2xl font-bold text-white mb-6">Change Password</h2>
               
               <form onSubmit={handlePasswordSubmit} className="space-y-6">
@@ -275,7 +275,7 @@ const Profile = () => {
                   </ul>
                 </div>
 
-                <div className="flex justify-end space-x-4 pt-4">
+                <div className="flex flex-col-reverse gap-3 pt-4 sm:flex-row sm:justify-end">
                   <Button
                     type="button"
                     variant="secondary"

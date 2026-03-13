@@ -58,7 +58,7 @@ const BookingForm = ({ onSubmit, loading }) => {
       className="space-y-6"
     >
       {/* Contact Information */}
-      <div className="bg-dark-card rounded-xl p-6">
+      <div className="bg-dark-card rounded-xl p-4 sm:p-6">
         <h3 className="text-xl font-bold text-white mb-4">Contact Information</h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <Input
@@ -83,9 +83,9 @@ const BookingForm = ({ onSubmit, loading }) => {
       </div>
 
       {/* Payment Method */}
-      <div className="bg-dark-card rounded-xl p-6">
+      <div className="bg-dark-card rounded-xl p-4 sm:p-6">
         <h3 className="text-xl font-bold text-white mb-4">Payment Method</h3>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           {paymentMethods.map((method) => (
             <motion.button
               key={method.id}
@@ -114,7 +114,7 @@ const BookingForm = ({ onSubmit, loading }) => {
       </div>
 
       {/* Booking Summary */}
-      <div className="bg-dark-card rounded-xl p-6">
+      <div className="bg-dark-card rounded-xl p-4 sm:p-6">
         <h3 className="text-xl font-bold text-white mb-4">Booking Summary</h3>
         <div className="space-y-3">
           <div className="flex justify-between text-gray-400">
@@ -131,13 +131,13 @@ const BookingForm = ({ onSubmit, loading }) => {
           </div>
           <div className="border-t border-gray-700 pt-3 flex justify-between text-white font-bold text-lg">
             <span>Total Amount</span>
-            <span className="text-primary">₹{summary.total.toFixed(2)}</span>
+            <span className="money-value">₹{summary.total.toFixed(2)}</span>
           </div>
         </div>
       </div>
 
       {/* Selected Seats */}
-      <div className="bg-dark-card rounded-xl p-6">
+      <div className="bg-dark-card rounded-xl p-4 sm:p-6">
         <h3 className="text-xl font-bold text-white mb-4">Selected Seats</h3>
         <div className="flex flex-wrap gap-2">
           {bookingData.selectedSeats.map((seat, index) => (
@@ -152,7 +152,7 @@ const BookingForm = ({ onSubmit, loading }) => {
       </div>
 
       {/* Terms and Conditions */}
-      <div className="bg-dark-card rounded-xl p-6">
+      <div className="bg-dark-card rounded-xl p-4 sm:p-6">
         <label className="flex items-start space-x-3 cursor-pointer">
           <input
             type="checkbox"

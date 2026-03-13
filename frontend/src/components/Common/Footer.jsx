@@ -1,117 +1,113 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Film, Mail, Phone, MapPin, Facebook, Twitter, Instagram, Youtube } from 'lucide-react';
-import  logo  from './../../assets/images/Showtime_logo.png'
+import { Mail, Phone, MapPin, Facebook, Twitter, Instagram, Youtube } from 'lucide-react';
+import logo from './../../assets/images/Showtime_logo.png';
 
 const Footer = () => {
   const currentYear = new Date().getFullYear();
 
   return (
-    <footer className="bg-dark-lighter border-t border-gray-800 mt-auto">
-      <div className="container-custom py-12">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-          {/* About Section */}
-          <div>
-            <div className="flex items-center space-x-2 mb-4">
-              <img src={logo} className='h-12' alt="mainlogo" />
+    <footer className="site-footer mt-auto">
+      <div className="container-custom py-12 sm:py-14">
+        <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 xl:grid-cols-4">
+          <div className="text-center sm:text-left">
+            <div className="mb-4 flex items-center justify-center sm:justify-start">
+              <img src={logo} className="h-10 w-auto sm:h-12" alt="ShowTimeX" />
             </div>
-            <p className="text-gray-400 text-sm mb-4">
-              Your ultimate destination for booking movie tickets online. Enjoy the latest movies with the best seats at unbeatable prices.
+            <p className="mb-5 max-w-sm text-sm leading-6 text-gray-400 sm:max-w-none">
+              A modern ticket booking experience for discovering films, booking seats,
+              and managing your movie nights without friction.
             </p>
-            <div className="flex space-x-4">
-              <a href="#" className="text-gray-400 hover:text-primary transition">
-                <Facebook className="w-5 h-5" />
+            <div className="flex justify-center gap-3 sm:justify-start">
+              <a href="#" className="site-social-link" aria-label="Facebook">
+                <Facebook className="h-5 w-5" />
               </a>
-              <a href="#" className="text-gray-400 hover:text-primary transition">
-                <Twitter className="w-5 h-5" />
+              <a href="#" className="site-social-link" aria-label="Twitter">
+                <Twitter className="h-5 w-5" />
               </a>
-              <a href="#" className="text-gray-400 hover:text-primary transition">
-                <Instagram className="w-5 h-5" />
+              <a href="#" className="site-social-link" aria-label="Instagram">
+                <Instagram className="h-5 w-5" />
               </a>
-              <a href="#" className="text-gray-400 hover:text-primary transition">
-                <Youtube className="w-5 h-5" />
+              <a href="#" className="site-social-link" aria-label="Youtube">
+                <Youtube className="h-5 w-5" />
               </a>
             </div>
           </div>
 
-          {/* Quick Links */}
-          <div>
-            <h3 className="text-white font-semibold mb-4">Quick Links</h3>
+          <div className="text-center sm:text-left">
+            <h3 className="mb-4 font-semibold text-white">Quick Links</h3>
             <ul className="space-y-2">
               <li>
-                <Link to="/" className="text-gray-400 hover:text-white transition text-sm">
+                <Link to="/" className="site-footer-link">
                   Home
                 </Link>
               </li>
               <li>
-                <Link to="/search" className="text-gray-400 hover:text-white transition text-sm">
+                <Link to="/movies" className="site-footer-link">
                   Movies
                 </Link>
               </li>
               <li>
-                <Link to="/my-tickets" className="text-gray-400 hover:text-white transition text-sm">
+                <Link to="/my-tickets" className="site-footer-link">
                   My Bookings
                 </Link>
               </li>
               <li>
-                <Link to="/profile" className="text-gray-400 hover:text-white transition text-sm">
+                <Link to="/profile" className="site-footer-link">
                   Profile
                 </Link>
               </li>
             </ul>
           </div>
 
-          {/* Support */}
-          <div>
-            <h3 className="text-white font-semibold mb-4">Support</h3>
+          <div className="text-center sm:text-left">
+            <h3 className="mb-4 font-semibold text-white">Support</h3>
             <ul className="space-y-2">
               <li>
-                <a href="#" className="text-gray-400 hover:text-white transition text-sm">
+                <a href="#" className="site-footer-link">
                   Help Center
                 </a>
               </li>
               <li>
-                <a href="#" className="text-gray-400 hover:text-white transition text-sm">
+                <a href="#" className="site-footer-link">
                   Terms of Service
                 </a>
               </li>
               <li>
-                <a href="#" className="text-gray-400 hover:text-white transition text-sm">
+                <a href="#" className="site-footer-link">
                   Privacy Policy
                 </a>
               </li>
               <li>
-                <a href="#" className="text-gray-400 hover:text-white transition text-sm">
+                <a href="#" className="site-footer-link">
                   Refund Policy
                 </a>
               </li>
             </ul>
           </div>
 
-          {/* Contact */}
-          <div>
-            <h3 className="text-white font-semibold mb-4">Contact Us</h3>
+          <div className="text-center sm:text-left">
+            <h3 className="mb-4 font-semibold text-white">Contact Us</h3>
             <ul className="space-y-3">
-              <li className="flex items-start space-x-3 text-gray-400 text-sm">
-                <MapPin className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" />
+              <li className="flex items-start justify-center space-x-3 text-sm text-gray-400 sm:justify-start">
+                <MapPin className="mt-0.5 h-5 w-5 flex-shrink-0 text-primary" />
                 <span>Ahmedabad</span>
               </li>
-              <li className="flex items-center space-x-3 text-gray-400 text-sm">
-                <Phone className="w-5 h-5 text-primary flex-shrink-0" />
+              <li className="flex items-center justify-center space-x-3 text-sm text-gray-400 sm:justify-start">
+                <Phone className="h-5 w-5 flex-shrink-0 text-primary" />
                 <span>+91 9274350698</span>
               </li>
-              <li className="flex items-center space-x-3 text-gray-400 text-sm">
-                <Mail className="w-5 h-5 text-primary flex-shrink-0" />
+              <li className="flex items-center justify-center space-x-3 text-sm text-gray-400 sm:justify-start">
+                <Mail className="h-5 w-5 flex-shrink-0 text-primary" />
                 <span>support@showtimex.com</span>
               </li>
             </ul>
           </div>
         </div>
 
-        {/* Bottom Bar */}
-        <div className="border-t border-gray-800 mt-8 pt-8 text-center">
-          <p className="text-gray-400 text-sm">
-            © {currentYear} ShowTimeX Final year project .
+        <div className="mt-10 border-t border-gray-800 pt-6 text-center">
+          <p className="text-sm text-gray-400">
+            © {currentYear} ShowTimeX. Final year project.
           </p>
         </div>
       </div>

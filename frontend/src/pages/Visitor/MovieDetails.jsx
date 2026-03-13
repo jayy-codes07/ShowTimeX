@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { useLocation, useParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Star, Clock, Calendar, Globe, Film as FilmIcon } from 'lucide-react';
 import ShowtimeList from '../../components/Movie/ShowtimeList';
@@ -11,6 +11,7 @@ import toast from 'react-hot-toast';
 
 const MovieDetails = () => {
   const { id } = useParams();
+  const location = useLocation();
   const [movie, setMovie] = useState(null);
   const [shows, setShows] = useState([]);
   const [selectedDate, setSelectedDate] = useState(new Date());
@@ -28,6 +29,26 @@ const MovieDetails = () => {
       fetchShows();
     }
   }, [selectedDate, movie]);
+
+  useEffect(() => {
+    if (!movie || location.hash !== '#showtimes') {
+      return;
+    }
+
+    const section = document.getElementById('showtimes');
+    if (!section) {
+      return;
+    }
+
+    const navbar = document.querySelector('nav');
+    const navbarHeight = navbar?.offsetHeight ?? 80;
+    const top = section.getBoundingClientRect().top + window.scrollY - navbarHeight - 16;
+
+    window.scrollTo({
+      top,
+      behavior: 'smooth',
+    });
+  }, [movie, location.hash]);
 
   const fetchMovieDetails = async () => {
     try {
@@ -87,28 +108,28 @@ const MovieDetails = () => {
   return (
     <div className="min-h-screen bg-dark">
       {/* Hero Section with Backdrop */}
-      <div className="relative h-[50vh] md:h-[60vh] overflow-hidden">
+      <div className="relative min-h-[34rem] md:min-h-[60vh] overflow-hidden">
         <div
           className="absolute inset-0 bg-cover bg-top"
           style={{
             backgroundImage: `url(${movie.backdrop || movie.poster || IMAGE_PLACEHOLDER})`,
           }}
         >
-          <div className="absolute inset-0 bg-gradient-to-t from-dark via-dark/60 to-dark/10"></div>
+          <div className="movie-details-hero-overlay"></div>
         </div>
 
-        <div className="container-custom relative h-full flex items-end pb-8">
-          <div className="flex flex-col md:flex-row gap-6 w-full">
+        <div className="container-custom relative h-[585px] flex items-end pb-8 pt-24 sm:pt-28">
+          <div className="flex w-full flex-col gap-6 md:flex-row md:gap-8 items-start">
             {/* Poster */}
             <motion.div
               initial={{ opacity: 0, x: -50 }}
               animate={{ opacity: 1, x: 0 }}
-              className="flex-shrink-0 ml-2 md:ml-0"
+              className="flex-shrink-0 mx-auto md:mx-0"
             >
               <img
                 src={movie.poster || IMAGE_PLACEHOLDER}
                 alt={movie.title}
-                className="w-48 md:w-64 rounded-xl shadow-2xl  object-cover aspect-[2/3]"
+                className="w-36 sm:w-44 md:w-64 rounded-xl shadow-2xl object-cover aspect-[2/3]"
                 onError={(e) => {
                   e.target.src = IMAGE_PLACEHOLDER;
                 }}
@@ -120,9 +141,9 @@ const MovieDetails = () => {
               initial={{ opacity: 0, y: 50 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.2 }}
-              className="flex-grow"
+              className="flex-grow text-center md:text-left"
             >
-              <h1 className="text-4xl md:text-5xl font-bold text-white mb-4">
+              <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-white mb-4">
                 {movie.title}
               </h1>
 
@@ -167,14 +188,14 @@ const MovieDetails = () => {
               </div>
 
               {movie.languages && (
-                <div className="flex items-center space-x-2 text-gray-400 mb-4">
+                <div className="mb-4 flex items-center justify-center md:justify-start space-x-2 text-gray-400">
                   <Globe className="w-5 h-5" />
                   <span>{movie.languages.join(', ')}</span>
                 </div>
               )}
 
               {movie.description && (
-                <p className="text-gray-300 max-w-3xl line-clamp-3">
+                <p className="max-w-3xl md:flex [display:none] text-gray-300 line-clamp-4 md:line-clamp-3">
                   {movie.description}
                 </p>
               )}
@@ -225,14 +246,16 @@ const MovieDetails = () => {
 
         {/* Showtimes */}
         <motion.section
+          id="showtimes"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2 }}
+          className="scroll-mt-24 sm:scroll-mt-28"
         >
           <h2 className="text-2xl font-bold text-white mb-6">Select Date & Time</h2>
 
           {/* Date Selector */}
-          <div className="flex gap-3 overflow-x-auto pb-4 mb-6 scrollbar-hide">
+          <div className="mb-6 flex gap-3 overflow-x-auto pb-4 scrollbar-hide -mx-4 px-4 sm:mx-0 sm:px-0">
             {dates.map((date, index) => {
               const isSelected = date.toDateString() === selectedDate.toDateString();
               const dayName = date.toLocaleDateString('en-US', { weekday: 'short' });

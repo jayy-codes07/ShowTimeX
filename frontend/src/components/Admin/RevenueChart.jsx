@@ -9,53 +9,88 @@ import {
   CartesianGrid,
 } from "recharts";
 
-const RevenueChart = ({ data }) => {
+const chartColors = {
+  dark: {
+    gradientId: "dashboardRevenueGradientDark",
+    gradientStart: "#e50914",
+    gradientEnd: "#f97316",
+    grid: "rgba(255, 255, 255, 0.08)",
+    axis: "#9CA3AF",
+    tooltipBackground: "#111827",
+    tooltipBorder: "#374151",
+    tooltipText: "#F9FAFB",
+    tooltipAccent: "#FCA5A5",
+    cursor: "rgba(255, 255, 255, 0.06)",
+    shadow: "0 16px 34px rgba(0, 0, 0, 0.3)",
+  },
+  light: {
+    gradientId: "dashboardRevenueGradientLight",
+    gradientStart: "#bc6c25",
+    gradientEnd: "#dda15e",
+    grid: "rgba(118, 102, 75, 0.18)",
+    axis: "#5b4c35",
+    tooltipBackground: "#fff8e1",
+    tooltipBorder: "rgba(221, 161, 94, 0.55)",
+    tooltipText: "#283618",
+    tooltipAccent: "#bc6c25",
+    cursor: "rgba(188, 108, 37, 0.1)",
+    shadow: "0 16px 34px rgba(40, 54, 24, 0.12)",
+  },
+};
+
+const currencySymbol = "\u20B9";
+
+const RevenueChart = ({ data, theme = "dark" }) => {
+  const colors = chartColors[theme] || chartColors.dark;
+
   return (
     <ResponsiveContainer width="100%" height={300}>
       <BarChart data={data} margin={{ top: 10, right: 10, left: -20, bottom: 0 }} barSize={36}>
         <defs>
-          {/* Subtle elegant gradient */}
-          <linearGradient id="barGradient" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor="#6366f1" stopOpacity={1} />
-            <stop offset="100%" stopColor="#4f46e5" stopOpacity={0.6} />
+          <linearGradient id={colors.gradientId} x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor={colors.gradientStart} stopOpacity={1} />
+            <stop offset="100%" stopColor={colors.gradientEnd} stopOpacity={0.62} />
           </linearGradient>
         </defs>
-        <CartesianGrid strokeDasharray="3 3" stroke="#374151" vertical={false} />
-        <XAxis 
-          dataKey="date" 
-          stroke="#9CA3AF" 
+
+        <CartesianGrid strokeDasharray="3 3" stroke={colors.grid} vertical={false} />
+
+        <XAxis
+          dataKey="date"
+          stroke={colors.axis}
           axisLine={false}
           tickLine={false}
-          tick={{ fontSize: 13, fill: '#9CA3AF' }}
+          tick={{ fontSize: 13, fill: colors.axis }}
           dy={10}
         />
-       <YAxis 
-          stroke="#9CA3AF" 
+
+        <YAxis
+          stroke={colors.axis}
           axisLine={false}
           tickLine={false}
-          tick={{ fontSize: 13, fill: '#9CA3AF' }}
-          // 🟢 FIX 1: Add Math.round() so 15.111k becomes just 15k
-          tickFormatter={(value) => value >= 1000 ? `₹${Math.round(value / 1000)}k` : `₹${Math.round(value)}`}
+          tick={{ fontSize: 13, fill: colors.axis }}
+          tickFormatter={(value) =>
+            value >= 1000
+              ? `${currencySymbol}${Math.round(value / 1000)}k`
+              : `${currencySymbol}${Math.round(value)}`
+          }
         />
-        
+
         <Tooltip
-          cursor={{ fill: '#374151', opacity: 0.3 }}
+          cursor={{ fill: colors.cursor }}
           contentStyle={{
-            backgroundColor: "#1F2937",
-            border: "1px solid #374151",
-            borderRadius: "8px",
-            color: "#fff",
-            boxShadow: "0 10px 15px -3px rgba(0, 0, 0, 0.1)"
+            backgroundColor: colors.tooltipBackground,
+            border: `1px solid ${colors.tooltipBorder}`,
+            borderRadius: "12px",
+            color: colors.tooltipText,
+            boxShadow: colors.shadow,
           }}
-          itemStyle={{ color: "#818CF8", fontWeight: "bold" }}
-          // 🟢 FIX 2: Add this formatter to clean up the hover popup!
-          formatter={(value) => [`₹${Math.round(value).toLocaleString()}`, "Revenue"]}
+          labelStyle={{ color: colors.tooltipText, fontWeight: 600 }}
+          itemStyle={{ color: colors.tooltipAccent, fontWeight: 700 }}
+          formatter={(value) => [`${currencySymbol}${Math.round(value).toLocaleString()}`, "Revenue"]}
         />
-        <Bar 
-          dataKey="revenue" 
-          fill="url(#barGradient)" 
-          radius={[6, 6, 0, 0]} 
-        />
+
+        <Bar dataKey="revenue" fill={`url(#${colors.gradientId})`} radius={[8, 8, 0, 0]} />
       </BarChart>
     </ResponsiveContainer>
   );

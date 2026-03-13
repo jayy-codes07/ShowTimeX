@@ -137,7 +137,7 @@ const ShowtimeList = ({ shows, movie }) => {
                       }`}>
                         {isFull ? 'Full' : `${availableSeats} seats`}
                       </div>
-                      <div className="text-primary font-bold">
+                      <div className="money-value font-bold">
                         ₹{show.price}
                       </div>
                     </div>

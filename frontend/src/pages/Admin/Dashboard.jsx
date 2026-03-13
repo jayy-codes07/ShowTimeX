@@ -1,13 +1,8 @@
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import RevenueChart from "../../components/Admin/RevenueChart";
-import MovieDistributionChart from "../../components/Admin/MovieDistributionChart";
-import LeaderboardChart from "../../components/Admin/LeaderboardChart";
-
 import {
   DollarSign,
-  Users,
   Ticket,
   Film,
   TrendingUp,
@@ -15,23 +10,28 @@ import {
   BarChart3,
   ArrowUpRight,
   ArrowDownRight,
-  MonitorPlay 
+  MonitorPlay,
 } from "lucide-react";
+import RevenueChart from "../../components/Admin/RevenueChart";
+import MovieDistributionChart from "../../components/Admin/MovieDistributionChart";
+import LeaderboardChart from "../../components/Admin/LeaderboardChart";
 import Loader from "../../components/UI/Loader";
+import { useTheme } from "../../context/ThemeContext";
 import { apiRequest } from "../../services/api";
 import { API_ENDPOINTS } from "../../utils/constants";
 import toast from "react-hot-toast";
 
 const Dashboard = () => {
+  const { theme } = useTheme();
   const [stats, setStats] = useState(null);
   const [recentBookings, setRecentBookings] = useState([]);
-  
-  // Chart State
   const [revenueData, setRevenueData] = useState([]);
   const [movieStatsData, setMovieStatsData] = useState([]);
   const [formatStatsData, setFormatStatsData] = useState([]);
-  
   const [loading, setLoading] = useState(true);
+
+  const currencySymbol = "\u20B9";
+  const panelClassName = "rounded-2xl border border-gray-800 bg-dark-card p-4 shadow-sm sm:p-6";
 
   useEffect(() => {
     fetchDashboardData();
@@ -42,7 +42,7 @@ const Dashboard = () => {
       setLoading(true);
       const [statsRes, bookingsRes] = await Promise.all([
         apiRequest.get(API_ENDPOINTS.ADMIN_STATS),
-        apiRequest.get(API_ENDPOINTS.ADMIN_BOOKINGS + "?limit=5"),
+        apiRequest.get(`${API_ENDPOINTS.ADMIN_BOOKINGS}?limit=5`),
       ]);
 
       const backendData = statsRes.report || statsRes.stats;
@@ -65,19 +65,22 @@ const Dashboard = () => {
     }
   };
 
-  if (loading) return <Loader fullScreen message="Loading dashboard..." />;
+  if (loading) {
+    return <Loader fullScreen message="Loading dashboard..." />;
+  }
 
-  // 🟢 DYNAMIC: Helper function to safely format the percentage
-  const formatChange = (val) => {
-    if (val === undefined || val === null) return "0%";
-    return `${val > 0 ? '+' : ''}${val}%`;
+  const formatChange = (value) => {
+    if (value === undefined || value === null) {
+      return "0%";
+    }
+
+    return `${value > 0 ? "+" : ""}${value}%`;
   };
 
-  // 🟢 DYNAMIC: Cards are now perfectly rounded and read from your backend changes!
   const statCards = [
     {
       title: "Total Revenue",
-      value: `₹${Math.round(stats?.totalRevenue || 0).toLocaleString()}`,
+      value: `${currencySymbol}${Math.round(stats?.totalRevenue || 0).toLocaleString()}`,
       change: formatChange(stats?.changes?.revenue),
       isPositive: (stats?.changes?.revenue || 0) >= 0,
       icon: DollarSign,
@@ -101,10 +104,9 @@ const Dashboard = () => {
     },
     {
       title: "Avg. Booking Value",
-      // Safely calculate the average if the backend didn't explicitly send it
-      value: `₹${Math.round(
-        stats?.avgBookingValue || 
-        (stats?.totalBookings > 0 ? stats.totalRevenue / stats.totalBookings : 0)
+      value: `${currencySymbol}${Math.round(
+        stats?.avgBookingValue ||
+          (stats?.totalBookings > 0 ? stats.totalRevenue / stats.totalBookings : 0),
       ).toLocaleString()}`,
       change: formatChange(stats?.changes?.avgValue),
       isPositive: (stats?.changes?.avgValue || 0) >= 0,
@@ -113,209 +115,269 @@ const Dashboard = () => {
     },
   ];
 
+  const quickActions = [
+    {
+      title: "Manage Movies",
+      description: "Add new releases, posters, trailers, and genre details.",
+      to: "/admin/movies",
+      icon: Film,
+    },
+    {
+      title: "Manage Shows",
+      description: "Schedule showtimes and keep screens organized for the week.",
+      to: "/admin/shows",
+      icon: Calendar,
+    },
+    {
+      title: "View Reports",
+      description: "Review revenue, booking activity, and audience trends.",
+      to: "/admin/reports",
+      icon: TrendingUp,
+    },
+  ];
+
   return (
-    <div className="min-h-screen bg-dark py-8">
+    <div className="min-h-screen bg-dark py-6 sm:py-8">
       <div className="container-custom">
-        {/* Header */}
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="mb-8">
-          <h1 className="text-3xl md:text-4xl font-bold text-white mb-2">Admin Dashboard</h1>
-          <p className="text-gray-400">Welcome back! Here's what's happening today.</p>
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="mb-8 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between"
+        >
+          <div>
+            <h1 className="mb-2 text-3xl font-bold text-white md:text-4xl">Admin Dashboard</h1>
+            <p className="text-gray-400">
+              Welcome back. Here is the live performance snapshot for your cinema.
+            </p>
+          </div>
+          <div className="inline-flex w-fit items-center rounded-full border border-gray-800 bg-dark-card px-4 py-2 text-sm text-gray-500">
+            Updated from current bookings and revenue data
+          </div>
         </motion.div>
 
-        {/* Stats Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <motion.section
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.1 }}
+          className={`${panelClassName} mb-8`}
+        >
+          <div className="mb-5 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <h2 className="text-xl font-bold text-white">Quick Actions</h2>
+              <p className="text-sm text-gray-500">
+                Keep the most common admin tasks within one click.
+              </p>
+            </div>
+            <Link
+              to="/admin/reports"
+              className="text-sm font-medium text-primary transition hover:text-primary-light"
+            >
+              Open full reports
+            </Link>
+          </div>
+
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+            {quickActions.map((action, index) => {
+              const Icon = action.icon;
+
+              return (
+                <motion.div
+                  key={action.title}
+                  initial={{ opacity: 0, y: 18 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.15 + index * 0.08 }}
+                >
+                  <Link
+                    to={action.to}
+                    className={`dashboard-quick-action dashboard-quick-action-${theme} group`}
+                  >
+                    <div
+                      className={`dashboard-quick-action-icon dashboard-quick-action-icon-${theme} flex h-12 w-12 shrink-0 items-center justify-center rounded-xl`}
+                    >
+                      <Icon className="h-5 w-5" />
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <p className="text-lg font-semibold text-white">{action.title}</p>
+                      <p className="mt-1 text-sm leading-6 text-gray-500">{action.description}</p>
+                    </div>
+                    <ArrowUpRight className="mt-1 h-5 w-5 shrink-0 text-primary transition-transform duration-300 group-hover:-translate-y-0.5 group-hover:translate-x-0.5" />
+                  </Link>
+                </motion.div>
+              );
+            })}
+          </div>
+        </motion.section>
+
+        <div className="mb-8 grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-6 xl:grid-cols-4">
           {statCards.map((stat, index) => {
             const Icon = stat.icon;
             const ChangeIcon = stat.isPositive ? ArrowUpRight : ArrowDownRight;
+
             return (
               <motion.div
-                key={index}
+                key={stat.title}
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: index * 0.1 }}
-                className="bg-dark-card rounded-xl p-6 hover:shadow-xl transition-shadow border border-gray-800"
+                transition={{ delay: 0.25 + index * 0.08 }}
+                className={`${panelClassName} transition-all duration-300 hover:-translate-y-1 hover:shadow-xl`}
               >
-                <div className="flex items-center justify-between mb-4">
-                  <div className={`w-12 h-12 ${stat.color} rounded-lg flex items-center justify-center`}>
-                    <Icon className="w-6 h-6 text-white" />
+                <div className="mb-4 flex items-center justify-between">
+                  <div className={`flex h-12 w-12 items-center justify-center rounded-lg ${stat.color}`}>
+                    <Icon className="h-6 w-6 text-white" />
                   </div>
-                  <div className={`flex items-center space-x-1 text-sm ${stat.isPositive ? "text-green-500" : "text-red-500"}`}>
-                    <ChangeIcon className="w-4 h-4" />
+                  <div
+                    className={`flex items-center space-x-1 text-sm ${
+                      stat.isPositive ? "text-green-500" : "text-red-500"
+                    }`}
+                  >
+                    <ChangeIcon className="h-4 w-4" />
                     <span>{stat.change}</span>
                   </div>
                 </div>
-                <h3 className="text-gray-400 text-sm mb-1">{stat.title}</h3>
+                <h3 className="mb-1 text-sm text-gray-400">{stat.title}</h3>
                 <p className="text-2xl font-bold text-white">{stat.value}</p>
               </motion.div>
             );
           })}
         </div>
 
-        {/* HORIZONTALLY SCROLLABLE CHARTS SECTION */}
-        <div className="flex overflow-x-auto gap-6 pb-4 mb-8 snap-x snap-mandatory [&::-webkit-scrollbar]:h-2 [&::-webkit-scrollbar-thumb]:bg-gray-700 [&::-webkit-scrollbar-track]:bg-dark-lighter">
-          
-          {/* Chart 1: Revenue Trend */}
+        <div className="mb-8 grid grid-cols-1 gap-6 xl:grid-cols-3">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.4 }}
-            className="bg-dark-card rounded-xl p-6 border border-gray-800 min-w-[500px] flex-shrink-0 snap-start"
+            transition={{ delay: 0.45 }}
+            className={panelClassName}
           >
-            <div className="flex items-center justify-between mb-6">
+            <div className="mb-6 flex items-center justify-between">
               <div>
                 <h2 className="text-xl font-bold text-white">Revenue Trend</h2>
                 <p className="text-sm text-gray-500">Daily earnings over the last 7 days</p>
               </div>
-              <BarChart3 className="w-6 h-6 text-primary" />
+              <BarChart3 className="h-6 w-6 text-primary" />
             </div>
             {revenueData.length > 0 ? (
-               <RevenueChart data={revenueData} />
+              <RevenueChart data={revenueData} theme={theme} />
             ) : (
-               <p className="text-gray-500 flex items-center justify-center h-[300px]">No revenue data yet</p>
+              <p className="flex h-[300px] items-center justify-center text-gray-500">
+                No revenue data yet
+              </p>
             )}
           </motion.div>
 
-          {/* Chart 2: Top Movies */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.5 }}
-            className="bg-dark-card rounded-xl p-6 border border-gray-800 min-w-[400px] flex-shrink-0 snap-start"
+            transition={{ delay: 0.55 }}
+            className={panelClassName}
           >
-            <div className="flex items-center justify-between mb-6">
+            <div className="mb-6 flex items-center justify-between">
               <div>
                 <h2 className="text-xl font-bold text-white">Top Movies</h2>
                 <p className="text-sm text-gray-500">Ticket sales by title</p>
               </div>
-              <Film className="w-6 h-6 text-purple-500" />
+              <Film className="h-6 w-6 text-purple-500" />
             </div>
             {movieStatsData.length > 0 ? (
-              <LeaderboardChart data={movieStatsData} />
+              <LeaderboardChart data={movieStatsData} theme={theme} />
             ) : (
-              <p className="text-gray-500 flex items-center justify-center h-[250px]">No movie data yet</p>
+              <p className="flex h-[250px] items-center justify-center text-gray-500">
+                No movie data yet
+              </p>
             )}
           </motion.div>
 
-          {/* Chart 3: Format Popularity */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.6 }}
-            className="bg-dark-card rounded-xl p-6 border border-gray-800 min-w-[400px] flex-shrink-0 snap-start"
+            transition={{ delay: 0.65 }}
+            className={panelClassName}
           >
-            <div className="flex items-center justify-between mb-6">
+            <div className="mb-6 flex items-center justify-between">
               <div>
                 <h2 className="text-xl font-bold text-white">Format Revenue</h2>
                 <p className="text-sm text-gray-500">Earnings across screen types</p>
               </div>
-              <MonitorPlay className="w-6 h-6 text-blue-500" />
+              <MonitorPlay className="h-6 w-6 text-blue-500" />
             </div>
             {formatStatsData.length > 0 ? (
-              <MovieDistributionChart data={formatStatsData} />
+              <MovieDistributionChart data={formatStatsData} theme={theme} />
             ) : (
-              <p className="text-gray-500 flex items-center justify-center h-[300px]">No format data yet</p>
+              <p className="flex h-[300px] items-center justify-center text-gray-500">
+                No format data yet
+              </p>
             )}
           </motion.div>
-
         </div>
 
-        {/* Bottom Section: Recent Bookings & Quick Actions */}
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-          
-          {/* Recent Bookings */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.7 }}
-            className="lg:col-span-3 bg-dark-card rounded-xl p-6 border border-gray-800"
-          >
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-xl font-bold text-white">Recent Bookings</h2>
-              <Link to="/admin/reports" className="text-primary hover:text-primary-light text-sm">
-                View All →
-              </Link>
-            </div>
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.75 }}
+          className={panelClassName}
+        >
+          <div className="mb-6 flex items-center justify-between">
+            <h2 className="text-xl font-bold text-white">Recent Bookings</h2>
+            <Link
+              to="/admin/reports"
+              className="text-sm font-medium text-primary transition hover:text-primary-light"
+            >
+              View All
+            </Link>
+          </div>
 
-            {recentBookings.length > 0 ? (
-              <div className="overflow-x-auto">
-                <table className="w-full">
-                  <thead>
-                    <tr className="border-b border-gray-700">
-                      <th className="text-left py-3 px-4 text-gray-400 font-semibold text-sm">Booking ID</th>
-                      <th className="text-left py-3 px-4 text-gray-400 font-semibold text-sm">Customer</th>
-                      <th className="text-left py-3 px-4 text-gray-400 font-semibold text-sm">Movie</th>
-                      <th className="text-left py-3 px-4 text-gray-400 font-semibold text-sm">Seats</th>
-                      <th className="text-left py-3 px-4 text-gray-400 font-semibold text-sm">Amount</th>
-                      <th className="text-left py-3 px-4 text-gray-400 font-semibold text-sm">Status</th>
+          {recentBookings.length > 0 ? (
+            <div className="overflow-x-auto">
+              <table className="w-full min-w-[720px]">
+                <thead>
+                  <tr className="border-b border-gray-700">
+                    <th className="px-4 py-3 text-left text-sm font-semibold text-gray-400">
+                      Booking ID
+                    </th>
+                    <th className="px-4 py-3 text-left text-sm font-semibold text-gray-400">
+                      Customer
+                    </th>
+                    <th className="px-4 py-3 text-left text-sm font-semibold text-gray-400">Movie</th>
+                    <th className="px-4 py-3 text-left text-sm font-semibold text-gray-400">Seats</th>
+                    <th className="px-4 py-3 text-left text-sm font-semibold text-gray-400">Amount</th>
+                    <th className="px-4 py-3 text-left text-sm font-semibold text-gray-400">Status</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {recentBookings.map((booking) => (
+                    <tr
+                      key={booking._id}
+                      className="admin-table-row border-b border-gray-800"
+                    >
+                      <td className="px-4 py-3 text-sm text-white">{booking.bookingId}</td>
+                      <td className="px-4 py-3 text-sm text-white">{booking.user?.name}</td>
+                      <td className="px-4 py-3 text-sm text-white">{booking.movie?.title}</td>
+                      <td className="px-4 py-3 text-sm text-white">{booking.seats?.length}</td>
+                      <td className="px-4 py-3 text-sm font-semibold money-value">
+                        {currencySymbol}
+                        {booking.totalAmount?.toFixed(2)}
+                      </td>
+                      <td className="px-4 py-3">
+                        <span
+                          className={`inline-block rounded px-2 py-1 text-xs font-semibold ${
+                            booking.status === "confirmed"
+                              ? "bg-green-500/20 text-green-500"
+                              : booking.status === "cancelled"
+                                ? "bg-red-500/20 text-red-500"
+                                : "bg-yellow-500/20 text-yellow-500"
+                          }`}
+                        >
+                          {booking.status}
+                        </span>
+                      </td>
                     </tr>
-                  </thead>
-                  <tbody>
-                    {recentBookings.map((booking) => (
-                      <tr key={booking._id} className="border-b border-gray-800 hover:bg-dark-lighter transition">
-                        <td className="py-3 px-4 text-white text-sm">{booking.bookingId}</td>
-                        <td className="py-3 px-4 text-white text-sm">{booking.user?.name}</td>
-                        <td className="py-3 px-4 text-white text-sm">{booking.movie?.title}</td>
-                        <td className="py-3 px-4 text-white text-sm">{booking.seats?.length}</td>
-                        <td className="py-3 px-4 text-primary font-semibold text-sm">₹{booking.totalAmount?.toFixed(2)}</td>
-                        <td className="py-3 px-4">
-                          <span className={`inline-block px-2 py-1 rounded text-xs font-semibold ${
-                            booking.status === "confirmed" ? "bg-green-500/20 text-green-500" :
-                            booking.status === "cancelled" ? "bg-red-500/20 text-red-500" :
-                            "bg-yellow-500/20 text-yellow-500"
-                          }`}>
-                            {booking.status}
-                          </span>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            ) : (
-              <p className="text-gray-400 text-center py-8">No recent bookings</p>
-            )}
-          </motion.div>
-
-          {/* Quick Actions */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.8 }}
-            className="bg-dark-card rounded-xl p-6 border border-gray-800 h-full"
-          >
-            <h2 className="text-xl font-bold text-white mb-6">Quick Actions</h2>
-            <div className="space-y-4">
-              <Link to="/admin/movies" className="block p-4 bg-dark-lighter rounded-lg hover:bg-dark hover:border hover:border-primary transition group">
-                <div className="flex items-center space-x-3">
-                  <Film className="w-5 h-5 text-primary" />
-                  <div className="flex-grow">
-                    <p className="text-white font-semibold group-hover:text-primary transition">Manage Movies</p>
-                    <p className="text-gray-500 text-xs mt-1">Add or edit movies</p>
-                  </div>
-                </div>
-              </Link>
-              <Link to="/admin/shows" className="block p-4 bg-dark-lighter rounded-lg hover:bg-dark hover:border hover:border-primary transition group">
-                <div className="flex items-center space-x-3">
-                  <Calendar className="w-5 h-5 text-primary" />
-                  <div className="flex-grow">
-                    <p className="text-white font-semibold group-hover:text-primary transition">Manage Shows</p>
-                    <p className="text-gray-500 text-xs mt-1">Schedule showtimes</p>
-                  </div>
-                </div>
-              </Link>
-              <Link to="/admin/reports" className="block p-4 bg-dark-lighter rounded-lg hover:bg-dark hover:border hover:border-primary transition group">
-                <div className="flex items-center space-x-3">
-                  <TrendingUp className="w-5 h-5 text-primary" />
-                  <div className="flex-grow">
-                    <p className="text-white font-semibold group-hover:text-primary transition">View Reports</p>
-                    <p className="text-gray-500 text-xs mt-1">Sales analytics</p>
-                  </div>
-                </div>
-              </Link>
+                  ))}
+                </tbody>
+              </table>
             </div>
-          </motion.div>
-
-        </div>
+          ) : (
+            <p className="py-8 text-center text-gray-400">No recent bookings</p>
+          )}
+        </motion.div>
       </div>
     </div>
   );

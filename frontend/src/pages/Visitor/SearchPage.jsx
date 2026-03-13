@@ -91,13 +91,13 @@ const SearchPage = () => {
           </h1>
 
           {/* Search Bar */}
-          <div className="flex gap-4 mb-4">
+          <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:gap-4">
             <div className="flex-1 relative">
               <input
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                onKeyPress={(e) => {
+                onKeyDown={(e) => {
                   if (e.key === 'Enter') {
                     handleSearch();
                   }
@@ -117,7 +117,7 @@ const SearchPage = () => {
 
             <button
               onClick={() => setShowFilters(!showFilters)}
-              className="btn-secondary flex items-center space-x-2"
+              className="btn-secondary flex items-center justify-center space-x-2"
             >
               <Filter className="w-5 h-5" />
               <span>Filters</span>
@@ -174,7 +174,7 @@ const SearchPage = () => {
                 </div>
 
                 {/* Action Buttons */}
-                <div className="flex items-end gap-2">
+                <div className="flex flex-col sm:flex-row items-stretch md:items-end gap-2">
                   <button
                     onClick={applyFilters}
                     className="btn-primary flex-1"
@@ -193,7 +193,7 @@ const SearchPage = () => {
           )}
 
           {/* Results Count */}
-          <p className="text-gray-400">
+          <p className="text-sm sm:text-base text-gray-400">
             {movies.length} {movies.length === 1 ? 'movie' : 'movies'} found
           </p>
         </motion.div>

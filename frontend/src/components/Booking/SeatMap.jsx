@@ -172,7 +172,7 @@ const SeatMap = ({
   const { activeRows, seatsPerRow } = calculateGrid();
 
   return (
-    <div className="bg-dark-card rounded-xl p-6">
+    <div className="bg-dark-card rounded-xl p-4 sm:p-6">
       {/* Screen */}
       <div className="mb-8">
         <div className="flex justify-center mb-2">
@@ -183,7 +183,7 @@ const SeatMap = ({
       </div>
 
       {/* Seat Grid */}
-      <div className="overflow-x-auto">
+      <div className="overflow-x-auto -mx-2 px-2 sm:mx-0 sm:px-0">
         <div className="inline-block min-w-full">
           <div className="space-y-3">
             {/* 🟢 FIX 3: Map over activeRows instead of SEAT_CONFIG.ROWS */}
@@ -197,12 +197,12 @@ const SeatMap = ({
                   : seatsPerRow;
 
               return (
-                <div key={row} className="flex items-center justify-center space-x-2">
-                  <div className="w-8 text-center text-gray-400 font-semibold">
+                <div key={row} className="flex items-center justify-center space-x-1.5 sm:space-x-2">
+                  <div className="w-6 sm:w-8 text-center text-gray-400 font-semibold text-xs sm:text-sm">
                     {row}
                   </div>
 
-                  <div className="flex space-x-2">
+                  <div className="flex space-x-1.5 sm:space-x-2">
                     {Array.from({ length: seatsInThisRow }, (_, i) => {
                       const seatNumber = i + 1;
                       const status = getSeatStatus(row, seatNumber);
@@ -210,7 +210,7 @@ const SeatMap = ({
 
                       return (
                         <React.Fragment key={seatNumber}>
-                          {isMiddle && <div className="w-4"></div>}
+                          {isMiddle && <div className="w-2 sm:w-4"></div>}
                           <motion.button
                             whileHover={{ scale: status !== 'booked' ? 1.1 : 1 }}
                             whileTap={{ scale: status !== 'booked' ? 0.9 : 1 }}

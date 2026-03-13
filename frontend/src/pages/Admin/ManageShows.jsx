@@ -228,9 +228,9 @@ const ManageShows = () => {
   return (
     <div className="min-h-screen bg-dark py-8">
       <div className="container-custom">
-        {/* Header */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
+          {/* Header */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           className="flex flex-col md:flex-row md:items-center md:justify-between mb-8"
         >
@@ -247,7 +247,7 @@ const ManageShows = () => {
               resetForm();
               setShowModal(true);
             }}
-            className="mt-4 md:mt-0"
+            className="mt-4 w-full sm:w-auto md:mt-0"
           >
             Add New Show
           </Button>
@@ -262,8 +262,8 @@ const ManageShows = () => {
         >
           {shows.length > 0 ? (
             <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead className="bg-dark-lighter">
+              <table className="w-full min-w-[920px]">
+                <thead className="admin-table-head">
                   <tr>
                     <th className="text-left py-4 px-6 text-gray-400 font-semibold">
                       Movie
@@ -298,7 +298,7 @@ const ManageShows = () => {
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
                       transition={{ delay: index * 0.05 }}
-                      className="border-b border-gray-800 hover:bg-dark-lighter transition"
+                      className="admin-table-row border-b border-gray-800"
                     >
                       <td className="py-4 px-6 text-white font-semibold">
                         {show.movie?.title || "Unknown"}
@@ -322,7 +322,7 @@ const ManageShows = () => {
                         </div>
                       </td>
                       <td className="py-4 px-6 text-gray-300">{show.format}</td>
-                      <td className="py-4 px-6 text-primary font-semibold">
+                      <td className="py-4 px-6 money-value font-semibold">
                         ₹{show.price}
                       </td>
                       {/* 🟢 FIX: Use availableSeats if it exists, or calculate safely */}
@@ -360,11 +360,11 @@ const ManageShows = () => {
 
         {/* Add/Edit Modal */}
         {showModal && (
-          <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4">
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-3 sm:p-4">
             <motion.div
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
-              className="bg-dark-card rounded-xl p-8 max-w-2xl w-full max-h-[90vh] overflow-y-auto"
+              className="w-full max-w-4xl max-h-[calc(100vh-2rem)] overflow-y-auto rounded-xl bg-dark-card p-4 sm:p-6 lg:p-8"
             >
               <h2 className="text-2xl font-bold text-white mb-6">
                 {editingShow
@@ -424,7 +424,7 @@ const ManageShows = () => {
                         {editingShow ? "Time (Select One)" : "Time Slots"}
                       </label>
 
-                      <div className="grid grid-cols-3 gap-2">
+                      <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
                         {TIME_SLOTS.map((time) => (
                           <button
                             key={time}
@@ -506,7 +506,7 @@ const ManageShows = () => {
                   />
                 </div>
 
-                <div className="flex justify-end space-x-4 pt-4">
+                <div className="flex flex-col-reverse gap-3 pt-4 sm:flex-row sm:justify-end">
                   <Button
                     type="button"
                     variant="secondary"

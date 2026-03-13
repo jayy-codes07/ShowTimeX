@@ -14,17 +14,24 @@ const MovieCard = ({ movie }) => {
 
   return (
     <motion.div
-      whileHover={{ scale: 1.05 }}
+      whileHover={{ scale: 1.01 }}
       whileTap={{ scale: 0.98 }}
       onClick={handleClick}
-      className="movie-card bg-dark-card group"
+      className="movie-card bg-dark-card group w-full max-w-[17rem] mx-auto"
     >
       {/* Poster Image */}
-      <div className="relative overflow-hidden rounded-t-xl">
+      <div className="relative aspect-[2/3] overflow-hidden rounded-t-xl bg-black/40">
+        <img
+          src={movie.poster || IMAGE_PLACEHOLDER}
+          alt=""
+          aria-hidden="true"
+          className="absolute inset-0 h-full w-full scale-125 object-cover object-center opacity-70 blur-xl saturate-125"
+        />
+        <div className="absolute inset-0 bg-black/15" />
         <img
           src={movie.poster || IMAGE_PLACEHOLDER}
           alt={movie.title}
-          className="w-full h-80 object-cover transition-transform duration-300 group-hover:scale-110"
+          className="relative z-10 h-full w-full object-contain object-center"
           onError={(e) => {
             e.target.src = IMAGE_PLACEHOLDER;
           }}
@@ -32,7 +39,7 @@ const MovieCard = ({ movie }) => {
         
         {/* Rating Badge */}
         {movie.rating && (
-          <div className="absolute top-3 right-3 bg-black/80 backdrop-blur-sm px-2 py-1 rounded-lg flex items-center space-x-1">
+          <div className="absolute top-3 right-3 z-20 bg-black/80 backdrop-blur-sm px-2 py-1 rounded-lg flex items-center space-x-1">
             <Star className="w-4 h-4 text-yellow-400 fill-yellow-400" />
             <span className="text-white font-semibold text-sm">{movie.rating}</span>
           </div>
@@ -40,13 +47,13 @@ const MovieCard = ({ movie }) => {
 
         {/* Certificate Badge */}
         {movie.certificate && (
-          <div className="absolute top-3 left-3 bg-primary px-2 py-1 rounded text-white text-xs font-bold">
+          <div className="absolute top-3 left-3 z-20 bg-primary px-2 py-1 rounded text-white text-xs font-bold">
             {movie.certificate}
           </div>
         )}
 
         {/* Overlay */}
-        <div className="absolute inset-0 bg-gradient-to-t from-dark via-dark/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+        <div className="movie-card-overlay z-20">
           <div className="absolute bottom-4 left-4 right-4">
             <button className="w-full bg-primary hover:bg-primary-dark text-white font-semibold py-2 rounded-lg transition">
               Book Now

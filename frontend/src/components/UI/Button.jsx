@@ -14,20 +14,20 @@ const Button = ({
   icon,
   ...props
 }) => {
-  const baseClasses = 'font-semibold rounded-lg transition-all duration-200 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2';
+  const baseClasses = 'flex items-center justify-center gap-2 rounded-xl transition-all duration-300 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50';
   
   const variantClasses = {
-    primary: 'bg-primary hover:bg-primary-dark text-white',
-    secondary: 'bg-dark-card hover:bg-dark-lighter text-white border border-gray-700',
-    outline: 'bg-transparent border-2 border-primary text-primary hover:bg-primary hover:text-white',
-    ghost: 'bg-transparent hover:bg-dark-card text-white',
-    danger: 'bg-red-600 hover:bg-red-700 text-white',
+    primary: 'btn-primary',
+    secondary: 'btn-secondary',
+    outline: 'site-btn-outline',
+    ghost: 'site-btn-ghost',
+    danger: 'site-btn-danger',
   };
   
   const sizeClasses = {
-    sm: 'py-1.5 px-4 text-sm',
-    md: 'py-2.5 px-6 text-base',
-    lg: 'py-3 px-8 text-lg',
+    sm: 'py-1.5 px-3 sm:px-4 text-sm',
+    md: 'py-2.5 px-4 sm:px-6 text-sm sm:text-base',
+    lg: 'py-3 px-5 sm:px-8 text-base sm:text-lg',
   };
   
   const widthClass = fullWidth ? 'w-full' : '';

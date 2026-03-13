@@ -80,7 +80,7 @@ const Login = () => {
         </div>
 
         {/* Login Form */}
-        <div className="bg-dark-card rounded-xl p-8 shadow-xl">
+        <div className="bg-dark-card rounded-xl p-6 sm:p-8 shadow-xl">
           <form onSubmit={handleSubmit} className="space-y-6">
             <Input
               label="Email Address"
@@ -106,7 +106,7 @@ const Login = () => {
               required
             />
 
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
               <label className="flex items-center space-x-2 cursor-pointer">
                 <input
                   type="checkbox"

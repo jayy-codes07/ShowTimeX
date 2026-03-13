@@ -134,7 +134,7 @@ const Payment = () => {
         {/* Back Button */}
         <button
           onClick={() => navigate(-1)}
-          className="flex items-center space-x-2 text-gray-400 hover:text-white mb-6 transition"
+          className="mb-6 flex items-center space-x-2 text-sm sm:text-base text-gray-400 hover:text-white transition"
         >
           <ArrowLeft className="w-5 h-5" />
           <span>Back to Movie</span>
@@ -144,19 +144,19 @@ const Payment = () => {
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="bg-dark-card rounded-xl p-6 mb-8"
+          className="bg-dark-card rounded-xl p-4 sm:p-6 mb-8"
         >
-          <div className="flex flex-col md:flex-row gap-6">
+          <div className="flex flex-col sm:flex-row gap-4 sm:gap-6">
             <img
               src={bookingData.movie.poster}
               alt={bookingData.movie.title}
-              className="w-32 h-48 object-cover rounded-lg"
+              className="mx-auto h-40 w-28 rounded-lg object-cover sm:mx-0 sm:h-48 sm:w-32"
             />
             <div className="flex-grow">
               <h1 className="text-2xl md:text-3xl font-bold text-white mb-4">
                 {bookingData.movie.title}
               </h1>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 text-sm">
+              <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3 sm:gap-4 text-sm">
                 <div className="flex items-center space-x-2 text-gray-400">
                   <Calendar className="w-4 h-4 text-primary" />
                   <span>{formatDate(bookingData.show.date)}</span>
@@ -179,8 +179,8 @@ const Payment = () => {
         </motion.div>
 
         {/* Step Indicator */}
-        <div className="flex items-center justify-center mb-8">
-          <div className="flex items-center space-x-4">
+        <div className="mb-8 overflow-x-auto">
+          <div className="flex min-w-max items-center justify-center space-x-4 px-2 sm:px-0">
             <div
               className={`flex items-center space-x-2 ${step >= 1 ? "text-primary" : "text-gray-500"}`}
             >
@@ -206,7 +206,7 @@ const Payment = () => {
         </div>
 
         {/* Content */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 xl:grid-cols-3 gap-6 lg:gap-8">
           <div className="lg:col-span-2">
             {step === 1 ? (
               <motion.div
@@ -260,7 +260,7 @@ const Payment = () => {
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              className="bg-dark-card rounded-xl p-6 sticky top-24"
+              className="bg-dark-card rounded-xl p-4 sm:p-6 xl:sticky xl:top-24"
             >
               <h3 className="text-xl font-bold text-white mb-4">
                 Booking Summary
@@ -299,7 +299,7 @@ const Payment = () => {
 
                   <div className="border-t border-gray-700 pt-3 flex justify-between text-white font-bold text-lg">
                     <span>Total:</span>
-                    <span className="text-primary">
+                    <span className="money-value">
                       ₹{summary.total.toFixed(2)}
                     </span>
                   </div>
