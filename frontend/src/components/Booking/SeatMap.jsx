@@ -1,5 +1,4 @@
 import React, { useMemo } from 'react';
-import { motion } from 'framer-motion';
 import { Monitor } from 'lucide-react';
 import { SEAT_CONFIG, API_ENDPOINTS } from '../../utils/constants';
 import { useBooking } from '../../context/BookingContext';
@@ -152,8 +151,8 @@ const SeatMap = ({
     switch (status) {
       case 'booked': return `${baseClass} seat-booked`;
       case 'locked': return `${baseClass} seat-locked`;
-      case 'selected': return `${baseClass} seat-selected`;
-      default: return `${baseClass} seat-available`;
+      case 'selected': return `${baseClass} seat-selected hover:scale-105 active:scale-95`;
+      default: return `${baseClass} seat-available hover:scale-105 active:scale-95`;
     }
   };
 
@@ -211,9 +210,7 @@ const SeatMap = ({
                       return (
                         <React.Fragment key={seatNumber}>
                           {isMiddle && <div className="w-2 sm:w-4"></div>}
-                          <motion.button
-                            whileHover={{ scale: status !== 'booked' ? 1.1 : 1 }}
-                            whileTap={{ scale: status !== 'booked' ? 0.9 : 1 }}
+                          <button
                             onClick={() => handleSeatClick(row, seatNumber)}
                             disabled={status === 'booked'}
                             className={getSeatClass(status)}
@@ -224,7 +221,7 @@ const SeatMap = ({
                             }
                           >
                             {seatNumber}
-                          </motion.button>
+                          </button>
                         </React.Fragment>
                       );
                     })}

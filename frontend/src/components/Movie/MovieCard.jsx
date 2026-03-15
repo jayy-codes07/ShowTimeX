@@ -1,6 +1,5 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { motion } from 'framer-motion';
 import { Star, Clock, Calendar, Ticket } from 'lucide-react';
 import { formatDuration } from '../../utils/formatDate';
 import { IMAGE_PLACEHOLDER } from '../../utils/constants';
@@ -13,11 +12,9 @@ const MovieCard = ({ movie }) => {
   };
 
   return (
-    <motion.div
-      whileHover={{ y: -6 }}
-      whileTap={{ scale: 0.98 }}
+    <div
       onClick={handleClick}
-      className="bg-dark-card group w-full max-w-[17rem] mx-auto rounded-2xl border border-gray-800 hover:border-primary/40 transition-all duration-300 hover:shadow-2xl hover:shadow-primary/10 cursor-pointer overflow-hidden flex flex-col h-full"
+      className="bg-dark-card group w-full max-w-[17rem] mx-auto rounded-2xl border border-gray-800 hover:border-primary/40 transition-transform transition-colors duration-200 hover:-translate-y-1 cursor-pointer overflow-hidden flex flex-col h-full"
     >
       {/* Poster Image Area */}
       <div className="relative aspect-[2/3] w-full overflow-hidden bg-black/40">
@@ -32,7 +29,7 @@ const MovieCard = ({ movie }) => {
         
         {/* Rating Badge */}
         {movie.rating && (
-          <div className="absolute top-3 right-3 z-20 bg-black/60 backdrop-blur-md px-2.5 py-1 rounded-full flex items-center space-x-1 border border-white/10 shadow-lg">
+          <div className="absolute top-3 right-3 z-20 bg-black/70 px-2.5 py-1 rounded-full flex items-center space-x-1 border border-white/10 shadow-lg">
             <Star className="w-3.5 h-3.5 text-yellow-500 fill-yellow-500" />
             <span className="text-white font-bold text-[11px] leading-none mt-0.5">{movie.rating}</span>
           </div>
@@ -40,14 +37,13 @@ const MovieCard = ({ movie }) => {
 
         {/* Certificate Badge */}
         {movie.certificate && (
-          <div className="absolute top-3 left-3 z-20 bg-primary backdrop-blur-md px-2.5 py-1 rounded-full text-white text-[10px] font-extrabold uppercase tracking-wide shadow-lg border border-white/20 leading-none flex items-center justify-center">
+          <div className="absolute top-3 left-3 z-20 bg-primary px-2.5 py-1 rounded-full text-white text-[10px] font-extrabold uppercase tracking-wide shadow-lg border border-white/20 leading-none flex items-center justify-center">
             {movie.certificate}
           </div>
         )}
 
-        {/* Cinematic Backdrop blur overlay on hover */}
-        <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 backdrop-blur-sm transition-all duration-300 z-10 flex items-center justify-center">
-          <div className="transform translate-y-4 group-hover:translate-y-0 transition-all duration-300 ease-out delay-75">
+        <div className="absolute inset-0 bg-black/55 opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-10 flex items-center justify-center">
+          <div className="transform translate-y-3 group-hover:translate-y-0 transition-transform duration-200 ease-out">
             <button className="bg-primary hover:bg-primary-dark text-white font-bold py-2.5 px-5 rounded-full shadow-[0_4px_20px_rgba(229,9,20,0.5)] flex items-center justify-center gap-2 border border-white/10">
               <Ticket className="w-4 h-4" />
               Book Tickets
@@ -89,7 +85,7 @@ const MovieCard = ({ movie }) => {
           ) : <span />}
         </div>
       </div>
-    </motion.div>
+    </div>
   );
 };
 

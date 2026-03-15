@@ -107,7 +107,6 @@ bookingSchema.index({ user: 1, bookingDate: -1 });
 bookingSchema.index({ show: 1 });
 bookingSchema.index({ movie: 1 });
 bookingSchema.index({ status: 1 });
-bookingSchema.index({ bookingId: 1 });
 bookingSchema.index({ paymentStatus: 1 });
 
 // Generate unique booking ID before saving

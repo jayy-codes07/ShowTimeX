@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import * as XLSX from 'xlsx';
 import {
   Download,
   TrendingUp,
@@ -14,8 +13,6 @@ import { apiRequest } from "../../services/api";
 import { API_ENDPOINTS } from "../../utils/constants";
 import { formatDate } from "../../utils/formatDate";
 import toast from "react-hot-toast";
-import jsPDF from "jspdf";
-import autoTable from "jspdf-autotable";
 
 const Reports = () => {
   const [reportData, setReportData] = useState(null);
@@ -92,8 +89,10 @@ const Reports = () => {
     });
   };
 
-  const handleDownloadCSV = () => {
+  const handleDownloadCSV = async () => {
   if (!reportData) return toast.error("No data to download");
+
+  const XLSX = await import("xlsx");
 
   const wb = XLSX.utils.book_new();
 
@@ -167,8 +166,13 @@ const Reports = () => {
   toast.success("Excel Downloaded!");
 };
 
-  const handleDownloadPDF = () => {
+  const handleDownloadPDF = async () => {
     if (!reportData) return toast.error("No data to download");
+
+    const [{ default: jsPDF }, { default: autoTable }] = await Promise.all([
+      import("jspdf"),
+      import("jspdf-autotable"),
+    ]);
 
     const doc = new jsPDF();
     doc.setFont("helvetica");

@@ -4,8 +4,6 @@ import { Download, CheckCircle, Calendar, Clock, MapPin, Home } from 'lucide-rea
 import { useNavigate } from 'react-router-dom';
 import { formatDate, formatTime } from '../../utils/formatDate';
 import Button from '../UI/Button';
-import { pdf } from '@react-pdf/renderer';
-import TicketDocument from './TicketDocument';
 import toast from 'react-hot-toast';
 import logo from './../../assets/images/Showtime_logo.png'
 
@@ -19,6 +17,10 @@ const Receipt = ({ booking }) => {
 
     try {
       setDownloading(true);
+      const [{ pdf }, { default: TicketDocument }] = await Promise.all([
+        import('@react-pdf/renderer'),
+        import('./TicketDocument'),
+      ]);
       const doc = <TicketDocument booking={booking} />;
       const blob = await pdf(doc).toBlob();
       const url = URL.createObjectURL(blob);

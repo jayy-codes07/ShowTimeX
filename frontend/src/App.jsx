@@ -1,11 +1,10 @@
-import React from "react";
+import React, { lazy, Suspense } from "react";
 import { Routes, Route, useLocation } from "react-router-dom";
 import { AnimatePresence } from "framer-motion";
 import { Toaster } from "react-hot-toast";
 import { AuthProvider } from "./context/AuthContext";
 import { BookingProvider } from "./context/BookingContext";
 import { ThemeProvider } from "./context/ThemeContext";
-import ReceiptPage from "./pages/Customer/ReceiptPage";
 import PageTransition from "./components/Common/PageTransition";
 
 
@@ -13,28 +12,24 @@ import PageTransition from "./components/Common/PageTransition";
 import Navbar from "./components/Common/Navbar";
 import Footer from "./components/Common/Footer";
 
-// Visitor Pages
-import HomePage from "./pages/Visitor/HomePage";
-import MovieDetails from "./pages/Visitor/MovieDetails";
-import SearchPage from "./pages/Visitor/SearchPage";
-
-// Customer Pages
-import Login from "./pages/Customer/Login";
-import Register from "./pages/Customer/Register";
-import Payment from "./pages/Customer/Payment";
-import MyTickets from "./pages/Customer/MyTickets";
-import Profile from "./pages/Customer/Profile";
-
-// Admin Pages
-import Dashboard from "./pages/Admin/Dashboard";
-import ManageMovies from "./pages/Admin/ManageMovies";
-import ManageShows from "./pages/Admin/ManageShows";
-import Reports from "./pages/Admin/Reports";
-
 // Protected Route Component
 import ProtectedRoute from "./components/Common/ProtectedRoute";
-import AllMovies from "./pages/Visitor/Allmovies";
-import NotFound from "./pages/NotFound";
+
+const HomePage = lazy(() => import("./pages/Visitor/HomePage"));
+const MovieDetails = lazy(() => import("./pages/Visitor/MovieDetails"));
+const SearchPage = lazy(() => import("./pages/Visitor/SearchPage"));
+const Login = lazy(() => import("./pages/Customer/Login"));
+const Register = lazy(() => import("./pages/Customer/Register"));
+const Payment = lazy(() => import("./pages/Customer/Payment"));
+const ReceiptPage = lazy(() => import("./pages/Customer/ReceiptPage"));
+const MyTickets = lazy(() => import("./pages/Customer/MyTickets"));
+const Profile = lazy(() => import("./pages/Customer/Profile"));
+const Dashboard = lazy(() => import("./pages/Admin/Dashboard"));
+const ManageMovies = lazy(() => import("./pages/Admin/ManageMovies"));
+const ManageShows = lazy(() => import("./pages/Admin/ManageShows"));
+const Reports = lazy(() => import("./pages/Admin/Reports"));
+const AllMovies = lazy(() => import("./pages/Visitor/Allmovies"));
+const NotFound = lazy(() => import("./pages/NotFound"));
 
 function App() {
   const location = useLocation();
@@ -47,88 +42,96 @@ function App() {
             <Navbar />
             <main className="flex-grow">
               <AnimatePresence mode="wait">
-                <Routes location={location} key={location.pathname}>
-                  {/* Public Routes */}
-                  <Route path="/" element={<PageTransition><HomePage /></PageTransition>} />
-                  <Route path="/movie/:id" element={<PageTransition><MovieDetails /></PageTransition>} />
-                  <Route path="/search" element={<PageTransition><SearchPage /></PageTransition>} />
-                  <Route path="/login" element={<PageTransition><Login /></PageTransition>} />
-                  <Route path="/register" element={<PageTransition><Register /></PageTransition>} />
-                  <Route path="/movies" element={<PageTransition><AllMovies /></PageTransition>} />
+                <Suspense
+                  fallback={
+                    <div className="min-h-[40vh] flex items-center justify-center text-gray-300">
+                      Loading...
+                    </div>
+                  }
+                >
+                  <Routes location={location} key={location.pathname}>
+                    {/* Public Routes */}
+                    <Route path="/" element={<PageTransition><HomePage /></PageTransition>} />
+                    <Route path="/movie/:id" element={<PageTransition><MovieDetails /></PageTransition>} />
+                    <Route path="/search" element={<PageTransition><SearchPage /></PageTransition>} />
+                    <Route path="/login" element={<PageTransition><Login /></PageTransition>} />
+                    <Route path="/register" element={<PageTransition><Register /></PageTransition>} />
+                    <Route path="/movies" element={<PageTransition><AllMovies /></PageTransition>} />
 
-                  {/* Customer Protected Routes */}
-                  <Route
-                    path="/payment"
-                    element={
-                      <ProtectedRoute allowedRoles={["customer", "admin"]}>
-                        <PageTransition><Payment /></PageTransition>
-                      </ProtectedRoute>
-                    }
-                  />
+                    {/* Customer Protected Routes */}
+                    <Route
+                      path="/payment"
+                      element={
+                        <ProtectedRoute allowedRoles={["customer", "admin"]}>
+                          <PageTransition><Payment /></PageTransition>
+                        </ProtectedRoute>
+                      }
+                    />
 
-                  <Route
-                    path="/receipt/:bookingId"
-                    element={
-                      <ProtectedRoute allowedRoles={["customer", "admin"]}>
-                        <PageTransition><ReceiptPage /></PageTransition>
-                      </ProtectedRoute>
-                    }
-                  />
+                    <Route
+                      path="/receipt/:bookingId"
+                      element={
+                        <ProtectedRoute allowedRoles={["customer", "admin"]}>
+                          <PageTransition><ReceiptPage /></PageTransition>
+                        </ProtectedRoute>
+                      }
+                    />
 
-                  <Route
-                    path="/my-tickets"
-                    element={
-                      <ProtectedRoute allowedRoles={["customer", "admin"]}>
-                        <PageTransition><MyTickets /></PageTransition>
-                      </ProtectedRoute>
-                    }
-                  />
-                  <Route
-                    path="/profile"
-                    element={
-                      <ProtectedRoute allowedRoles={["customer", "admin"]}>
-                        <PageTransition><Profile /></PageTransition>
-                      </ProtectedRoute>
-                    }
-                  />
+                    <Route
+                      path="/my-tickets"
+                      element={
+                        <ProtectedRoute allowedRoles={["customer", "admin"]}>
+                          <PageTransition><MyTickets /></PageTransition>
+                        </ProtectedRoute>
+                      }
+                    />
+                    <Route
+                      path="/profile"
+                      element={
+                        <ProtectedRoute allowedRoles={["customer", "admin"]}>
+                          <PageTransition><Profile /></PageTransition>
+                        </ProtectedRoute>
+                      }
+                    />
 
-                  {/* Admin Protected Routes */}
-                  <Route
-                    path="/admin/dashboard"
-                    element={
-                      <ProtectedRoute allowedRoles={["admin"]}>
-                        <PageTransition><Dashboard /></PageTransition>
-                      </ProtectedRoute>
-                    }
-                  />
-                  <Route
-                    path="/admin/movies"
-                    element={
-                      <ProtectedRoute allowedRoles={["admin"]}>
-                        <PageTransition><ManageMovies /></PageTransition>
-                      </ProtectedRoute>
-                    }
-                  />
-                  <Route
-                    path="/admin/shows"
-                    element={
-                      <ProtectedRoute allowedRoles={["admin"]}>
-                        <PageTransition><ManageShows /></PageTransition>
-                      </ProtectedRoute>
-                    }
-                  />
-                  <Route
-                    path="/admin/reports"
-                    element={
-                      <ProtectedRoute allowedRoles={["admin"]}>
-                        <PageTransition><Reports /></PageTransition>
-                      </ProtectedRoute>
-                    }
-                  />
+                    {/* Admin Protected Routes */}
+                    <Route
+                      path="/admin/dashboard"
+                      element={
+                        <ProtectedRoute allowedRoles={["admin"]}>
+                          <PageTransition><Dashboard /></PageTransition>
+                        </ProtectedRoute>
+                      }
+                    />
+                    <Route
+                      path="/admin/movies"
+                      element={
+                        <ProtectedRoute allowedRoles={["admin"]}>
+                          <PageTransition><ManageMovies /></PageTransition>
+                        </ProtectedRoute>
+                      }
+                    />
+                    <Route
+                      path="/admin/shows"
+                      element={
+                        <ProtectedRoute allowedRoles={["admin"]}>
+                          <PageTransition><ManageShows /></PageTransition>
+                        </ProtectedRoute>
+                      }
+                    />
+                    <Route
+                      path="/admin/reports"
+                      element={
+                        <ProtectedRoute allowedRoles={["admin"]}>
+                          <PageTransition><Reports /></PageTransition>
+                        </ProtectedRoute>
+                      }
+                    />
 
-                  {/* 404 Route */}
-                  <Route path="*" element={<PageTransition><NotFound /></PageTransition>} />
-                </Routes>
+                    {/* 404 Route */}
+                    <Route path="*" element={<PageTransition><NotFound /></PageTransition>} />
+                  </Routes>
+                </Suspense>
               </AnimatePresence>
             </main>
             <Footer />

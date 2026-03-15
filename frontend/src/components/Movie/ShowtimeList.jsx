@@ -102,18 +102,16 @@ const ShowtimeList = ({ shows, movie }) => {
               const isFull = availableSeats <= 0;
 
               return (
-                <motion.button
+                <button
                   key={show._id}
-                  whileHover={{ scale: isFull ? 1 : 1.05 }}
-                  whileTap={{ scale: isFull ? 1 : 0.95 }}
                   onClick={() => !isFull && handleShowSelect(show)}
                   disabled={isFull}
-                  className={`relative p-4 rounded-lg border-2 transition-all ${
+                  className={`relative p-4 rounded-lg border-2 transition-colors transition-transform duration-200 ${
                     isFull
                       ? 'border-gray-700 bg-gray-800/50 cursor-not-allowed opacity-50'
                       : isAlmostFull
-                      ? 'border-orange-500 bg-orange-500/10 hover:bg-orange-500/20'
-                      : 'border-gray-700 bg-dark-lighter hover:border-primary hover:bg-primary/10'
+                      ? 'border-orange-500 bg-orange-500/10 hover:bg-orange-500/20 hover:scale-[1.02] active:scale-[0.98]'
+                      : 'border-gray-700 bg-dark-lighter hover:border-primary hover:bg-primary/10 hover:scale-[1.02] active:scale-[0.98]'
                   }`}
                 >
                   <div className="text-center">
@@ -148,7 +146,7 @@ const ShowtimeList = ({ shows, movie }) => {
                       <span className="inline-block w-2 h-2 bg-orange-500 rounded-full animate-pulse"></span>
                     </div>
                   )}
-                </motion.button>
+                </button>
               );
             })}
           </div>

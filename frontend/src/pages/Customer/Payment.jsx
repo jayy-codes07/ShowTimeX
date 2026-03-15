@@ -1,25 +1,45 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { ArrowLeft, Film, Calendar, Clock, MapPin } from "lucide-react";
 import SeatMap from "../../components/Booking/SeatMap";
 import BookingForm from "../../components/Booking/BookingForm";
-import Receipt from "../../components/Booking/Receipt";
 import { useBooking } from "../../context/BookingContext";
 import { formatDate, formatTime } from "../../utils/formatDate";
 import { apiRequest } from "../../services/api";
 import { API_ENDPOINTS, RAZORPAY_KEY } from "../../utils/constants";
-import { API_BASE_URL } from "../../utils/constants";
 import toast from "react-hot-toast";
-import html2canvas from "html2canvas";
-import jsPDF from "jspdf";
+
+const RAZORPAY_SCRIPT_SRC = "https://checkout.razorpay.com/v1/checkout.js";
+let razorpayScriptPromise;
+
+const loadRazorpayScript = () => {
+  if (typeof window === "undefined") {
+    return Promise.resolve(false);
+  }
+
+  if (window.Razorpay) {
+    return Promise.resolve(true);
+  }
+
+  if (!razorpayScriptPromise) {
+    razorpayScriptPromise = new Promise((resolve) => {
+      const script = document.createElement("script");
+      script.src = RAZORPAY_SCRIPT_SRC;
+      script.async = true;
+      script.onload = () => resolve(true);
+      script.onerror = () => resolve(false);
+      document.body.appendChild(script);
+    });
+  }
+
+  return razorpayScriptPromise;
+};
 
 const Payment = () => {
   const navigate = useNavigate();
   const { bookingData, getBookingSummary, clearBooking } = useBooking();
   const [loading, setLoading] = useState(false);
-  const [bookingConfirmed, setBookingConfirmed] = useState(false);
-  const [confirmedBooking, setConfirmedBooking] = useState(null);
   const [step, setStep] = useState(1); // 1: Select Seats, 2: Checkout
   const [lockRemaining, setLockRemaining] = useState(null);
 
@@ -54,6 +74,12 @@ const Payment = () => {
   const handlePayment = async (formData) => {
     try {
       setLoading(true);
+
+      const razorpayLoaded = await loadRazorpayScript();
+      if (!razorpayLoaded) {
+        toast.error("Payment service failed to load. Please try again.");
+        return;
+      }
 
       // 1️⃣ Create booking (PENDING)
       const bookingRes = await apiRequest.post(API_ENDPOINTS.CREATE_BOOKING, {

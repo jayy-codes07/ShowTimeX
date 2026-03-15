@@ -1,22 +1,26 @@
 import React from 'react';
-import { Film } from 'lucide-react';
-import  logo from './../../assets/images/Showtime_logo.png'
+import logo from './../../assets/images/Showtime_logo.png';
 
-
-const Loader = ({ fullScreen = false, message = 'Loading...' }) => {
+const Loader = ({ fullScreen = false }) => {
   if (fullScreen) {
     return (
-      <div className="fixed inset-0 bg-dark flex items-center justify-center z-50">
-         <img src={logo} className='h-[100px]' alt="" />
+      <div className="fixed inset-0 bg-black flex items-center justify-center z-[9999]">
+        <img
+          src={logo}
+          className="h-[120px] animate-pulse"
+          alt="ShowTimeX"
+        />
       </div>
     );
   }
 
   return (
-    <div className="flex items-center justify-center py-12">
-      <div className="text-center">
-         <img src={logo} className='h-10' alt="" />
-      </div>
+    <div className="fixed inset-0 bg-black flex items-center justify-center z-[9999]">
+      <img
+        src={logo}
+        className="h-[120px] animate-pulse"
+        alt="ShowTimeX"
+      />
     </div>
   );
 };
