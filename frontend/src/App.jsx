@@ -2,11 +2,11 @@ import React, { lazy, Suspense } from "react";
 import { Routes, Route, useLocation } from "react-router-dom";
 import { AnimatePresence } from "framer-motion";
 import { Toaster } from "react-hot-toast";
-import { AuthProvider } from "./context/AuthContext";
+import { AuthProvider, useAuth } from "./context/AuthContext";
 import { BookingProvider } from "./context/BookingContext";
 import { ThemeProvider } from "./context/ThemeContext";
 import PageTransition from "./components/Common/PageTransition";
-
+import Loader from "./components/UI/Loader";
 
 // Layouts
 import Navbar from "./components/Common/Navbar";
@@ -31,25 +31,21 @@ const Reports = lazy(() => import("./pages/Admin/Reports"));
 const AllMovies = lazy(() => import("./pages/Visitor/Allmovies"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
-function App() {
+function AppLayout() {
   const location = useLocation();
+  const { loading } = useAuth();
+
+  if (loading) {
+    return <Loader />;
+  }
 
   return (
-    <ThemeProvider>
-      <AuthProvider>
-        <BookingProvider>
-          <div className="min-h-screen flex flex-col bg-dark">
-            <Navbar />
-            <main className="flex-grow">
-              <AnimatePresence mode="wait">
-                <Suspense
-                  fallback={
-                    <div className="min-h-[40vh] flex items-center justify-center text-gray-300">
-                      Loading...
-                    </div>
-                  }
-                >
-                  <Routes location={location} key={location.pathname}>
+    <div className="min-h-screen flex flex-col bg-dark">
+      <Navbar />
+      <main className="flex-grow">
+        <AnimatePresence mode="wait">
+          <Suspense fallback={<Loader />}>
+            <Routes location={location} key={location.pathname}>
                     {/* Public Routes */}
                     <Route path="/" element={<PageTransition><HomePage /></PageTransition>} />
                     <Route path="/movie/:id" element={<PageTransition><MovieDetails /></PageTransition>} />
@@ -168,6 +164,15 @@ function App() {
               }}
             />
           </div>
+  );
+}
+
+function App() {
+  return (
+    <ThemeProvider>
+      <AuthProvider>
+        <BookingProvider>
+          <AppLayout />
         </BookingProvider>
       </AuthProvider>
     </ThemeProvider>
