@@ -7,9 +7,6 @@ router.get('/search', async (req, res) => {
     const { title } = req.query;
     const TMDB_KEY = process.env.TMDB_API_KEY;
 
-    console.log('TMDB Key:', TMDB_KEY ? 'Found' : 'MISSING'); // debug
-    console.log('Searching for:', title); // debug
-
     if (!TMDB_KEY) {
       return res.status(500).json({ 
         success: false, 
@@ -34,8 +31,6 @@ router.get('/search', async (req, res) => {
         }
       }
     );
-
-    console.log('TMDB Results count:', response.data.results?.length); // debug
 
     if (!response.data.results?.length) {
       return res.json({ success: false, message: 'No results found on TMDB' });
