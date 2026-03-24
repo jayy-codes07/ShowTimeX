@@ -20,6 +20,7 @@ const MovieDetails = lazy(() => import("./pages/Visitor/MovieDetails"));
 const SearchPage = lazy(() => import("./pages/Visitor/SearchPage"));
 const Login = lazy(() => import("./pages/Customer/Login"));
 const Register = lazy(() => import("./pages/Customer/Register"));
+const ForgotPassword = lazy(() => import("./pages/Customer/ForgotPassword"));
 const Payment = lazy(() => import("./pages/Customer/Payment"));
 const ReceiptPage = lazy(() => import("./pages/Customer/ReceiptPage"));
 const MyTickets = lazy(() => import("./pages/Customer/MyTickets"));
@@ -52,6 +53,7 @@ function AppLayout() {
                     <Route path="/search" element={<PageTransition><SearchPage /></PageTransition>} />
                     <Route path="/login" element={<PageTransition><Login /></PageTransition>} />
                     <Route path="/register" element={<PageTransition><Register /></PageTransition>} />
+                    <Route path="/forgot-password" element={<PageTransition><ForgotPassword /></PageTransition>} />
                     <Route path="/movies" element={<PageTransition><AllMovies /></PageTransition>} />
 
                     {/* Customer Protected Routes */}

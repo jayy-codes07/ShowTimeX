@@ -107,7 +107,7 @@ const Login = () => {
               required
             />
 
-            <div className="flex items-center">
+            <div className="flex items-center justify-between">
               <label className="flex items-center space-x-2 cursor-pointer">
                 <input
                   type="checkbox"
@@ -115,6 +115,9 @@ const Login = () => {
                 />
                 <span className="text-sm text-gray-400">Remember me</span>
               </label>
+              <Link to="/forgot-password" className="text-sm text-primary hover:text-primary-light transition">
+                Forgot Password?
+              </Link>
             </div>
 
             <Button

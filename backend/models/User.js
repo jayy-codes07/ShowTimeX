@@ -41,6 +41,8 @@ const userSchema = new mongoose.Schema(
       type: Boolean,
       default: true,
     },
+    resetPasswordOTP: String,
+    resetPasswordOTPExpire: Date,
   },
   {
     timestamps: true,
@@ -76,8 +78,29 @@ userSchema.methods.comparePassword = async function (candidatePassword) {
 userSchema.methods.toJSON = function () {
   const user = this.toObject();
   delete user.password;
+  delete user.resetPasswordOTP;
+  delete user.resetPasswordOTPExpire;
   delete user.__v;
   return user;
+};
+
+// Generate and hash password reset OTP
+userSchema.methods.getResetPasswordOTP = function () {
+  // Generate a 6-digit OTP
+  const otp = Math.floor(100000 + Math.random() * 900000).toString();
+
+  // Hash the OTP using crypto (a quick hash like SHA-256) since bcrypt is async and heavy, 
+  // or we can just use crypto for simplicity since it's an ephemeral 6-digit code.
+  const crypto = require('crypto');
+  this.resetPasswordOTP = crypto
+    .createHash('sha256')
+    .update(otp)
+    .digest('hex');
+
+  // Set expiration to 10 minutes
+  this.resetPasswordOTPExpire = Date.now() + 10 * 60 * 1000;
+
+  return otp; // Return the plain OTP to send via email
 };
 
 const User = mongoose.model('User', userSchema);

@@ -6,6 +6,8 @@ const {
   login,
   getProfile,
   updateProfile,
+  forgotPassword,
+  resetPassword,
 } = require('../controllers/authController');
 const { protect } = require('../middleware/authMiddleware');
 
@@ -56,6 +58,35 @@ router.post(
   ],
   validate,
   login,
+);
+
+router.post(
+  '/forgotpassword',
+  [
+    body('email')
+      .trim()
+      .isEmail().withMessage('Please provide a valid email')
+      .normalizeEmail(),
+  ],
+  validate,
+  forgotPassword
+);
+
+router.put(
+  '/resetpassword',
+  [
+    body('email')
+      .trim()
+      .isEmail().withMessage('Please provide a valid email')
+      .normalizeEmail(),
+    body('otp')
+      .trim()
+      .notEmpty().withMessage('OTP is required'),
+    body('password')
+      .isLength({ min: 8 }).withMessage('Password must be at least 8 characters'),
+  ],
+  validate,
+  resetPassword
 );
 
 // Protected routes

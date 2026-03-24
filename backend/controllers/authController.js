@@ -1,5 +1,9 @@
 const User = require('../models/User');
-const { generateToken } = require('../middleware/authMiddleware');// @desc    Register a new user
+const { generateToken } = require('../middleware/authMiddleware');
+const crypto = require('crypto');
+const sendEmail = require('../utils/sendEmail');
+
+// @desc    Register a new user
 // // @route   POST /api/auth/register
 // @access  Public
 const register = async (req, res) => {
@@ -199,9 +203,135 @@ const updateProfile = async (req, res) => {
   }
 };
 
+// @desc    Forgot Password
+// @route   POST /api/auth/forgotpassword
+// @access  Public
+const forgotPassword = async (req, res) => {
+  try {
+    const user = await User.findOne({ email: req.body.email });
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'There is no user with that email',
+      });
+    }
+
+    // Get reset OTP
+    const resetOTP = user.getResetPasswordOTP();
+
+    await user.save({ validateBeforeSave: false });
+
+    // Create reset message
+    const message = `Your ShowTimeX password reset OTP is:
+
+${resetOTP}
+
+This OTP will expire in 10 minutes.
+
+If you did not request a password reset, please ignore this message or contact support immediately.`;
+    try {
+      await sendEmail({
+        email: user.email,
+        subject: 'ShowTimeX Password Reset OTP',
+        message,
+      });
+
+      res.status(200).json({
+        success: true,
+        message: 'OTP sent to email',
+        // Optional: Include OTP in dev mode for easy testing without ethereal
+        ...(process.env.NODE_ENV !== 'production' && { dev_otp: resetOTP })
+      });
+    } catch (err) {
+      user.resetPasswordOTP = undefined;
+      user.resetPasswordOTPExpire = undefined;
+
+      await user.save({ validateBeforeSave: false });
+
+      console.error('Email error:', err);
+      return res.status(500).json({
+        success: false,
+        message: 'Email could not be sent',
+      });
+    }
+  } catch (error) {
+    console.error('Forgot Password Error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error during forgot password',
+    });
+  }
+};
+
+// @desc    Reset Password
+// @route   PUT /api/auth/resetpassword
+// @access  Public
+const resetPassword = async (req, res) => {
+  try {
+    const { email, otp, password } = req.body;
+
+    if (!email || !otp || !password) {
+      return res.status(400).json({
+        success: false,
+        message: 'Please provide email, OTP, and new password',
+      });
+    }
+
+    // Get hashed OTP
+    const resetPasswordOTP = crypto
+      .createHash('sha256')
+      .update(otp)
+      .digest('hex');
+
+    const user = await User.findOne({
+      email,
+      resetPasswordOTP,
+      resetPasswordOTPExpire: { $gt: Date.now() },
+    });
+
+    if (!user) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid or expired OTP',
+      });
+    }
+
+    // Set new password
+    user.password = password;
+    user.resetPasswordOTP = undefined;
+    user.resetPasswordOTPExpire = undefined;
+    await user.save();
+
+    // Generate token for auto-login
+    const token = generateToken(user._id);
+
+    res.status(200).json({
+      success: true,
+      message: 'Password reset successful',
+      token,
+      user: {
+        _id: user._id,
+        name: user.name,
+        email: user.email,
+        phone: user.phone,
+        role: user.role,
+      },
+    });
+  } catch (error) {
+    console.error('Reset Password Error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error during reset password',
+    });
+  }
+};
+
 module.exports = {
   register,
   login,
   getProfile,
   updateProfile,
+  forgotPassword,
+  resetPassword,
 };
