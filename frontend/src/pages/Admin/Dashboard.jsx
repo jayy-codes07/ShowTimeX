@@ -7,6 +7,8 @@ import {
   Film,
   TrendingUp,
   Calendar,
+  Users,
+  UserPlus,
   BarChart3,
   ArrowUpRight,
   ArrowDownRight,
@@ -140,6 +142,12 @@ const Dashboard = () => {
       to: "/admin/reports",
       icon: TrendingUp,
     },
+    {
+      title: "User Insights",
+      description: "Track total users and recent customer login activity.",
+      to: "/admin/users",
+      icon: Users,
+    },
   ];
 
   return (
@@ -183,7 +191,7 @@ const Dashboard = () => {
             </Link>
           </div>
 
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
             {quickActions.map((action, index) => {
               const Icon = action.icon;
 
@@ -253,6 +261,50 @@ const Dashboard = () => {
             );
           })}
         </div>
+
+        <motion.section
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.4 }}
+          className={`${panelClassName} mb-8`}
+        >
+          <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <h2 className="text-xl font-bold text-white">User Insights</h2>
+              <p className="text-sm text-gray-500">Compact snapshot. Open full user activity in dedicated page.</p>
+            </div>
+            <Link
+              to="/admin/users"
+              className="text-sm font-medium text-primary transition hover:text-primary-light"
+            >
+              Open user page
+            </Link>
+          </div>
+
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+            <div className="rounded-xl border border-gray-800 bg-dark-card p-4">
+              <div className="mb-2 flex items-center gap-2 text-gray-400">
+                <Users className="h-4 w-4" />
+                <span className="text-sm">Total Customers</span>
+              </div>
+              <p className="text-2xl font-bold text-white">{stats?.totalUsers || 0}</p>
+            </div>
+            <div className="rounded-xl border border-gray-800 bg-dark-card p-4">
+              <div className="mb-2 flex items-center gap-2 text-gray-400">
+                <ArrowUpRight className="h-4 w-4" />
+                <span className="text-sm">Logged In Today</span>
+              </div>
+              <p className="text-2xl font-bold text-white">{stats?.loggedInToday || 0}</p>
+            </div>
+            <div className="rounded-xl border border-gray-800 bg-dark-card p-4">
+              <div className="mb-2 flex items-center gap-2 text-gray-400">
+                <UserPlus className="h-4 w-4" />
+                <span className="text-sm">New Users (7d)</span>
+              </div>
+              <p className="text-2xl font-bold text-white">{stats?.newUsersLast7Days || 0}</p>
+            </div>
+          </div>
+        </motion.section>
 
         <div className="mb-8 grid grid-cols-1 gap-6 xl:grid-cols-3">
           <motion.div

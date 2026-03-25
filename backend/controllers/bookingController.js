@@ -515,12 +515,32 @@ const getAdminStats = async (req, res) => {
     const totalRevenue = revenueAgg[0]?.total || 0;
     const totalTickets = revenueAgg[0]?.tickets || 0;
 
-    const totalUsers = await User.countDocuments({ role: "customer" });
-    const totalMovies = await Movie.countDocuments({ isActive: true });
-
-    // 2. Chart 1: Daily Revenue Raw
     const sevenDaysAgo = new Date();
     sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+
+    const startOfToday = new Date();
+    startOfToday.setHours(0, 0, 0, 0);
+
+    const [
+      totalUsers,
+      totalMovies,
+      totalLoggedInUsers,
+      loggedInToday,
+      newUsersLast7Days,
+      recentLoggedInUsers,
+    ] = await Promise.all([
+      User.countDocuments({ role: "customer" }),
+      Movie.countDocuments({ isActive: true }),
+      User.countDocuments({ role: "customer", lastLoginAt: { $ne: null } }),
+      User.countDocuments({ role: "customer", lastLoginAt: { $gte: startOfToday } }),
+      User.countDocuments({ role: "customer", createdAt: { $gte: sevenDaysAgo } }),
+      User.find({ role: "customer", lastLoginAt: { $ne: null } })
+        .sort({ lastLoginAt: -1 })
+        .limit(6)
+        .select("name email createdAt lastLoginAt"),
+    ]);
+
+    // 2. Chart 1: Daily Revenue Raw
 
     const dailyRevenueRaw = await Booking.aggregate([
       { $match: { status: "confirmed", bookingDate: { $gte: sevenDaysAgo } } },
@@ -630,6 +650,10 @@ const getAdminStats = async (req, res) => {
         totalBookings,
         totalRevenue,
         totalUsers,
+        totalLoggedInUsers,
+        loggedInToday,
+        newUsersLast7Days,
+        recentLoggedInUsers,
         totalMovies,
         totalTickets,
         revenueData,
@@ -643,6 +667,67 @@ const getAdminStats = async (req, res) => {
     res.status(500).json({
       success: false,
       message: "Server error while fetching statistics",
+    });
+  }
+};
+
+// @desc    Get admin user insights
+// @route   GET /api/admin/users
+// @access  Private/Admin
+const getAdminUserInsights = async (req, res) => {
+  try {
+    const { page = 1, limit = 10 } = req.query;
+    const parsedPage = Math.max(parseInt(page, 10) || 1, 1);
+    const parsedLimit = Math.max(parseInt(limit, 10) || 10, 1);
+    const skip = (parsedPage - 1) * parsedLimit;
+
+    const sevenDaysAgo = new Date();
+    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+
+    const startOfToday = new Date();
+    startOfToday.setHours(0, 0, 0, 0);
+
+    const [
+      totalUsers,
+      totalLoggedInUsers,
+      loggedInToday,
+      newUsersLast7Days,
+      totalRecentUsers,
+      recentUsers,
+    ] = await Promise.all([
+      User.countDocuments({ role: "customer" }),
+      User.countDocuments({ role: "customer", lastLoginAt: { $ne: null } }),
+      User.countDocuments({ role: "customer", lastLoginAt: { $gte: startOfToday } }),
+      User.countDocuments({ role: "customer", createdAt: { $gte: sevenDaysAgo } }),
+      User.countDocuments({ role: "customer" }),
+      User.find({ role: "customer" })
+        .sort({ lastLoginAt: -1, createdAt: -1 })
+        .skip(skip)
+        .limit(parsedLimit)
+        .select("name email phone isActive createdAt lastLoginAt"),
+    ]);
+
+    res.status(200).json({
+      success: true,
+      insights: {
+        totalUsers,
+        totalLoggedInUsers,
+        loggedInToday,
+        newUsersLast7Days,
+      },
+      users: recentUsers,
+      pagination: {
+        page: parsedPage,
+        limit: parsedLimit,
+        total: totalRecentUsers,
+        hasMore: skip + recentUsers.length < totalRecentUsers,
+      },
+    });
+  } catch (error) {
+    console.error("Get Admin User Insights Error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Server error while fetching user insights",
     });
   }
 };
@@ -810,6 +895,7 @@ module.exports = {
   cancelBooking,
   getAllBookings,
   getAdminStats,
+  getAdminUserInsights,
   getAdminReports,
   createRazorpayOrder,
 };

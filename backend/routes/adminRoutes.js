@@ -5,6 +5,7 @@ const {
   getAllBookings,
   getAdminStats,
   getAdminReports,
+  getAdminUserInsights,
 } = require('../controllers/bookingController');
 const { protect } = require('../middleware/authMiddleware');
 const { adminOnly } = require('../middleware/adminMiddleware');
@@ -17,5 +18,6 @@ router.use(adminOnly);
 router.get('/stats', getAdminStats);
 router.get('/reports', getAdminReports);
 router.get('/bookings', getAllBookings);
+router.get('/users', getAdminUserInsights);
 
 module.exports = router;

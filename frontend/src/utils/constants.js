@@ -39,6 +39,7 @@ export const API_ENDPOINTS = {
   ADMIN_STATS: '/admin/stats',
   ADMIN_BOOKINGS: '/admin/bookings',
   ADMIN_REPORTS: '/admin/reports',
+  ADMIN_USERS: '/admin/users',
 };
 
 // Seat Configuration

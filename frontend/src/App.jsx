@@ -29,6 +29,7 @@ const Dashboard = lazy(() => import("./pages/Admin/Dashboard"));
 const ManageMovies = lazy(() => import("./pages/Admin/ManageMovies"));
 const ManageShows = lazy(() => import("./pages/Admin/ManageShows"));
 const Reports = lazy(() => import("./pages/Admin/Reports"));
+const UsersPage = lazy(() => import("./pages/Admin/Users"));
 const AllMovies = lazy(() => import("./pages/Visitor/Allmovies"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
@@ -122,6 +123,14 @@ function AppLayout() {
                       element={
                         <ProtectedRoute allowedRoles={["admin"]}>
                           <PageTransition><Reports /></PageTransition>
+                        </ProtectedRoute>
+                      }
+                    />
+                    <Route
+                      path="/admin/users"
+                      element={
+                        <ProtectedRoute allowedRoles={["admin"]}>
+                          <PageTransition><UsersPage /></PageTransition>
                         </ProtectedRoute>
                       }
                     />

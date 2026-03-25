@@ -103,6 +103,9 @@ const login = async (req, res) => {
       });
     }
 
+    user.lastLoginAt = new Date();
+    await user.save({ validateBeforeSave: false });
+
     // Generate token
     const token = generateToken(user._id);
 
