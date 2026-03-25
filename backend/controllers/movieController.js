@@ -7,7 +7,7 @@ const User = require('../models/User');
 // @access  Public
 const getAllMovies = async (req, res) => {
   try {
-    const { genre, language, status } = req.query;
+    const { genre, language, status, page, limit } = req.query;
     
     let filter = { isActive: true };
     
@@ -15,10 +15,36 @@ const getAllMovies = async (req, res) => {
     if (language) filter.languages = language;
     if (status) filter.status = status;
 
-    const movies = await Movie.find(filter).sort({ releaseDate: -1 });
+    const shouldPaginate = page !== undefined || limit !== undefined;
+
+    if (!shouldPaginate) {
+      const movies = await Movie.find(filter).sort({ releaseDate: -1 });
+
+      return res.status(200).json({
+        success: true,
+        count: movies.length,
+        movies,
+      });
+    }
+
+    const parsedPage = Math.max(parseInt(page, 10) || 1, 1);
+    const parsedLimit = Math.max(parseInt(limit, 10) || 10, 1);
+    const skip = (parsedPage - 1) * parsedLimit;
+    const total = await Movie.countDocuments(filter);
+
+    const movies = await Movie.find(filter)
+      .sort({ releaseDate: -1 })
+      .skip(skip)
+      .limit(parsedLimit);
+
+    const hasMore = skip + movies.length < total;
 
     res.status(200).json({
       success: true,
+      total,
+      page: parsedPage,
+      limit: parsedLimit,
+      hasMore,
       count: movies.length,
       movies,
     });

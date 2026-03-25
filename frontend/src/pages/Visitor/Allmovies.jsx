@@ -5,10 +5,18 @@ import MovieGrid from '../../components/Movie/MovieGrid'; // Ensure this matches
 import { movieService } from '../../services/movieService'; // FIX 1: Added missing import
 import toast from 'react-hot-toast'; // FIX 2: Added missing import
 import Loader from '../../components/UI/Loader'; // Optional: Use your custom loader
+import Button from '../../components/UI/Button';
 
 const AllMovies = () => {
+  const PAGE_LIMIT = 10;
   const [movies, setMovies] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [pagination, setPagination] = useState({
+    page: 1,
+    hasMore: false,
+    total: 0,
+  });
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedGenre, setSelectedGenre] = useState('All');
 
@@ -16,19 +24,56 @@ const AllMovies = () => {
     fetchAllMovies();
   }, []);
 
-  const fetchAllMovies = async () => {
+  const fetchAllMovies = async (resetPage = true) => {
+    const targetPage = resetPage ? 1 : pagination.page + 1;
+
     try {
-      setLoading(true);
-      const response = await movieService.getAllMovies();
+      if (resetPage) {
+        setLoading(true);
+      } else {
+        setLoadingMore(true);
+      }
+
+      const response = await movieService.getAllMovies({
+        page: targetPage,
+        limit: PAGE_LIMIT,
+      });
       
       if (response.success) {
-        setMovies(response.movies || []);
+        const incomingMovies = response.movies || [];
+
+        setMovies((prevMovies) =>
+          resetPage ? incomingMovies : [...prevMovies, ...incomingMovies],
+        );
+
+        const total =
+          typeof response.total === 'number'
+            ? response.total
+            : resetPage
+              ? incomingMovies.length
+              : movies.length + incomingMovies.length;
+
+        setPagination({
+          page: response.page || targetPage,
+          hasMore: Boolean(response.hasMore),
+          total,
+        });
       }
     } catch (error) {
       console.error('Error fetching movies:', error);
       toast.error('Failed to load movies');
     } finally {
-      setLoading(false);
+      if (resetPage) {
+        setLoading(false);
+      } else {
+        setLoadingMore(false);
+      }
+    }
+  };
+
+  const handleLoadMore = () => {
+    if (!loadingMore && pagination.hasMore) {
+      fetchAllMovies(false);
     }
   };
 
@@ -122,7 +167,29 @@ const AllMovies = () => {
 
         {/* Movies Grid */}
         {filteredMovies.length > 0 ? (
-          <MovieGrid movies={filteredMovies} />
+          <>
+            <MovieGrid movies={filteredMovies} />
+
+            {pagination.hasMore && (
+              <div className="mt-10 flex justify-center">
+                <Button
+                  type="button"
+                  variant="secondary"
+                  onClick={handleLoadMore}
+                  loading={loadingMore}
+                  disabled={loadingMore}
+                >
+                  {loadingMore
+                    ? 'Loading...'
+                    : `Load More${
+                        pagination.total > movies.length
+                          ? ` (${pagination.total - movies.length} remaining)`
+                          : ''
+                      }`}
+                </Button>
+              </div>
+            )}
+          </>
         ) : (
           <div className="text-center py-20">
             <p className="text-gray-500 text-lg">

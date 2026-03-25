@@ -30,7 +30,7 @@ const formatShowForClient = (show, userId) => {
 // @access  Public
 const getAllShows = async (req, res) => {
   try {
-    const { date, theater, movieId } = req.query;
+    const { date, theater, movieId, page, limit, sortBy, order } = req.query;
 
     let filter = { isActive: true };
 
@@ -45,15 +45,53 @@ const getAllShows = async (req, res) => {
     if (theater) filter.theater = { $regex: theater, $options: "i" };
     if (movieId) filter.movie = movieId;
 
+    const sortDirection = order === "desc" ? -1 : 1;
+    let sortCriteria = { date: 1, time: 1 };
+
+    if (sortBy === "createdAt") {
+      sortCriteria = { createdAt: sortDirection };
+    } else if (sortBy === "date") {
+      sortCriteria = { date: sortDirection, time: sortDirection };
+    }
+
+    const shouldPaginate = page !== undefined || limit !== undefined;
+
+    if (!shouldPaginate) {
+      const shows = await Show.find(filter)
+        .populate("movie", "title poster duration genres languages certificate")
+        .sort(sortCriteria);
+
+      const userId = req.user?._id;
+      const formattedShows = shows.map((show) => formatShowForClient(show, userId));
+
+      return res.status(200).json({
+        success: true,
+        count: formattedShows.length,
+        shows: formattedShows,
+      });
+    }
+
+    const parsedPage = Math.max(parseInt(page, 10) || 1, 1);
+    const parsedLimit = Math.max(parseInt(limit, 10) || 10, 1);
+    const skip = (parsedPage - 1) * parsedLimit;
+    const total = await Show.countDocuments(filter);
+
     const shows = await Show.find(filter)
       .populate("movie", "title poster duration genres languages certificate")
-      .sort({ date: 1, time: 1 }); // Sorted by specific date/time
+      .sort(sortCriteria)
+      .skip(skip)
+      .limit(parsedLimit);
 
     const userId = req.user?._id;
     const formattedShows = shows.map((show) => formatShowForClient(show, userId));
+    const hasMore = skip + formattedShows.length < total;
 
     res.status(200).json({
       success: true,
+      total,
+      page: parsedPage,
+      limit: parsedLimit,
+      hasMore,
       count: formattedShows.length,
       shows: formattedShows,
     });

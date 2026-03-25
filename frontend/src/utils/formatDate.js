@@ -29,19 +29,37 @@ export const formatDateFull = (date) => {
  */
 export const formatTime = (time) => {
   if (!time) return '';
-  
-  // Remove any existing AM/PM from the string before processing
-  const cleanTime = time.replace(/\s?[AP]M/i, '');
-  const [hours, minutes] = cleanTime.split(':');
-  
-  const h = parseInt(hours);
-  const ampm = h >= 12 ? 'PM' : 'AM';
-  const displayHours = h % 12 || 12;
-  
-  // Extract only the first two digits of minutes to avoid "45 AM"
-  const cleanMinutes = minutes.substring(0, 2);
-  
-  return `${displayHours}:${cleanMinutes} ${ampm}`;
+
+  const normalizedTime = time.toString().trim();
+
+  // Preserve existing 12-hour format to avoid AM/PM flipping.
+  const twelveHourMatch = normalizedTime.match(/^(\d{1,2}):(\d{2})\s*(AM|PM)$/i);
+  if (twelveHourMatch) {
+    const hours = parseInt(twelveHourMatch[1], 10);
+    const minutes = twelveHourMatch[2];
+    const meridiem = twelveHourMatch[3].toUpperCase();
+
+    if (hours >= 1 && hours <= 12) {
+      return `${hours}:${minutes} ${meridiem}`;
+    }
+
+    return normalizedTime;
+  }
+
+  const twentyFourHourMatch = normalizedTime.match(/^(\d{1,2}):(\d{2})$/);
+  if (!twentyFourHourMatch) return normalizedTime;
+
+  const hours24 = parseInt(twentyFourHourMatch[1], 10);
+  const minutes = twentyFourHourMatch[2];
+
+  if (Number.isNaN(hours24) || hours24 < 0 || hours24 > 23) {
+    return normalizedTime;
+  }
+
+  const meridiem = hours24 >= 12 ? 'PM' : 'AM';
+  const displayHours = hours24 % 12 || 12;
+
+  return `${displayHours}:${minutes} ${meridiem}`;
 };
 
 /**

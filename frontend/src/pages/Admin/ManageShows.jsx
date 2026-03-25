@@ -15,9 +15,16 @@ import { formatDate, formatTime } from "../../utils/formatDate";
 import toast from "react-hot-toast";
 
 const ManageShows = () => {
+  const PAGE_LIMIT = 10;
   const [shows, setShows] = useState([]);
   const [movies, setMovies] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [pagination, setPagination] = useState({
+    page: 1,
+    hasMore: false,
+    total: 0,
+  });
   const [showModal, setShowModal] = useState(false);
   const [editingShow, setEditingShow] = useState(null);
 
@@ -41,25 +48,77 @@ const ManageShows = () => {
     fetchData();
   }, []);
 
-  const fetchData = async () => {
+  const fetchData = async (resetPage = true) => {
+    const targetPage = resetPage ? 1 : pagination.page + 1;
+
     try {
-      setLoading(true);
-      const [showsRes, moviesRes] = await Promise.all([
-        apiRequest.get(API_ENDPOINTS.SHOWS),
-        apiRequest.get(API_ENDPOINTS.MOVIES),
-      ]);
+      if (resetPage) {
+        setLoading(true);
+      } else {
+        setLoadingMore(true);
+      }
+
+      const showsPromise = apiRequest.get(API_ENDPOINTS.SHOWS, {
+        params: {
+          page: targetPage,
+          limit: PAGE_LIMIT,
+          sortBy: "createdAt",
+          order: "desc",
+        },
+      });
+
+      let showsRes;
+
+      if (resetPage) {
+        const [showsResponse, moviesRes] = await Promise.all([
+          showsPromise,
+          apiRequest.get(API_ENDPOINTS.MOVIES),
+        ]);
+
+        showsRes = showsResponse;
+
+        if (moviesRes.success) {
+          setMovies(moviesRes.movies || []);
+        }
+      } else {
+        showsRes = await showsPromise;
+      }
 
       if (showsRes.success) {
-        setShows(showsRes.shows || []);
-      }
-      if (moviesRes.success) {
-        setMovies(moviesRes.movies || []);
+        const incomingShows = showsRes.shows || [];
+
+        setShows((prevShows) =>
+          resetPage ? incomingShows : [...prevShows, ...incomingShows],
+        );
+
+        const total =
+          typeof showsRes.total === "number"
+            ? showsRes.total
+            : resetPage
+              ? incomingShows.length
+              : shows.length + incomingShows.length;
+
+        setPagination({
+          page: showsRes.page || targetPage,
+          hasMore: Boolean(showsRes.hasMore),
+          total,
+        });
       }
     } catch (error) {
       console.error("Error fetching data:", error);
       toast.error("Failed to load shows");
     } finally {
-      setLoading(false);
+      if (resetPage) {
+        setLoading(false);
+      } else {
+        setLoadingMore(false);
+      }
+    }
+  };
+
+  const handleLoadMore = () => {
+    if (!loadingMore && pagination.hasMore) {
+      fetchData(false);
     }
   };
 
@@ -214,17 +273,6 @@ const ManageShows = () => {
     return <Loader fullScreen message="Loading shows..." />;
   }
 
-  const sortedShows = [...shows].sort((a, b) => {
-    // 🟢 Changed showDate to date
-    const dateDiff = new Date(a.date) - new Date(b.date);
-    if (dateDiff !== 0) return dateDiff;
-
-    // 🟢 Changed showTime to time. Added fallback just in case time is missing
-    const timeA = a.time || "";
-    const timeB = b.time || "";
-    return timeA.localeCompare(timeB);
-  });
-
   return (
     <div className="min-h-screen bg-dark py-8">
       <div className="container-custom">
@@ -261,8 +309,9 @@ const ManageShows = () => {
           className="bg-dark-card rounded-xl overflow-hidden"
         >
           {shows.length > 0 ? (
-            <div className="overflow-x-auto">
-              <table className="w-full min-w-[920px]">
+            <>
+              <div className="overflow-x-auto">
+                <table className="w-full min-w-[920px]">
                 <thead className="admin-table-head">
                   <tr>
                     <th className="text-left py-4 px-6 text-gray-400 font-semibold">
@@ -291,15 +340,15 @@ const ManageShows = () => {
                     </th>
                   </tr>
                 </thead>
-                <tbody>
-                  {sortedShows.map((show, index) => (
-                    <motion.tr
-                      key={show._id}
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      transition={{ delay: index * 0.05 }}
-                      className="admin-table-row border-b border-gray-800"
-                    >
+                  <tbody>
+                    {shows.map((show, index) => (
+                      <motion.tr
+                        key={show._id}
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        transition={{ delay: index * 0.05 }}
+                        className="admin-table-row border-b border-gray-800"
+                      >
                       <td className="py-4 px-6 text-white font-semibold">
                         {show.movie?.title || "Unknown"}
                       </td>
@@ -345,11 +394,32 @@ const ManageShows = () => {
                           </button>
                         </div>
                       </td>
-                    </motion.tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+                      </motion.tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+
+              {pagination.hasMore && (
+                <div className="flex justify-center border-t border-gray-800 px-6 py-4">
+                  <Button
+                    type="button"
+                    variant="secondary"
+                    onClick={handleLoadMore}
+                    loading={loadingMore}
+                    disabled={loadingMore}
+                  >
+                    {loadingMore
+                      ? "Loading..."
+                      : `Load More${
+                          pagination.total > shows.length
+                            ? ` (${pagination.total - shows.length} remaining)`
+                            : ""
+                        }`}
+                  </Button>
+                </div>
+              )}
+            </>
           ) : (
             <div className="text-center py-12">
               <Calendar className="w-16 h-16 text-gray-600 mx-auto mb-4" />
