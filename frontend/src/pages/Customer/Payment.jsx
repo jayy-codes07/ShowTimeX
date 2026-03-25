@@ -211,9 +211,9 @@ const Payment = () => {
               className={`flex items-center space-x-2 ${step >= 1 ? "text-primary" : "text-gray-500"}`}
             >
               <div
-                className={`w-8 h-8 rounded-full flex items-center justify-center ${step >= 1 ? "bg-primary" : "bg-gray-700"}`}
+                className={`w-8 h-8 rounded-full flex items-center justify-center ${step >= 1 ? "bg-current" : "bg-gray-700"}`}
               >
-                1
+                <span class="text-white "> 1</span>
               </div>
               <span>Select Seats</span>
             </div>
@@ -224,7 +224,7 @@ const Payment = () => {
               <div
                 className={`w-8 h-8 rounded-full flex items-center justify-center ${step >= 2 ? "bg-primary" : "bg-gray-700"}`}
               >
-                2
+                <span class="text-white "> 2 </span>
               </div>
               <span>Checkout</span>
             </div>
@@ -242,16 +242,23 @@ const Payment = () => {
                 <h2 className="text-2xl font-bold text-white mb-6">
                   Select Your Seats
                 </h2>
-                {lockRemaining !== null && bookingData.selectedSeats.length > 0 && (
-                  <div className="mb-4 rounded-lg border border-gray-700 bg-dark-card px-4 py-3 text-sm text-gray-300">
-                    Seats locked for{" "}
-                    <span className="font-semibold text-primary">
-                      {String(Math.floor(lockRemaining / 60000)).padStart(2, "0")}:
-                      {String(Math.floor((lockRemaining % 60000) / 1000)).padStart(2, "0")}
-                    </span>
-                    . Complete checkout before the timer ends.
-                  </div>
-                )}
+                {lockRemaining !== null &&
+                  bookingData.selectedSeats.length > 0 && (
+                    <div className="mb-4 rounded-lg border border-gray-700 bg-dark-card px-4 py-3 text-sm text-gray-300">
+                      Seats locked for{" "}
+                      <span className="font-semibold text-primary">
+                        {String(Math.floor(lockRemaining / 60000)).padStart(
+                          2,
+                          "0",
+                        )}
+                        :
+                        {String(
+                          Math.floor((lockRemaining % 60000) / 1000),
+                        ).padStart(2, "0")}
+                      </span>
+                      . Complete checkout before the timer ends.
+                    </div>
+                  )}
                 <SeatMap
                   bookedSeats={bookingData.show.bookedSeats}
                   lockedSeats={bookingData.show.lockedSeats}
