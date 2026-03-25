@@ -5,38 +5,40 @@
 @layer base {
   :root,
   .theme-dark {
-    --app-bg: #0a0b0e;
+    --app-bg: #0f1814;
     --app-bg-image:
-      radial-gradient(1200px 660px at -8% -16%, rgba(229, 9, 20, 0.2), transparent 58%),
-      radial-gradient(920px 540px at 104% -8%, rgba(248, 113, 113, 0.12), transparent 52%),
-      linear-gradient(180deg, #0c0c10 0%, #09090c 100%);
-    --app-surface-card: rgba(21, 21, 27, 0.84);
-    --app-surface-soft: rgba(255, 255, 255, 0.045);
-    --app-surface-strong: rgba(255, 255, 255, 0.085);
-    --app-border: rgba(255, 255, 255, 0.09);
-    --app-border-strong: rgba(255, 255, 255, 0.16);
-    --app-text-strong: #f7f3eb;
-    --app-text-body: #ddd7cb;
-    --app-text-muted: #b3ad9f;
-    --app-text-subtle: #878073;
-    --app-accent: #e50914;
-    --app-accent-strong: #ff674d;
-    --app-accent-soft: rgba(229, 9, 20, 0.12);
-    --app-accent-soft-strong: rgba(229, 9, 20, 0.2);
-    --app-accent-ring: rgba(229, 9, 20, 0.18);
-    --app-overlay-surface: rgba(10, 11, 14, 0.76);
-    --app-shadow-card: 0 20px 46px rgba(0, 0, 0, 0.34);
-    --app-shadow-soft: 0 12px 28px rgba(0, 0, 0, 0.2);
-    --app-chrome: linear-gradient(180deg, rgba(17, 17, 22, 0.9) 0%, rgba(10, 10, 14, 0.8) 100%);
-    --app-footer: linear-gradient(180deg, rgba(16, 16, 20, 0.82) 0%, rgba(10, 10, 14, 0.94) 100%);
+      radial-gradient(1100px 620px at -8% -16%, rgba(34, 197, 94, 0.12), transparent 58%),
+      radial-gradient(880px 540px at 106% -8%, rgba(20, 83, 45, 0.26), transparent 52%),
+      linear-gradient(180deg, #0f1814 0%, #0b120f 100%);
+    --app-surface-card: rgba(19, 35, 28, 0.86);
+    --app-surface-soft: rgba(32, 56, 45, 0.44);
+    --app-surface-strong: rgba(46, 78, 64, 0.58);
+    --app-border: rgba(134, 239, 172, 0.14);
+    --app-border-strong: rgba(167, 243, 208, 0.26);
+    --app-text-strong: #ecfdf3;
+    --app-text-body: #d3f4e1;
+    --app-text-muted: #a7d6be;
+    --app-text-subtle: #7ab194;
+    --app-accent: #22c55e;
+    --app-accent-strong: #4ade80;
+    --app-accent-soft: rgba(34, 197, 94, 0.14);
+    --app-accent-soft-strong: rgba(34, 197, 94, 0.22);
+    --app-accent-ring: rgba(134, 239, 172, 0.32);
+    --app-overlay-surface: rgba(15, 24, 20, 0.8);
+    --app-shadow-card: 0 18px 40px rgba(2, 10, 7, 0.42);
+    --app-shadow-soft: 0 10px 26px rgba(2, 10, 7, 0.26);
+    --app-chrome: linear-gradient(180deg, rgba(18, 33, 26, 0.94) 0%, rgba(12, 22, 18, 0.9) 100%);
+    --app-footer: linear-gradient(180deg, rgba(17, 31, 25, 0.92) 0%, rgba(10, 18, 14, 0.96) 100%);
     --app-seat-available: rgba(255, 255, 255, 0.16);
-    --app-seat-available-text: #f7f3eb;
-    --app-seat-selected: #e50914;
-    --app-seat-selected-text: #fff9f5;
+    --app-seat-available-text: #ecfdf3;
+    --app-seat-selected: #22c55e;
+    --app-seat-selected-text: #ecfdf3;
     --app-seat-booked: rgba(255, 255, 255, 0.08);
     --app-seat-booked-text: rgba(255, 255, 255, 0.35);
     --app-seat-locked: rgba(245, 158, 11, 0.24);
     --app-seat-locked-text: #fde6b2;
+    --site-logo-image: url('./assets/images/Showtime_logo.png');
+    --site-logo-filter: hue-rotate(104deg) saturate(1.2) brightness(1.04);
   }
 
   body {
@@ -54,41 +56,99 @@
 
 /* Theme overrides */
 .theme-light {
-  --app-bg: #fefae0;
+  --app-bg: #eef6ee;
   --app-bg-image:
-    radial-gradient(1200px 620px at 8% -10%, rgba(221, 161, 94, 0.2), transparent 60%),
-    radial-gradient(900px 500px at 100% 0%, rgba(96, 108, 56, 0.16), transparent 55%),
-    linear-gradient(180deg, #fefae0 0%, #f7f1d7 100%);
-  --app-surface-card: rgba(255, 250, 232, 0.9);
-  --app-surface-soft: rgba(255, 248, 226, 0.72);
-  --app-surface-strong: rgba(255, 244, 212, 0.92);
-  --app-border: rgba(188, 108, 37, 0.2);
-  --app-border-strong: rgba(188, 108, 37, 0.34);
-  --app-text-strong: #1f1a12;
-  --app-text-body: #342b1d;
-  --app-text-muted: #5b4c35;
-  --app-text-subtle: #76664b;
-  --app-accent: #bc6c25;
-  --app-accent-strong: #dda15e;
-  --app-accent-soft: rgba(188, 108, 37, 0.12);
-  --app-accent-soft-strong: rgba(188, 108, 37, 0.18);
-  --app-accent-ring: rgba(96, 108, 56, 0.22);
-  --app-overlay-surface: rgba(254, 250, 224, 0.82);
-  --app-shadow-card: 0 16px 38px rgba(40, 54, 24, 0.12);
-  --app-shadow-soft: 0 10px 24px rgba(40, 54, 24, 0.08);
-  --app-chrome: linear-gradient(180deg, rgba(255, 251, 236, 0.92) 0%, rgba(252, 246, 221, 0.85) 100%);
-  --app-footer: linear-gradient(180deg, rgba(255, 248, 226, 0.84) 0%, rgba(249, 240, 209, 0.97) 100%);
-  --app-seat-available: rgba(221, 161, 94, 0.55);
-  --app-seat-available-text: #283618;
-  --app-seat-selected: #bc6c25;
-  --app-seat-selected-text: #fefae0;
+    radial-gradient(1000px 560px at 10% -10%, rgba(22, 101, 52, 0.12), transparent 60%),
+    radial-gradient(820px 500px at 100% -4%, rgba(74, 222, 128, 0.16), transparent 54%),
+    linear-gradient(180deg, #eef6ee 0%, #e5f0e6 100%);
+  --app-surface-card: rgba(245, 252, 247, 0.92);
+  --app-surface-soft: rgba(230, 245, 234, 0.78);
+  --app-surface-strong: rgba(220, 240, 226, 0.92);
+  --app-border: rgba(22, 101, 52, 0.2);
+  --app-border-strong: rgba(22, 101, 52, 0.34);
+  --app-text-strong: #0f2a1c;
+  --app-text-body: #163726;
+  --app-text-muted: #2c5b44;
+  --app-text-subtle: #457a5f;
+  --app-accent: #166534;
+  --app-accent-strong: #15803d;
+  --app-accent-soft: rgba(22, 101, 52, 0.12);
+  --app-accent-soft-strong: rgba(22, 101, 52, 0.2);
+  --app-accent-ring: rgba(22, 101, 52, 0.24);
+  --app-overlay-surface: rgba(238, 246, 238, 0.84);
+  --app-shadow-card: 0 14px 34px rgba(18, 64, 39, 0.14);
+  --app-shadow-soft: 0 8px 22px rgba(18, 64, 39, 0.1);
+  --app-chrome: linear-gradient(180deg, rgba(242, 250, 244, 0.94) 0%, rgba(231, 245, 235, 0.88) 100%);
+  --app-footer: linear-gradient(180deg, rgba(236, 247, 239, 0.92) 0%, rgba(227, 242, 232, 0.96) 100%);
+  --app-seat-available: rgba(22, 101, 52, 0.38);
+  --app-seat-available-text: #0f2a1c;
+  --app-seat-selected: #166534;
+  --app-seat-selected-text: #eef6ee;
   --app-seat-booked: rgba(40, 54, 24, 0.18);
-  --app-seat-booked-text: rgba(40, 54, 24, 0.55);
-  --app-seat-locked: rgba(96, 108, 56, 0.35);
-  --app-seat-locked-text: #283618;
+  --app-seat-booked-text: rgba(15, 42, 28, 0.45);
+  --app-seat-locked: rgba(21, 128, 61, 0.28);
+  --app-seat-locked-text: #14532d;
+  --site-logo-filter: hue-rotate(96deg) saturate(1.08) brightness(0.9);
   color: var(--app-text-strong);
   background-color: var(--app-bg);
   background-image: var(--app-bg-image);
+}
+
+/* Admin route palette derived from the sidebar visual language */
+.admin-route.theme-dark,
+.theme-dark.admin-route {
+  --app-bg: #0f1814;
+  --app-bg-image:
+    radial-gradient(1100px 620px at -8% -16%, rgba(34, 197, 94, 0.12), transparent 58%),
+    radial-gradient(880px 540px at 106% -8%, rgba(20, 83, 45, 0.26), transparent 52%),
+    linear-gradient(180deg, #0f1814 0%, #0b120f 100%);
+  --app-surface-card: rgba(19, 35, 28, 0.86);
+  --app-surface-soft: rgba(32, 56, 45, 0.44);
+  --app-surface-strong: rgba(46, 78, 64, 0.58);
+  --app-border: rgba(134, 239, 172, 0.14);
+  --app-border-strong: rgba(167, 243, 208, 0.26);
+  --app-text-strong: #ecfdf3;
+  --app-text-body: #d3f4e1;
+  --app-text-muted: #a7d6be;
+  --app-text-subtle: #7ab194;
+  --app-accent: #22c55e;
+  --app-accent-strong: #4ade80;
+  --app-accent-soft: rgba(34, 197, 94, 0.14);
+  --app-accent-soft-strong: rgba(34, 197, 94, 0.22);
+  --app-accent-ring: rgba(134, 239, 172, 0.32);
+  --app-overlay-surface: rgba(15, 24, 20, 0.8);
+  --app-shadow-card: 0 18px 40px rgba(2, 10, 7, 0.42);
+  --app-shadow-soft: 0 10px 26px rgba(2, 10, 7, 0.26);
+  --app-chrome: linear-gradient(180deg, rgba(18, 33, 26, 0.94) 0%, rgba(12, 22, 18, 0.9) 100%);
+  --app-footer: linear-gradient(180deg, rgba(17, 31, 25, 0.92) 0%, rgba(10, 18, 14, 0.96) 100%);
+}
+
+.admin-route.theme-light,
+.theme-light.admin-route {
+  --app-bg: #eef6ee;
+  --app-bg-image:
+    radial-gradient(1000px 560px at 10% -10%, rgba(22, 101, 52, 0.12), transparent 60%),
+    radial-gradient(820px 500px at 100% -4%, rgba(74, 222, 128, 0.16), transparent 54%),
+    linear-gradient(180deg, #eef6ee 0%, #e5f0e6 100%);
+  --app-surface-card: rgba(245, 252, 247, 0.92);
+  --app-surface-soft: rgba(230, 245, 234, 0.78);
+  --app-surface-strong: rgba(220, 240, 226, 0.92);
+  --app-border: rgba(22, 101, 52, 0.2);
+  --app-border-strong: rgba(22, 101, 52, 0.34);
+  --app-text-strong: #0f2a1c;
+  --app-text-body: #163726;
+  --app-text-muted: #2c5b44;
+  --app-text-subtle: #457a5f;
+  --app-accent: #166534;
+  --app-accent-strong: #15803d;
+  --app-accent-soft: rgba(22, 101, 52, 0.12);
+  --app-accent-soft-strong: rgba(22, 101, 52, 0.2);
+  --app-accent-ring: rgba(22, 101, 52, 0.24);
+  --app-overlay-surface: rgba(238, 246, 238, 0.84);
+  --app-shadow-card: 0 14px 34px rgba(18, 64, 39, 0.14);
+  --app-shadow-soft: 0 8px 22px rgba(18, 64, 39, 0.1);
+  --app-chrome: linear-gradient(180deg, rgba(242, 250, 244, 0.94) 0%, rgba(231, 245, 235, 0.88) 100%);
+  --app-footer: linear-gradient(180deg, rgba(236, 247, 239, 0.92) 0%, rgba(227, 242, 232, 0.96) 100%);
 }
 
 .bg-dark {
@@ -180,13 +240,30 @@
   background-color: var(--app-accent);
 }
 
+.bg-red-500\/10,
 .bg-red-500\/20,
-.bg-red-500\/30 {
+.bg-red-500\/30,
+.bg-red-500\/40 {
   background-color: var(--app-accent-soft);
 }
 
-.text-red-500 {
+.text-red-400,
+.text-red-500,
+.text-red-600,
+.text-red-700 {
   color: var(--app-accent);
+}
+
+.border-red-500,
+.border-red-500\/20,
+.border-red-500\/30,
+.border-red-500\/40 {
+  border-color: var(--app-border-strong);
+}
+
+.ring-red-500,
+.focus\:ring-red-500:focus {
+  --tw-ring-color: var(--app-accent-ring);
 }
 
 .bg-black\/80,
@@ -205,6 +282,10 @@
 .hover\:bg-red-500\/30:hover,
 .hover\:bg-red-700:hover {
   background-color: var(--app-accent-soft-strong);
+}
+
+.hover\:text-red-500:hover {
+  color: var(--app-accent);
 }
 
 .hover\:bg-primary:hover,
@@ -314,8 +395,8 @@
   margin: 0 24px;
   background-image: repeating-linear-gradient(
     to right,
-    rgba(229, 9, 20, 0.55),
-    rgba(229, 9, 20, 0.55) 8px,
+    var(--app-accent-soft-strong),
+    var(--app-accent-soft-strong) 8px,
     transparent 8px,
     transparent 16px
   );
@@ -492,6 +573,14 @@ body.theme-light::-webkit-scrollbar-thumb:hover {
     box-shadow: var(--app-shadow-soft);
   }
 
+  .movie-card-shell:hover {
+    border-color: var(--app-border-strong);
+  }
+
+  .movie-card-shell:hover .movie-card-title {
+    color: var(--app-accent);
+  }
+
   .site-header {
     background: var(--app-chrome);
     border-bottom: 1px solid var(--app-border);
@@ -618,8 +707,8 @@ body.theme-light::-webkit-scrollbar-thumb:hover {
 
   .site-btn-danger {
     @apply px-6 py-2.5 text-sm font-semibold transition-colors duration-200;
-    background-image: linear-gradient(135deg, #d62839 0%, #b21f2d 100%);
-    color: #fff7f7;
+    background-image: linear-gradient(135deg, var(--app-accent) 0%, var(--app-accent-strong) 100%);
+    color: var(--app-text-strong);
   }
 
   .site-btn-danger:hover {
@@ -702,14 +791,14 @@ body.theme-light::-webkit-scrollbar-thumb:hover {
   .dashboard-quick-action-dark {
     border-color: rgba(255, 255, 255, 0.09) !important;
     background:
-      radial-gradient(circle at top right, rgba(229, 9, 20, 0.12), transparent 34%),
+      radial-gradient(circle at top right, var(--app-accent-soft), transparent 34%),
       linear-gradient(180deg, rgba(21, 21, 27, 0.92) 0%, rgba(15, 15, 20, 0.9) 100%) !important;
   }
 
   .dashboard-quick-action-dark:hover {
     border-color: rgba(255, 255, 255, 0.16) !important;
     background:
-      radial-gradient(circle at top right, rgba(229, 9, 20, 0.18), transparent 38%),
+      radial-gradient(circle at top right, var(--app-accent-soft-strong), transparent 38%),
       linear-gradient(180deg, rgba(28, 28, 35, 0.96) 0%, rgba(18, 18, 24, 0.94) 100%) !important;
   }
 
@@ -820,12 +909,12 @@ body.theme-light::-webkit-scrollbar-thumb:hover {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #E50914;
+  background: var(--app-accent);
   border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #B20710;
+  background: var(--app-accent-strong);
 }
 
 /* Loading animation */
@@ -837,4 +926,61 @@ body.theme-light::-webkit-scrollbar-thumb:hover {
 
 .animate-spin {
   animation: spin 1s linear infinite;
+}
+
+.receipt-logo-toned {
+  filter: hue-rotate(106deg) saturate(1.2) brightness(1.05);
+}
+
+.theme-light .receipt-logo-toned {
+  filter: hue-rotate(96deg) saturate(1.08) brightness(0.94);
+}
+
+.receipt-ticket-header {
+  background-image: linear-gradient(135deg, #14532d 0%, #166534 52%, #15803d 100%);
+}
+
+.receipt-logo-contrast {
+  filter: brightness(0) saturate(100%) invert(100%);
+}
+
+.site-brand-logo {
+  display: inline-block;
+  background-image: var(--site-logo-image);
+  background-repeat: no-repeat;
+  background-position: left center;
+  background-size: contain;
+  filter: var(--site-logo-filter);
+}
+
+.site-brand-logo-header {
+  width: 164px;
+  height: 42px;
+}
+
+.site-brand-logo-footer {
+  width: 152px;
+  height: 40px;
+}
+
+.site-brand-logo-loader {
+  width: 420px;
+  height: 120px;
+}
+
+@media (min-width: 640px) {
+  .site-brand-logo-header {
+    width: 178px;
+    height: 48px;
+  }
+
+  .site-brand-logo-footer {
+    width: 170px;
+    height: 46px;
+  }
+
+  .site-brand-logo-loader {
+    width: 460px;
+    height: 130px;
+  }
 }

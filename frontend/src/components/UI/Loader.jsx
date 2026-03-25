@@ -1,25 +1,35 @@
 import React from 'react';
-import logo from './../../assets/images/Showtime_logo.png';
 
 const Loader = ({ fullScreen = false }) => {
+  const containerStyle = {
+    backgroundColor: 'var(--app-bg)',
+    backgroundImage: 'var(--app-bg-image)',
+  };
+
   if (fullScreen) {
     return (
-      <div className="fixed inset-0 bg-black flex items-center justify-center z-[9999]">
-        <img
-          src={logo}
-          className="h-[120px] animate-pulse"
-          alt="ShowTimeX"
+      <div
+        className="fixed inset-0 flex items-center justify-center z-[9999]"
+        style={containerStyle}
+      >
+        <span
+          className="site-brand-logo site-brand-logo-loader animate-pulse"
+          role="img"
+          aria-label="ShowTimeX"
         />
       </div>
     );
   }
 
   return (
-    <div className="fixed inset-0 bg-black flex items-center justify-center z-[9999]">
-      <img
-        src={logo}
-        className="h-[120px] animate-pulse"
-        alt="ShowTimeX"
+    <div
+      className="fixed inset-0 flex items-center justify-center z-[9999]"
+      style={containerStyle}
+    >
+      <span
+        className="site-brand-logo site-brand-logo-loader animate-pulse"
+        role="img"
+        aria-label="ShowTimeX"
       />
     </div>
   );

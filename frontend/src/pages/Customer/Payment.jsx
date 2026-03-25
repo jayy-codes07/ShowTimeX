@@ -243,9 +243,9 @@ const Payment = () => {
                   Select Your Seats
                 </h2>
                 {lockRemaining !== null && bookingData.selectedSeats.length > 0 && (
-                  <div className="mb-4 rounded-lg border border-amber-500/40 bg-amber-500/10 px-4 py-3 text-sm text-amber-200">
+                  <div className="mb-4 rounded-lg border border-gray-700 bg-dark-card px-4 py-3 text-sm text-gray-300">
                     Seats locked for{" "}
-                    <span className="font-semibold">
+                    <span className="font-semibold text-primary">
                       {String(Math.floor(lockRemaining / 60000)).padStart(2, "0")}:
                       {String(Math.floor((lockRemaining % 60000) / 1000)).padStart(2, "0")}
                     </span>

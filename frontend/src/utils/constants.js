@@ -38,6 +38,8 @@ export const API_ENDPOINTS = {
   // Admin
   ADMIN_STATS: '/admin/stats',
   ADMIN_BOOKINGS: '/admin/bookings',
+  ADMIN_BOOKING_REFUND: (id) => `/admin/bookings/${id}/refund`,
+  ADMIN_BOOKING_RESEND: (id) => `/admin/bookings/${id}/resend-ticket`,
   ADMIN_REPORTS: '/admin/reports',
   ADMIN_USERS: '/admin/users',
 };

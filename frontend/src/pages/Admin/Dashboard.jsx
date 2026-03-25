@@ -34,7 +34,7 @@ const Dashboard = () => {
   const [loading, setLoading] = useState(true);
 
   const currencySymbol = "\u20B9";
-  const panelClassName = "premium-glass-panel p-5 sm:p-7";
+  const panelClassName = "rounded-2xl border border-gray-800 bg-dark-card p-5 sm:p-6";
 
   useEffect(() => {
     fetchDashboardData();
@@ -123,105 +123,25 @@ const Dashboard = () => {
     },
   ];
 
-  const quickActions = [
-    {
-      title: "Manage Movies",
-      description: "Add new releases, posters, trailers, and genre details.",
-      to: "/admin/movies",
-      icon: Film,
-    },
-    {
-      title: "Manage Shows",
-      description: "Schedule showtimes and keep screens organized for the week.",
-      to: "/admin/shows",
-      icon: Calendar,
-    },
-    {
-      title: "View Reports",
-      description: "Review revenue, booking activity, and audience trends.",
-      to: "/admin/reports",
-      icon: TrendingUp,
-    },
-    {
-      title: "User Insights",
-      description: "Track total users and recent customer login activity.",
-      to: "/admin/users",
-      icon: Users,
-    },
-  ];
-
   return (
-    <div className="min-h-screen bg-dark py-6 sm:py-8">
+    <div className="py-2 sm:py-4">
       <div className="container-custom">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="mb-8 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between"
+          className="mb-6 flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between"
         >
           <div className="flex-1">
-            <h1 className="mb-2 text-3xl font-extrabold md:text-5xl text-gradient-primary tracking-tight">Admin Dashboard</h1>
-            <p className="text-gray-400 text-lg">
+            <h1 className="mb-1 text-3xl font-extrabold md:text-4xl text-white tracking-tight">Admin Dashboard</h1>
+            <p className="text-gray-400 text-base">
               Welcome back. Here is the live performance snapshot for your cinema.
             </p>
           </div>
-          <div className="inline-flex w-fit items-center gap-2 rounded-full border border-gray-800 bg-dark-card px-4 py-2 text-sm text-gray-500 shadow-sm backdrop-blur-md">
+          <div className="inline-flex w-fit items-center gap-2 rounded-full border border-gray-800 bg-dark-lighter px-4 py-2 text-sm text-gray-400">
             <div className="h-2 w-2 rounded-full bg-green-500 animate-pulse" />
             Live from current bookings
           </div>
         </motion.div>
-
-        <motion.section
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.1 }}
-          className={`${panelClassName} mb-8`}
-        >
-          <div className="mb-5 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-            <div>
-              <h2 className="text-xl font-bold text-white">Quick Actions</h2>
-              <p className="text-sm text-gray-500">
-                Keep the most common admin tasks within one click.
-              </p>
-            </div>
-            <Link
-              to="/admin/reports"
-              className="text-sm font-medium text-primary transition hover:text-primary-light"
-            >
-              Open full reports
-            </Link>
-          </div>
-
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
-            {quickActions.map((action, index) => {
-              const Icon = action.icon;
-
-              return (
-                <motion.div
-                  key={action.title}
-                  initial={{ opacity: 0, y: 18 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.15 + index * 0.08 }}
-                >
-                  <Link
-                    to={action.to}
-                    className={`dashboard-quick-action dashboard-quick-action-${theme} group`}
-                  >
-                    <div
-                      className={`dashboard-quick-action-icon dashboard-quick-action-icon-${theme} flex h-12 w-12 shrink-0 items-center justify-center rounded-xl`}
-                    >
-                      <Icon className="h-5 w-5" />
-                    </div>
-                    <div className="min-w-0 flex-1">
-                      <p className="text-lg font-semibold text-white">{action.title}</p>
-                      <p className="mt-1 text-sm leading-6 text-gray-500">{action.description}</p>
-                    </div>
-                    <ArrowUpRight className="mt-1 h-5 w-5 shrink-0 text-primary transition-transform duration-300 group-hover:-translate-y-0.5 group-hover:translate-x-0.5" />
-                  </Link>
-                </motion.div>
-              );
-            })}
-          </div>
-        </motion.section>
 
         <div className="mb-8 grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-6 xl:grid-cols-4">
           {statCards.map((stat, index) => {
@@ -234,11 +154,11 @@ const Dashboard = () => {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.25 + index * 0.08 }}
-                className={`${panelClassName} transition-all duration-300 hover:-translate-y-1.5 hover:shadow-2xl group`}
+                className={`${panelClassName} group`}
               >
                 <div className="mb-5 flex items-center justify-between">
-                  <div className={`relative flex h-14 w-14 items-center justify-center rounded-2xl ${stat.color} ${stat.glowColor} transition-transform duration-300 group-hover:scale-110`}>
-                    <Icon className="h-7 w-7 text-white" />
+                  <div className={`relative flex h-12 w-12 items-center justify-center rounded-xl ${stat.color} ${stat.glowColor}`}>
+                    <Icon className="h-6 w-6 text-white" />
                   </div>
                   <div
                     className={`flex items-center space-x-1 text-sm font-semibold px-2 py-1 rounded-full ${
@@ -250,7 +170,7 @@ const Dashboard = () => {
                   </div>
                 </div>
                 <h3 className="mb-2 text-sm font-medium text-gray-400">{stat.title}</h3>
-                <p className="text-[2rem] leading-none font-bold text-white tracking-tight">
+                <p className="text-4xl leading-none font-bold text-white tracking-tight">
                   <AnimatedCounter 
                     value={stat.value} 
                     isCurrency={stat.isCurrency} 

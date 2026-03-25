@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import { motion } from 'framer-motion';
 import { Download, CheckCircle, Calendar, Clock, MapPin, Home } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { formatDate, formatTime } from '../../utils/formatDate';
@@ -46,20 +45,12 @@ const Receipt = ({ booking }) => {
 
   return (
     // 👇 ADDED 'pt-24' to push content down below the fixed Navbar
-    <motion.div
-      initial={{ opacity: 0, scale: 0.9 }}
-      animate={{ opacity: 1, scale: 1 }}
-      className="max-w-2xl mx-auto pt-24 pb-12 px-4"
-    >
+    <div className="max-w-2xl mx-auto pt-24 pb-12 px-4">
       {/* Success Message */}
       <div className="text-center mb-8">
-        <motion.div
-          initial={{ scale: 0 }}
-          animate={{ scale: 1 }}
-          transition={{ delay: 0.2, type: 'spring', stiffness: 200 }}
-        >
-          <CheckCircle className="w-20 h-20 text-green-500 mx-auto mb-4" />
-        </motion.div>
+        <div>
+         
+        </div>
         <h2 className="text-3xl font-bold text-white mb-2">Booking Confirmed!</h2>
         <p className="text-gray-400">Your tickets have been booked successfully</p>
       </div>
@@ -71,13 +62,13 @@ const Receipt = ({ booking }) => {
             <div className="receipt-notch receipt-notch-left" />
             <div className="receipt-notch receipt-notch-right" />
             {/* Ticket Header */}
-            <div className="bg-gradient-to-r from-primary to-red-600 p-6 text-white">
+            <div className="receipt-ticket-header p-6 text-white">
               <div className="flex justify-between items-start">
                 <div>
                   <p className="text-sm opacity-90 mb-1">Booking ID</p>
                   <p className="text-2xl font-bold tracking-wider">{booking.bookingId || 'BK' + Date.now()}</p>
                 </div>
-               <img src={logo} alt="" className='h-12 bg-transparent' />
+               <img src={logo} alt="" className='h-12 bg-transparent receipt-logo-contrast' />
                 
               </div>
             </div>
@@ -145,7 +136,7 @@ const Receipt = ({ booking }) => {
 
         {/* QR Code Footer */}
         <div className="receipt-perf" />
-        <div className="p-6 bg-[#151515] flex flex-col items-center justify-center">
+        <div className="p-6 bg-dark-card flex flex-col items-center justify-center">
             <div className="bg-white p-2 rounded-lg mb-3">
                  {!qrError ? (
                    <img 
@@ -195,7 +186,7 @@ const Receipt = ({ booking }) => {
           Back to Home
         </Button>
       </div>
-    </motion.div>
+    </div>
   );
 };
 

@@ -14,7 +14,6 @@ import {
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { useTheme } from '../../context/ThemeContext';
-import logo from './../../assets/images/Showtime_logo.png';
 
 const Navbar = () => {
   const navigate = useNavigate();
@@ -46,11 +45,11 @@ const Navbar = () => {
   const mobileLinkClass = 'site-mobile-link';
 
   return (
-    <nav className="site-header sticky top-0 z-40">
+    <nav className="site-header fixed inset-x-0 top-0 z-50">
       <div className="container-custom">
         <div className="flex h-16 sm:h-20 items-center justify-between gap-3">
           <Link to="/" className="shrink-0" onClick={closeMenu}>
-            <img src={logo} className="h-10 sm:h-12 w-auto" alt="ShowTimeX" />
+            <span className="site-brand-logo site-brand-logo-header" role="img" aria-label="ShowTimeX logo" />
           </Link>
 
           <form onSubmit={handleSearch} className="hidden lg:flex flex-1 max-w-lg mx-4 xl:mx-8">

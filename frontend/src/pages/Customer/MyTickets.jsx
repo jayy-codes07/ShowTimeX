@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { pdf } from "@react-pdf/renderer";
 import {
@@ -10,7 +10,10 @@ import {
   XCircle,
   CheckCircle,
   ChevronRight,
+  Wallet,
+  Sparkles,
 } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import Loader from "../../components/UI/Loader";
 import Button from "../../components/UI/Button";
 import { apiRequest } from "../../services/api";
@@ -20,9 +23,10 @@ import TicketDocument from "../../components/Booking/TicketDocument";
 import toast from "react-hot-toast";
 
 const MyTickets = () => {
+  const navigate = useNavigate();
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [filter, setFilter] = useState("all"); 
+  const [filter, setFilter] = useState("all");
   const [qrFailed, setQrFailed] = useState({});
   const [downloadingId, setDownloadingId] = useState(null);
 
@@ -113,22 +117,45 @@ const MyTickets = () => {
     }
   };
 
+  const filteredBookings = useMemo(() => {
+    const list = getFilteredBookings();
+    return [...list].sort(
+      (a, b) =>
+        new Date(b.createdAt || b.show?.date || 0).getTime() -
+        new Date(a.createdAt || a.show?.date || 0).getTime(),
+    );
+  }, [bookings, filter]);
+
+  const ticketStats = useMemo(() => {
+    const now = new Date();
+    const upcoming = bookings.filter(
+      (b) => new Date(b.show?.date) >= now && b.status !== "cancelled",
+    ).length;
+    const cancelled = bookings.filter((b) => b.status === "cancelled").length;
+    const spent = bookings
+      .filter((b) => b.status !== "cancelled")
+      .reduce((sum, b) => sum + (b.totalAmount || 0), 0);
+
+    return { upcoming, cancelled, spent };
+  }, [bookings]);
+
   const getStatusBadge = (status) => {
     const statusConfig = {
       confirmed: {
-        color: "bg-green-500/10 text-green-400 border border-green-500/20 shadow-[0_0_10px_rgba(34,197,94,0.1)]",
+        color:
+          "bg-emerald-500/10 text-emerald-300 border border-emerald-500/30",
         icon: CheckCircle,
         text: "Confirmed",
       },
-      cancelled: { 
-        color: "bg-red-500/10 text-red-400 border border-red-500/20 shadow-[0_0_10px_rgba(239,68,68,0.1)]", 
-        icon: XCircle, 
-        text: "Cancelled", 
+      cancelled: {
+        color: "bg-rose-500/10 text-rose-300 border border-rose-500/30",
+        icon: XCircle,
+        text: "Cancelled",
       },
-      pending: { 
-        color: "bg-yellow-500/10 text-yellow-400 border border-yellow-500/20 shadow-[0_0_10px_rgba(234,179,8,0.1)]", 
-        icon: Clock, 
-        text: "Pending", 
+      pending: {
+        color: "bg-amber-500/10 text-amber-300 border border-amber-500/30",
+        icon: Clock,
+        text: "Pending",
       },
     };
 
@@ -149,57 +176,87 @@ const MyTickets = () => {
     return <Loader fullScreen message="Loading your bookings..." />;
   }
 
-  const filteredBookings = getFilteredBookings();
+  const filters = [
+    { id: "all", label: "All", count: bookings.length },
+    {
+      id: "upcoming",
+      label: "Upcoming",
+      count: bookings.filter(
+        (b) => new Date(b.show?.date) >= new Date() && b.status !== "cancelled",
+      ).length,
+    },
+    {
+      id: "past",
+      label: "Past",
+      count: bookings.filter((b) => new Date(b.show?.date) < new Date()).length,
+    },
+    {
+      id: "cancelled",
+      label: "Cancelled",
+      count: bookings.filter((b) => b.status === "cancelled").length,
+    },
+  ];
 
   return (
     <div className="min-h-screen bg-dark py-8 px-4 sm:px-6">
-      <div className="container-custom max-w-4xl mx-auto">
-        {/* Header */}
+      <div className="container-custom max-w-6xl mx-auto">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="mb-10 text-center sm:text-left"
+          className="mb-8"
         >
-          <div className="flex flex-col sm:flex-row items-center justify-between mb-8 gap-4">
-            <div>
-              <h1 className="text-4xl md:text-5xl font-extrabold text-gradient-primary tracking-tight mb-3">
-                My Tickets
-              </h1>
-              <p className="text-gray-400 text-lg">
-                Your digital cinema passes and booking history.
-              </p>
-            </div>
-            <div className="premium-glass-panel p-4 rounded-[20px]">
-              <Ticket className="w-10 h-10 text-primary" />
+          <div className="card overflow-hidden p-0">
+            <div className="grid grid-cols-1 gap-5 p-6 md:grid-cols-[1.2fr_1fr] md:p-7">
+              <div>
+                <div className="inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-primary">
+                  <Sparkles className="h-3.5 w-3.5" />
+                  Ticket Wallet
+                </div>
+                <h1 className="mt-4 text-3xl font-black leading-tight text-white sm:text-4xl">
+                  My Tickets
+                </h1>
+                <p className="mt-3 max-w-xl text-sm text-gray-300 sm:text-base">
+                  Keep all your movie passes in one place. Download PDFs, scan QR at
+                  entry, and manage upcoming bookings.
+                </p>
+              </div>
+
+              <div className="grid grid-cols-3 gap-3">
+                <div className="rounded-2xl border border-gray-700/60 bg-gray-800/45 p-3 text-center">
+                  <p className="text-xs uppercase tracking-wider text-gray-400">All</p>
+                  <p className="mt-1 text-2xl font-bold text-white">{bookings.length}</p>
+                </div>
+                <div className="rounded-2xl border border-primary/30 bg-primary/10 p-3 text-center">
+                  <p className="text-xs uppercase tracking-wider text-primary/90">Active</p>
+                  <p className="mt-1 text-2xl font-bold text-white">{ticketStats.upcoming}</p>
+                </div>
+                <div className="rounded-2xl border border-gray-700/60 bg-gray-800/45 p-3 text-center">
+                  <p className="text-xs uppercase tracking-wider text-gray-400">Spent</p>
+                  <p className="mt-1 text-lg font-bold text-white">Rs. {ticketStats.spent.toFixed(0)}</p>
+                </div>
+              </div>
             </div>
           </div>
 
-          {/* Premium Filter Tabs */}
-          <div className="flex flex-wrap sm:flex-nowrap justify-center sm:justify-start gap-3 w-full">
-            {[
-              { id: "all", label: "All Bookings" },
-              { id: "upcoming", label: "Upcoming" },
-              { id: "past", label: "Past" },
-              { id: "cancelled", label: "Cancelled" },
-            ].map((tab) => (
+          <div className="mt-5 flex flex-wrap gap-2">
+            {filters.map((tab) => (
               <button
                 key={tab.id}
                 onClick={() => setFilter(tab.id)}
-                className={`active-press px-6 py-2.5 rounded-2xl font-semibold transition-all duration-300 ${
+                className={`rounded-xl border px-4 py-2 text-sm font-semibold transition-all duration-200 ${
                   filter === tab.id
-                    ? "bg-primary text-white shadow-[0_0_20px_rgba(229,9,20,0.3)] stat-glow-orange"
-                    : "bg-gray-800/40 text-gray-400 hover:bg-gray-800 border border-white/5 hover:border-white/10"
+                    ? "border-primary/50 bg-primary/15 text-white"
+                    : "border-gray-700/70 bg-gray-800/40 text-gray-300 hover:bg-gray-800/65"
                 }`}
               >
-                {tab.label}
+                {tab.label} <span className="ml-1 text-xs opacity-80">({tab.count})</span>
               </button>
             ))}
           </div>
         </motion.div>
 
-        {/* Bookings List */}
         {filteredBookings.length > 0 ? (
-          <div className="space-y-8">
+          <div className="space-y-5">
             <AnimatePresence>
               {filteredBookings.map((booking, index) => {
                 const isUpcoming = new Date(booking.show?.date) >= new Date();
@@ -209,150 +266,148 @@ const MyTickets = () => {
                   <motion.div
                     key={booking._id}
                     layout
-                    initial={{ opacity: 0, y: 20, scale: 0.98 }}
-                    animate={{ opacity: 1, y: 0, scale: 1 }}
-                    exit={{ opacity: 0, scale: 0.95, transition: { duration: 0.2 } }}
-                    transition={{ delay: index * 0.1 }}
-                    className={`premium-glass-panel group overflow-hidden ${isActivePass ? 'ring-1 ring-primary/20 shadow-[0_0_30px_rgba(229,9,20,0.1)] theme-light:shadow-[0_0_30px_rgba(188,108,37,0.1)]' : ''}`}
+                    initial={{ opacity: 0, y: 18 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -8 }}
+                    transition={{ duration: 0.22, delay: index * 0.04 }}
+                    className={`card overflow-hidden p-0 ${isActivePass ? "ring-1 ring-primary/30" : ""}`}
                   >
-                    <div className="flex flex-col md:flex-row h-full">
-                      {/* Left Side: Dramatic Movie Poster */}
-                      <div className="relative md:w-56 h-48 md:h-auto flex-shrink-0">
+                    <div className="flex flex-col lg:flex-row">
+                      <div className="relative h-48 w-full overflow-hidden lg:h-auto lg:w-52">
                         <img
                           src={booking.movie?.poster}
                           alt={booking.movie?.title}
-                          className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                          className="h-full w-full object-cover"
                         />
-                        <div className="absolute inset-0 bg-gradient-to-t md:bg-gradient-to-r from-dark/90 via-dark/40 to-transparent" />
-                        
-                        {/* Status Badge floating on poster */}
-                        <div className="absolute top-4 left-4">
-                          {getStatusBadge(booking.status)}
-                        </div>
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/75 to-transparent lg:bg-gradient-to-r" />
+                        <div className="absolute left-3 top-3">{getStatusBadge(booking.status)}</div>
                       </div>
 
-                      {/* Middle: Details section */}
-                      <div className="flex-1 p-6 md:p-8 flex flex-col justify-center">
-                        <div className="flex flex-col mb-6">
-                            <span className="text-primary text-xs font-bold uppercase tracking-widest mb-1.5">
-                              {isActivePass ? "Active Entry Pass" : "Digital Receipt"}
-                            </span>
-                            <h3 className="text-3xl font-extrabold text-white leading-tight mb-2">
-                              {booking.movie?.title}
-                            </h3>
-                            <p className="text-gray-500 text-sm font-medium">
-                              Booking ID: <span className="text-gray-300 font-mono tracking-wider">{booking.bookingId}</span>
-                            </p>
+                      <div className="flex-1 p-5 md:p-6">
+                        <div className="mb-5 flex flex-col gap-1">
+                          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-primary">
+                            {isActivePass ? "Active Pass" : "Ticket Record"}
+                          </p>
+                          <h3 className="text-2xl font-bold text-white">{booking.movie?.title}</h3>
+                          <p className="text-xs text-gray-400">
+                            Booking ID: <span className="font-mono text-gray-300">{booking.bookingId}</span>
+                          </p>
                         </div>
 
-                        <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
-                          <div>
-                            <p className="text-xs text-gray-500 uppercase tracking-wider mb-1">Date</p>
-                            <div className="flex items-center space-x-2">
-                              <Calendar className="w-4 h-4 text-primary" />
-                              <p className="text-white font-medium">{formatDate(booking.show?.date)}</p>
+                        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+                          <div className="rounded-xl border border-gray-700/60 bg-gray-800/35 p-3">
+                            <p className="text-[11px] uppercase tracking-wider text-gray-400">Date</p>
+                            <div className="mt-1 flex items-center gap-2 text-white">
+                              <Calendar className="h-4 w-4 text-primary" />
+                              <span className="text-sm font-semibold">{formatDate(booking.show?.date)}</span>
                             </div>
                           </div>
 
-                          <div>
-                            <p className="text-xs text-gray-500 uppercase tracking-wider mb-1">Time</p>
-                            <div className="flex items-center space-x-2">
-                              <Clock className="w-4 h-4 text-primary" />
-                              <p className="text-white font-medium">{formatTime(booking.show?.time)}</p>
+                          <div className="rounded-xl border border-gray-700/60 bg-gray-800/35 p-3">
+                            <p className="text-[11px] uppercase tracking-wider text-gray-400">Time</p>
+                            <div className="mt-1 flex items-center gap-2 text-white">
+                              <Clock className="h-4 w-4 text-primary" />
+                              <span className="text-sm font-semibold">{formatTime(booking.show?.time)}</span>
                             </div>
                           </div>
 
-                          <div className="col-span-2">
-                            <p className="text-xs text-gray-500 uppercase tracking-wider mb-1">Theater</p>
-                            <div className="flex items-start space-x-2">
-                              <MapPin className="w-4 h-4 text-primary mt-0.5 flex-shrink-0" />
+                          <div className="rounded-xl border border-gray-700/60 bg-gray-800/35 p-3 sm:col-span-2">
+                            <p className="text-[11px] uppercase tracking-wider text-gray-400">Theater</p>
+                            <div className="mt-1 flex items-start gap-2 text-white">
+                              <MapPin className="mt-0.5 h-4 w-4 text-primary" />
                               <div>
-                                <p className="text-white font-medium">{booking.show?.theater}</p>
-                                <p className="text-gray-400 text-xs">{booking.show?.location}</p>
+                                <p className="text-sm font-semibold">{booking.show?.theater}</p>
+                                <p className="text-xs text-gray-400">{booking.show?.location}</p>
                               </div>
                             </div>
                           </div>
                         </div>
 
-                        {/* Seats Array */}
-                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pt-6 border-t border-white/10">
+                        <div className="mt-5 flex flex-col gap-4 border-t border-gray-700/60 pt-4 md:flex-row md:items-center md:justify-between">
                           <div>
-                             <p className="text-xs text-gray-500 uppercase tracking-wider mb-2">Seats ({booking.seats?.length})</p>
-                             <div className="flex flex-wrap gap-2">
-                               {booking.seats?.map((seat, idx) => (
-                                 <span
-                                   key={idx}
-                                   className="bg-white/5 border border-white/10 px-3 py-1 rounded-lg text-white font-semibold text-sm shadow-sm"
-                                 >
-                                   {seat.row}{seat.number}
-                                 </span>
-                               ))}
-                             </div>
+                            <p className="text-[11px] uppercase tracking-wider text-gray-400">
+                              Seats ({booking.seats?.length || 0})
+                            </p>
+                            <div className="mt-2 flex flex-wrap gap-2">
+                              {booking.seats?.map((seat, idx) => (
+                                <span
+                                  key={idx}
+                                  className="rounded-lg border border-gray-700 bg-gray-800/60 px-2.5 py-1 text-xs font-semibold text-white"
+                                >
+                                  {seat.row}
+                                  {seat.number}
+                                </span>
+                              ))}
+                            </div>
                           </div>
-                          <div className="text-left sm:text-right">
-                             <p className="text-xs text-gray-500 uppercase tracking-wider mb-1">Total Paid</p>
-                             <p className="money-value text-2xl font-bold text-white">
-                               Rs. {booking.totalAmount?.toFixed(2)}
-                             </p>
+
+                          <div className="text-left md:text-right">
+                            <p className="text-[11px] uppercase tracking-wider text-gray-400">Total Paid</p>
+                            <div className="mt-1 flex items-center gap-2 md:justify-end">
+                              <Wallet className="h-4 w-4 text-primary" />
+                              <p className="money-value text-xl font-bold text-white">
+                                Rs. {(booking.totalAmount || 0).toFixed(2)}
+                              </p>
+                            </div>
                           </div>
                         </div>
 
-                        {/* Action Buttons */}
-                        <div className="flex flex-wrap gap-3 mt-6">
-                            {booking.status !== "cancelled" && (
-                              <button
-                                className="active-press hover-lift flex items-center gap-2 bg-white/10 hover:bg-white/15 border border-white/20 px-5 py-2.5 rounded-xl text-white font-medium transition-colors text-sm"
-                                onClick={() => handleDownloadTicket(booking)}
-                                disabled={downloadingId === booking._id}
-                              >
-                                {downloadingId === booking._id ? (
+                        <div className="mt-5 flex flex-wrap gap-3">
+                          {booking.status !== "cancelled" && (
+                            <Button
+                              variant="secondary"
+                              size="sm"
+                              onClick={() => handleDownloadTicket(booking)}
+                              disabled={downloadingId === booking._id}
+                              icon={
+                                downloadingId === booking._id ? (
                                   <Loader size="small" />
                                 ) : (
-                                  <Download className="w-4 h-4" />
-                                )}
-                                Download PDF
-                              </button>
-                            )}
+                                  <Download className="h-4 w-4" />
+                                )
+                              }
+                            >
+                              {downloadingId === booking._id ? "Preparing..." : "Download PDF"}
+                            </Button>
+                          )}
 
-                            {booking.status !== "cancelled" && isUpcoming && (
-                              <button
-                                className="active-press hover-lift flex items-center gap-2 bg-red-500/10 hover:bg-red-500/20 border border-red-500/30 text-red-500 px-5 py-2.5 rounded-xl font-medium transition-colors text-sm"
-                                onClick={() => handleCancelBooking(booking._id)}
-                              >
-                                <XCircle className="w-4 h-4" />
-                                Cancel Ticket
-                              </button>
-                            )}
+                          {booking.status !== "cancelled" && isUpcoming && (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleCancelBooking(booking._id)}
+                              icon={<XCircle className="h-4 w-4" />}
+                            >
+                              Cancel Ticket
+                            </Button>
+                          )}
                         </div>
                       </div>
 
-                      {/* Right Side: Quick QR Pass */}
                       {isActivePass && (
-                        <div className="md:w-64 bg-black/40 md:border-l border-t md:border-t-0 border-white/10 p-8 flex flex-col items-center justify-center relative">
-                          {/* Inner glow */}
-                          <div className="absolute inset-0 bg-primary/5 opacity-50" />
-                          
-                          <p className="text-sm text-gray-400 font-medium mb-4 relative z-10">Scan at entrance</p>
-                          <div className="bg-white p-3 rounded-2xl shadow-[0_0_30px_rgba(255,255,255,0.1)] relative z-10">
+                        <div className="border-t border-gray-700/60 bg-black/25 p-6 lg:w-56 lg:border-l lg:border-t-0">
+                          <p className="mb-3 text-center text-xs font-semibold uppercase tracking-[0.2em] text-gray-400">
+                            Scan at Entry
+                          </p>
+                          <div className="mx-auto w-fit rounded-2xl bg-white p-3">
                             {qrFailed[booking._id] ? (
-                              <div className="w-32 h-32 flex flex-col items-center justify-center text-center bg-gray-100 rounded-xl">
-                                <p className="text-xs text-gray-500 uppercase font-semibold">ID</p>
-                                <p className="text-sm font-bold text-gray-900 mt-1">{booking.bookingId}</p>
+                              <div className="flex h-32 w-32 flex-col items-center justify-center rounded-xl bg-gray-100 text-center">
+                                <p className="text-[10px] font-semibold uppercase text-gray-500">Code</p>
+                                <p className="mt-1 text-xs font-bold text-gray-900">{booking.bookingId}</p>
                               </div>
                             ) : (
                               <img
                                 src={`https://api.qrserver.com/v1/create-qr-code/?size=160x160&data=${booking.bookingId}`}
                                 alt="Booking QR"
-                                className="w-32 h-32"
+                                className="h-32 w-32"
                                 crossOrigin="anonymous"
                                 onError={() => handleQrError(booking._id)}
                               />
                             )}
                           </div>
-                          
-                          <div className="mt-6 flex items-center text-xs text-primary font-bold tracking-widest uppercase relative z-10 w-full justify-center gap-1">
-                            Valid Pass <ChevronRight className="w-3 h-3" />
-                          </div>
+                          <p className="mt-4 flex items-center justify-center gap-1 text-xs font-bold uppercase tracking-widest text-primary">
+                            Valid Pass <ChevronRight className="h-3.5 w-3.5" />
+                          </p>
                         </div>
                       )}
                     </div>
@@ -363,28 +418,28 @@ const MyTickets = () => {
           </div>
         ) : (
           <motion.div
-            initial={{ opacity: 0, scale: 0.95 }}
+            initial={{ opacity: 0, scale: 0.96 }}
             animate={{ opacity: 1, scale: 1 }}
-            className="premium-glass-panel text-center py-20 px-6 max-w-2xl mx-auto"
+            className="card mx-auto max-w-2xl py-16 text-center"
           >
-            <div className="w-24 h-24 bg-dark-card rounded-full flex items-center justify-center mx-auto mb-6 shadow-inner border border-white/5">
-              <Ticket className="w-10 h-10 text-gray-500" />
+            <div className="mx-auto mb-5 flex h-20 w-20 items-center justify-center rounded-full border border-gray-700 bg-gray-800/40">
+              <Ticket className="h-8 w-8 text-gray-400" />
             </div>
-            <h3 className="text-3xl font-bold text-white mb-3">
-              No tickets found
-            </h3>
-            <p className="text-gray-400 mb-8 max-w-sm mx-auto text-lg leading-relaxed">
+            <h3 className="text-2xl font-bold text-white">No tickets found</h3>
+            <p className="mx-auto mt-3 max-w-md text-gray-400">
               {filter === "all"
-                ? "You haven't booked any movies yet. Your digital passes will appear here."
-                : `We couldn't find any ${filter} bookings in your history.`}
+                ? "You have not booked any movie yet. Your tickets will appear here once you complete a booking."
+                : `No ${filter} bookings available right now.`}
             </p>
-            <Button
-              variant="primary"
-              className="px-8 py-3 text-lg"
-              onClick={() => (window.location.href = "/")}
-            >
-              Browse Movies
-            </Button>
+            <div className="mt-7">
+              <Button
+                variant="primary"
+                onClick={() => navigate("/")}
+                icon={<ChevronRight className="h-4 w-4" />}
+              >
+                Browse Movies
+              </Button>
+            </div>
           </motion.div>
         )}
       </div>

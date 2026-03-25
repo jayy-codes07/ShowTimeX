@@ -19,11 +19,7 @@ const getInitialTheme = () => {
 };
 
 export const ThemeProvider = ({ children }) => {
-  const [theme, setTheme] = useState("dark");
-
-  useEffect(() => {
-    setTheme(getInitialTheme());
-  }, []);
+  const [theme, setTheme] = useState(getInitialTheme);
 
   useEffect(() => {
     const bodyClassList = document.body.classList;

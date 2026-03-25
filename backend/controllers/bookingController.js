@@ -15,6 +15,15 @@ const {
 
 const DEFAULT_LOCK_MINUTES = parseInt(process.env.SEAT_LOCK_MINUTES || "10", 10);
 
+const getDayRange = (dateString) => {
+  const start = new Date(dateString);
+  if (Number.isNaN(start.getTime())) return null;
+  const end = new Date(start);
+  end.setHours(23, 59, 59, 999);
+  start.setHours(0, 0, 0, 0);
+  return { start, end };
+};
+
 const createRazorpayOrder = async (req, res) => {
   try {
     const { bookingId } = req.body;
@@ -444,9 +453,20 @@ const cancelBooking = async (req, res) => {
       await show.save();
     }
 
+    if (booking.paymentStatus === "completed" && booking.refundStatus === "none") {
+      booking.refundStatus = "initiated";
+      booking.refundRequestedBy = "user";
+      booking.refundReason = "User requested cancellation";
+      booking.refundInitiatedAt = new Date();
+      await booking.save();
+    }
+
     res.status(200).json({
       success: true,
-      message: "Booking cancelled successfully",
+      message:
+        booking.paymentStatus === "completed"
+          ? "Booking cancelled. Refund process has started and will reflect in 2-3 working days."
+          : "Booking cancelled successfully",
     });
   } catch (error) {
     console.error("Cancel Booking Error:", error);
@@ -462,10 +482,40 @@ const cancelBooking = async (req, res) => {
 // @access  Private/Admin
 const getAllBookings = async (req, res) => {
   try {
-    const { status, limit } = req.query;
+    const {
+      status,
+      paymentStatus,
+      refundStatus,
+      movieId,
+      theater,
+      date,
+      search,
+      page,
+      limit,
+    } = req.query;
 
     let filter = {};
     if (status) filter.status = status;
+    if (paymentStatus) filter.paymentStatus = paymentStatus;
+    if (refundStatus) filter.refundStatus = refundStatus;
+    if (movieId) filter.movie = movieId;
+
+    if (date) {
+      const dayRange = getDayRange(date);
+      if (dayRange) {
+        filter.bookingDate = { $gte: dayRange.start, $lte: dayRange.end };
+      }
+    }
+
+    if (theater) {
+      const matchingShows = await Show.find({
+        theater: { $regex: theater, $options: "i" },
+      }).select("_id");
+
+      filter.show = { $in: matchingShows.map((show) => show._id) };
+    }
+
+    const shouldPaginate = page !== undefined || limit !== undefined;
 
     let query = Booking.find(filter)
       .populate("user", "name email phone")
@@ -473,14 +523,54 @@ const getAllBookings = async (req, res) => {
       .populate("show", "date time theater")
       .sort({ bookingDate: -1 });
 
-    if (limit) {
-      query = query.limit(parseInt(limit));
+    if (search) {
+      const searchRegex = new RegExp(search, "i");
+      const matchingUsers = await User.find({
+        $or: [{ name: searchRegex }, { email: searchRegex }],
+      }).select("_id");
+
+      query = query.or([
+        { bookingId: searchRegex },
+        { user: { $in: matchingUsers.map((user) => user._id) } },
+      ]);
     }
+
+    if (!shouldPaginate && limit) {
+      query = query.limit(parseInt(limit, 10));
+      const bookings = await query;
+
+      return res.status(200).json({
+        success: true,
+        count: bookings.length,
+        bookings,
+      });
+    }
+
+    if (!shouldPaginate) {
+      const bookings = await query;
+
+      return res.status(200).json({
+        success: true,
+        count: bookings.length,
+        bookings,
+      });
+    }
+
+    const parsedPage = Math.max(parseInt(page, 10) || 1, 1);
+    const parsedLimit = Math.max(parseInt(limit, 10) || 10, 1);
+    const skip = (parsedPage - 1) * parsedLimit;
+    const total = await Booking.countDocuments(query.getFilter());
+
+    query = query.skip(skip).limit(parsedLimit);
 
     const bookings = await query;
 
     res.status(200).json({
       success: true,
+      total,
+      page: parsedPage,
+      limit: parsedLimit,
+      hasMore: skip + bookings.length < total,
       count: bookings.length,
       bookings,
     });
@@ -489,6 +579,133 @@ const getAllBookings = async (req, res) => {
     res.status(500).json({
       success: false,
       message: "Server error while fetching bookings",
+    });
+  }
+};
+
+// @desc    Initiate booking refund (Admin)
+// @route   PATCH /api/admin/bookings/:id/refund
+// @access  Private/Admin
+const initiateBookingRefund = async (req, res) => {
+  try {
+    const { reason, note } = req.body;
+
+    if (!reason || !reason.trim()) {
+      return res.status(400).json({
+        success: false,
+        message: "Refund reason is required",
+      });
+    }
+
+    const booking = await Booking.findById(req.params.id)
+      .populate("user", "name email")
+      .populate("movie", "title")
+      .populate("show", "date time theater");
+
+    if (!booking) {
+      return res.status(404).json({
+        success: false,
+        message: "Booking not found",
+      });
+    }
+
+    if (booking.paymentStatus !== "completed") {
+      return res.status(400).json({
+        success: false,
+        message: "Refund can be initiated only for completed payments",
+      });
+    }
+
+    if (booking.refundStatus === "initiated" || booking.refundStatus === "processing") {
+      return res.status(400).json({
+        success: false,
+        message: "Refund is already in progress for this booking",
+      });
+    }
+
+    booking.status = "cancelled";
+    booking.refundStatus = "initiated";
+    booking.refundRequestedBy = "admin";
+    booking.refundReason = reason.trim();
+    booking.refundNote = (note || "").trim();
+    booking.refundInitiatedAt = new Date();
+
+    await booking.save();
+
+    await triggerN8n("refund-initiated", {
+      userName: booking.user?.name || "Customer",
+      userEmail: booking.user?.email || booking.email,
+      bookingId: booking.bookingId,
+      movieTitle: booking.movie?.title || "Movie",
+      showDate: booking.show?.date,
+      showTime: booking.show?.time,
+      theater: booking.show?.theater,
+      reason: booking.refundReason,
+      note: booking.refundNote,
+      timeline: "2-3 working days",
+      amount: booking.totalAmount,
+    });
+
+    res.status(200).json({
+      success: true,
+      message: "Refund initiated successfully. Customer will receive amount in 2-3 working days.",
+      booking,
+    });
+  } catch (error) {
+    console.error("Initiate Booking Refund Error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Server error while initiating refund",
+    });
+  }
+};
+
+// @desc    Resend booking ticket email (Admin)
+// @route   POST /api/admin/bookings/:id/resend-ticket
+// @access  Private/Admin
+const resendBookingTicket = async (req, res) => {
+  try {
+    const booking = await Booking.findById(req.params.id)
+      .populate("user", "name email")
+      .populate("movie", "title")
+      .populate("show", "date time theater");
+
+    if (!booking) {
+      return res.status(404).json({
+        success: false,
+        message: "Booking not found",
+      });
+    }
+
+    if (booking.status !== "confirmed" || booking.paymentStatus !== "completed") {
+      return res.status(400).json({
+        success: false,
+        message: "Only confirmed and paid bookings can resend tickets",
+      });
+    }
+
+    await triggerN8n("ticket-booked", {
+      userName: booking.user?.name || "Customer",
+      userEmail: booking.user?.email || booking.email,
+      movieTitle: booking.movie?.title || "Movie",
+      showDate: booking.show?.date,
+      showTime: booking.show?.time,
+      theater: booking.show?.theater,
+      seats: (booking.seats || []).map((s) => `${s.row}${s.number}`),
+      bookingId: booking.bookingId,
+      totalAmount: booking.totalAmount,
+      resentByAdmin: true,
+    });
+
+    res.status(200).json({
+      success: true,
+      message: "Ticket email resent successfully",
+    });
+  } catch (error) {
+    console.error("Resend Booking Ticket Error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Server error while resending ticket",
     });
   }
 };
@@ -894,6 +1111,8 @@ module.exports = {
   getBookingById,
   cancelBooking,
   getAllBookings,
+  initiateBookingRefund,
+  resendBookingTicket,
   getAdminStats,
   getAdminUserInsights,
   getAdminReports,

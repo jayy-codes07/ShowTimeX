@@ -8,6 +8,23 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <script>
+      (function () {
+        try {
+          var storedTheme = localStorage.getItem('theme');
+          var theme = storedTheme === 'light' || storedTheme === 'dark'
+            ? storedTheme
+            : (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+
+          document.documentElement.classList.remove('theme-light', 'theme-dark');
+          document.body.classList.remove('theme-light', 'theme-dark');
+          document.documentElement.classList.add('theme-' + theme);
+          document.body.classList.add('theme-' + theme);
+        } catch (e) {
+          // no-op
+        }
+      })();
+    </script>
     <title>ShowTimeX - Movie Ticket Booking</title>
   </head>
   <body>

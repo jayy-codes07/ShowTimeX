@@ -28,7 +28,7 @@ const styles = StyleSheet.create({
 
   // --- HEADER ---
   header: {
-    backgroundColor: "#E50914",
+    backgroundColor: "#166534",
     padding: 18,
     flexDirection: "row",
     justifyContent: "space-between",
@@ -69,7 +69,7 @@ const styles = StyleSheet.create({
   admitTag: {
     fontSize: 10,
     letterSpacing: 1.5,
-    color: "#fca5a5",
+    color: "#86efac",
     textTransform: "uppercase",
     fontFamily: "Helvetica-Bold",
   },
@@ -180,7 +180,7 @@ const styles = StyleSheet.create({
   },
   totalValue: {
     fontSize: 14,
-    color: "#E50914",
+    color: "#22c55e",
     fontFamily: "Helvetica-Bold",
   },
 

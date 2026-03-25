@@ -6,6 +6,8 @@ const {
   getAdminStats,
   getAdminReports,
   getAdminUserInsights,
+  initiateBookingRefund,
+  resendBookingTicket,
 } = require('../controllers/bookingController');
 const { protect } = require('../middleware/authMiddleware');
 const { adminOnly } = require('../middleware/adminMiddleware');
@@ -19,5 +21,7 @@ router.get('/stats', getAdminStats);
 router.get('/reports', getAdminReports);
 router.get('/bookings', getAllBookings);
 router.get('/users', getAdminUserInsights);
+router.patch('/bookings/:id/refund', initiateBookingRefund);
+router.post('/bookings/:id/resend-ticket', resendBookingTicket);
 
 module.exports = router;

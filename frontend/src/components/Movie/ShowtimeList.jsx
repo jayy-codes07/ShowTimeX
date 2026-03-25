@@ -1,8 +1,7 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { motion } from 'framer-motion';
 import { MapPin, Clock } from 'lucide-react';
-import { formatTime, formatDate } from '../../utils/formatDate';
+import { formatTime } from '../../utils/formatDate';
 import { useBooking } from '../../context/BookingContext';
 import { useAuth } from '../../context/AuthContext';
 import toast from 'react-hot-toast';
@@ -44,10 +43,8 @@ const ShowtimeList = ({ shows, movie }) => {
   return (
     <div className="space-y-6">
       {Object.entries(groupedShows).map(([theaterName, theaterShows]) => (
-        <motion.div
+        <div
           key={theaterName}
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
           className="bg-dark-card rounded-xl p-6"
         >
           {/* Theater Info */}
@@ -106,12 +103,12 @@ const ShowtimeList = ({ shows, movie }) => {
                   key={show._id}
                   onClick={() => !isFull && handleShowSelect(show)}
                   disabled={isFull}
-                  className={`relative p-4 rounded-lg border-2 transition-colors transition-transform duration-200 ${
+                  className={`relative p-4 rounded-lg border-2 transition-all duration-200 ${
                     isFull
                       ? 'border-gray-700 bg-gray-800/50 cursor-not-allowed opacity-50'
                       : isAlmostFull
                       ? 'border-orange-500 bg-orange-500/10 hover:bg-orange-500/20 hover:scale-[1.02] active:scale-[0.98]'
-                      : 'border-gray-700 bg-dark-lighter hover:border-primary hover:bg-primary/10 hover:scale-[1.02] active:scale-[0.98]'
+                      : 'border-gray-700 bg-dark-lighter hover:border-gray-700 hover:bg-gray-700 hover:scale-[1.02] active:scale-[0.98]'
                   }`}
                 >
                   <div className="text-center">
@@ -150,7 +147,7 @@ const ShowtimeList = ({ shows, movie }) => {
               );
             })}
           </div>
-        </motion.div>
+        </div>
       ))}
     </div>
   );

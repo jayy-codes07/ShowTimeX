@@ -1,7 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { Mail, Phone, MapPin, Facebook, Twitter, Instagram, Youtube } from 'lucide-react';
-import logo from './../../assets/images/Showtime_logo.png';
 
 const Footer = () => {
   const currentYear = new Date().getFullYear();
@@ -12,7 +11,7 @@ const Footer = () => {
         <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 xl:grid-cols-4">
           <div className="text-center sm:text-left">
             <div className="mb-4 flex items-center justify-center sm:justify-start">
-              <img src={logo} className="h-10 w-auto sm:h-12" alt="ShowTimeX" />
+              <span className="site-brand-logo site-brand-logo-footer" role="img" aria-label="ShowTimeX logo" />
             </div>
             <p className="mb-5 max-w-sm text-sm leading-6 text-gray-400 sm:max-w-none">
               A modern ticket booking experience for discovering films, booking seats,

@@ -14,7 +14,7 @@ const MovieCard = ({ movie }) => {
   return (
     <div
       onClick={handleClick}
-      className="bg-dark-card group w-full max-w-[17rem] mx-auto rounded-2xl border border-gray-800 hover:border-primary/40 transition-transform transition-colors duration-200 hover:-translate-y-1 cursor-pointer overflow-hidden flex flex-col h-full"
+      className="movie-card-shell bg-dark-card group w-full max-w-[17rem] mx-auto rounded-2xl border border-gray-800 transition-all duration-200 hover:-translate-y-1 cursor-pointer overflow-hidden flex flex-col h-full"
     >
       {/* Poster Image Area */}
       <div className="relative aspect-[2/3] w-full overflow-hidden bg-black/40">
@@ -37,14 +37,26 @@ const MovieCard = ({ movie }) => {
 
         {/* Certificate Badge */}
         {movie.certificate && (
-          <div className="absolute top-3 left-3 z-20 bg-primary px-2.5 py-1 rounded-full text-white text-[10px] font-extrabold uppercase tracking-wide shadow-lg border border-white/20 leading-none flex items-center justify-center">
+          <div
+            className="absolute top-3 left-3 z-20 px-2.5 py-1 rounded-full text-white text-[10px] font-extrabold uppercase tracking-wide shadow-lg border border-white/20 leading-none flex items-center justify-center"
+            style={{ backgroundColor: 'var(--app-accent)' }}
+          >
             {movie.certificate}
           </div>
         )}
 
         <div className="absolute inset-0 bg-black/55 opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-10 flex items-center justify-center">
           <div className="transform translate-y-3 group-hover:translate-y-0 transition-transform duration-200 ease-out">
-            <button className="bg-primary hover:bg-primary-dark text-white font-bold py-2.5 px-5 rounded-full shadow-[0_4px_20px_rgba(229,9,20,0.5)] flex items-center justify-center gap-2 border border-white/10">
+            <button
+              className="text-white font-bold py-2.5 px-5 rounded-full shadow-[0_8px_20px_var(--app-accent-soft-strong)] flex items-center justify-center gap-2 border border-white/10 transition-colors duration-200"
+              style={{ backgroundColor: 'var(--app-accent)' }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.backgroundColor = 'var(--app-accent-strong)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.backgroundColor = 'var(--app-accent)';
+              }}
+            >
               <Ticket className="w-4 h-4" />
               Book Tickets
             </button>
@@ -54,7 +66,7 @@ const MovieCard = ({ movie }) => {
 
       {/* Details Area */}
       <div className="p-4 flex flex-col flex-grow">
-        <h3 className="text-white font-extrabold text-[16px] mb-2 line-clamp-1 group-hover:text-primary transition-colors duration-200">
+        <h3 className="movie-card-title text-white font-extrabold text-[16px] mb-2 line-clamp-1 transition-colors duration-200">
           {movie.title}
         </h3>
         
