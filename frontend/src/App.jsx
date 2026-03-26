@@ -7,6 +7,7 @@ import { BookingProvider } from "./context/BookingContext";
 import { ThemeProvider } from "./context/ThemeContext";
 import PageTransition from "./components/Common/PageTransition";
 import Loader from "./components/UI/Loader";
+import { useFaviconTheme } from "./hooks/useFaviconTheme";
 
 // Layouts
 import Navbar from "./components/Common/Navbar";
@@ -39,6 +40,9 @@ function AppLayout() {
   const location = useLocation();
   const { loading } = useAuth();
   const isAdminRoute = location.pathname.startsWith("/admin");
+
+  // Update favicon based on theme
+  useFaviconTheme();
 
   useEffect(() => {
     document.body.classList.toggle("admin-route", isAdminRoute);

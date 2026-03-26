@@ -24,11 +24,8 @@ const AdminSidebar = () => {
 
   return (
     <aside className="w-full lg:fixed lg:left-0 lg:top-20 lg:bottom-0 lg:w-72 lg:bg-[#06110c] lg:border-r lg:border-[#0f2a1f] lg:overflow-y-auto">
-      <div className="h-full p-4 lg:flex lg:flex-col lg:py-6">
-        <div className="mb-4 pb-2">
-          <p className="text-xs font-semibold uppercase tracking-wider text-[#89a59a]">Admin Routes</p>
-          <p className="mt-1 text-sm font-semibold text-[#e6f0eb]">ShowTimeX Control</p>
-        </div>
+      <div className="h-full p-2 lg:flex lg:flex-col lg:py-4">
+        
 
         <nav className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-1">
           {adminLinks.map((link) => {

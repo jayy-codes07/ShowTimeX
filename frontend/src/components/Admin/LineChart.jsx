@@ -29,7 +29,14 @@ const getChartColors = () => {
 
 const currencySymbol = "\u20B9";
 
-const LineChart = ({ data, isCurrency = true }) => {
+const LineChart = ({
+  data,
+  isCurrency = true,
+  xKey = "date",
+  yKey = "revenue",
+  xTickFormatter,
+  valueLabel = "Value",
+}) => {
   const { theme } = useTheme();
   const colors = useMemo(() => getChartColors(), [theme]);
 
@@ -46,12 +53,13 @@ const LineChart = ({ data, isCurrency = true }) => {
         <CartesianGrid strokeDasharray="3 3" stroke={colors.grid} vertical={false} />
 
         <XAxis
-          dataKey="date"
+          dataKey={xKey}
           stroke={colors.axis}
           axisLine={false}
           tickLine={false}
           tick={{ fontSize: 13, fill: colors.axis }}
           dy={10}
+          tickFormatter={xTickFormatter}
         />
 
         <YAxis
@@ -81,13 +89,13 @@ const LineChart = ({ data, isCurrency = true }) => {
           itemStyle={{ color: colors.tooltipAccent, fontWeight: 700 }}
           formatter={(value) => [
             isCurrency ? `${currencySymbol}${Math.round(value).toLocaleString()}` : Math.round(value),
-            "Value",
+            valueLabel,
           ]}
         />
 
         <Area
           type="monotone"
-          dataKey="revenue"
+          dataKey={yKey}
           fill={`url(#${colors.gradientId})`}
           stroke={colors.gradientStart}
           strokeWidth={2}

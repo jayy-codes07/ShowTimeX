@@ -33,24 +33,57 @@ const RevenueChart = ({ data }) => {
   const { theme } = useTheme();
   const colors = useMemo(() => getChartColors(), [theme]);
 
+  const renderTooltip = ({ active, payload }) => {
+    if (!active || !payload || !payload[0]) {
+      return null;
+    }
+    const data = payload[0].payload;
+    return (
+      <div
+        style={{
+          backgroundColor: colors.tooltipBackground,
+          border: `1px solid ${colors.tooltipBorder}`,
+          borderRadius: "12px",
+          color: colors.tooltipText,
+          boxShadow: colors.shadow,
+          padding: "12px 16px",
+        }}
+      >
+        <p style={{ margin: "0 0 6px 0", fontWeight: 600 }}>{data.date}</p>
+        <p style={{ margin: "0", color: colors.tooltipAccent, fontWeight: 700 }}>
+          {currencySymbol}{Math.round(data.revenue).toLocaleString()}
+        </p>
+        {data.count && (
+          <p style={{ margin: "4px 0 0 0", fontSize: "12px", opacity: 0.8 }}>
+            Bookings: {data.count}
+          </p>
+        )}
+      </div>
+    );
+  };
+
   return (
     <ResponsiveContainer width="100%" height={300}>
-      <BarChart data={data} margin={{ top: 10, right: 10, left: -20, bottom: 0 }} barSize={36}>
+      <BarChart data={data} margin={{ top: 20, right: 20, left: 0, bottom: 60 }} barSize={48}>
         <defs>
           <linearGradient id={colors.gradientId} x1="0" y1="0" x2="0" y2="1">
             <stop offset="0%" stopColor={colors.gradientStart} stopOpacity={1} />
-            <stop offset="100%" stopColor={colors.gradientEnd} stopOpacity={0.62} />
+            <stop offset="100%" stopColor={colors.gradientEnd} stopOpacity={0.8} />
           </linearGradient>
         </defs>
 
-        <CartesianGrid strokeDasharray="3 3" stroke={colors.grid} vertical={false} />
+        <CartesianGrid strokeDasharray="4 4" stroke={colors.grid} vertical={false} opacity={0.5} />
 
         <XAxis
           dataKey="date"
           stroke={colors.axis}
           axisLine={false}
           tickLine={false}
-          tick={{ fontSize: 13, fill: colors.axis }}
+          tick={{ fontSize: 12, fill: colors.axis, fontWeight: 600 }}
+          angle={-45}
+          textAnchor="start"
+          interval={0}
+          tickMargin={20}
           dy={10}
         />
 
@@ -58,29 +91,18 @@ const RevenueChart = ({ data }) => {
           stroke={colors.axis}
           axisLine={false}
           tickLine={false}
-          tick={{ fontSize: 13, fill: colors.axis }}
+          tick={{ fontSize: 12, fill: colors.axis }}
           tickFormatter={(value) =>
             value >= 1000
               ? `${currencySymbol}${Math.round(value / 1000)}k`
               : `${currencySymbol}${Math.round(value)}`
           }
+          width={60}
         />
 
-        <Tooltip
-          cursor={{ fill: colors.cursor }}
-          contentStyle={{
-            backgroundColor: colors.tooltipBackground,
-            border: `1px solid ${colors.tooltipBorder}`,
-            borderRadius: "12px",
-            color: colors.tooltipText,
-            boxShadow: colors.shadow,
-          }}
-          labelStyle={{ color: colors.tooltipText, fontWeight: 600 }}
-          itemStyle={{ color: colors.tooltipAccent, fontWeight: 700 }}
-          formatter={(value) => [`${currencySymbol}${Math.round(value).toLocaleString()}`, "Revenue"]}
-        />
+        <Tooltip content={renderTooltip} cursor={{ fill: colors.cursor, opacity: 0.2 }} />
 
-        <Bar dataKey="revenue" fill={`url(#${colors.gradientId})`} radius={[8, 8, 0, 0]} />
+        <Bar dataKey="revenue" fill={`url(#${colors.gradientId})`} radius={[10, 10, 0, 0]} />
       </BarChart>
     </ResponsiveContainer>
   );

@@ -820,6 +820,17 @@ const getAdminStats = async (req, res) => {
       { $sort: { value: -1 } }
     ]);
 
+    // 5. Chart 4: Genre Performance (Revenue by genre)
+    const genrePerformanceData = await Booking.aggregate([
+      { $match: { status: "confirmed" } },
+      { $lookup: { from: "movies", localField: "movie", foreignField: "_id", as: "movieDetails" } },
+      { $unwind: "$movieDetails" },
+      { $unwind: "$movieDetails.genres" },
+      { $group: { _id: "$movieDetails.genres", value: { $sum: "$totalAmount" }, count: { $sum: 1 } } },
+      { $project: { name: "$_id", value: 1, count: 1, _id: 0 } },
+      { $sort: { value: -1 } }
+    ]);
+
     // ---------------------------------------------------------
     // 🟢 DYNAMIC PERCENTAGE MATH (Current 30 Days vs Previous 30 Days)
     // ---------------------------------------------------------
@@ -876,6 +887,7 @@ const getAdminStats = async (req, res) => {
         revenueData,
         movieStatsData,
         formatStatsData,
+        genrePerformanceData,
         changes: percentageChanges
       },
     });

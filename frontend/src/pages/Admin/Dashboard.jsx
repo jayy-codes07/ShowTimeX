@@ -17,7 +17,7 @@ import {
 import RevenueChart from "../../components/Admin/RevenueChart";
 import LineChart from "../../components/Admin/LineChart";
 import MovieDistributionChart from "../../components/Admin/MovieDistributionChart";
-import LeaderboardChart from "../../components/Admin/LeaderboardChart";
+import TopMoviesBarChart from "../../components/Admin/TopMoviesBarChart";
 import Loader from "../../components/UI/Loader";
 import AnimatedCounter from "../../components/UI/AnimatedCounter";
 import { useTheme } from "../../context/ThemeContext";
@@ -32,6 +32,7 @@ const Dashboard = () => {
   const [revenueData, setRevenueData] = useState([]);
   const [movieStatsData, setMovieStatsData] = useState([]);
   const [formatStatsData, setFormatStatsData] = useState([]);
+  const [genrePerformanceData, setGenrePerformanceData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [chartToggle, setChartToggle] = useState("revenue");
 
@@ -67,12 +68,17 @@ const Dashboard = () => {
   // Transform data based on chart toggle
   const getChartData = () => {
     switch (chartToggle) {
-      case "tickets_sold":
-        return toWeeklySeries(revenueData, (item) => (item.revenue || 0) * 0.15);
-      case "booking_trend":
-        return toWeeklySeries(revenueData, (item) => (item.revenue || 0) / 180);
+      case "genre_performance":
+        // Transform genre data to match LineChart format (rename 'name' to 'date', 'value' to 'revenue')
+        return genrePerformanceData.map(item => ({
+          date: item.name,
+          revenue: item.value
+        }));
       case "movies":
-        return movieStatsData;
+        return movieStatsData.map((item, index) => ({
+          date: item?.name || `Movie ${index + 1}`,
+          revenue: item?.value || 0,
+        }));
       default:
         return toWeeklySeries(revenueData, (item) => item.revenue || 0);
     }
@@ -97,6 +103,7 @@ const Dashboard = () => {
         setRevenueData(backendData.revenueData || []);
         setMovieStatsData(backendData.movieStatsData || []);
         setFormatStatsData(backendData.formatStatsData || []);
+        setGenrePerformanceData(backendData.genrePerformanceData || []);
       }
 
       if (bookingsRes.success) {
@@ -179,10 +186,7 @@ const Dashboard = () => {
               Welcome back. Here is the live performance snapshot for your cinema.
             </p>
           </div>
-          <div className="inline-flex w-fit items-center gap-2 rounded-full border border-gray-800 bg-dark-lighter px-4 py-2 text-sm text-gray-400">
-            <div className="h-2 w-2 rounded-full bg-green-500 animate-pulse" />
-            Live from current bookings
-          </div>
+          
         </Motion.div>
 
         <div className="mb-8 grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-6 xl:grid-cols-4">
@@ -303,9 +307,9 @@ const Dashboard = () => {
                     Revenue
                   </button>
                   <button
-                    onClick={() => setChartToggle("tickets_sold")}
+                    onClick={() => setChartToggle("genre_performance")}
                     className={`px-3 py-1.5 rounded-lg text-xs font-medium transition ${
-                      chartToggle === "tickets_sold"
+                      chartToggle === "genre_performance"
                         ? theme === "dark"
                           ? "bg-primary/20 text-primary border border-primary/40"
                           : "bg-primary/10 text-primary border border-primary/30"
@@ -314,21 +318,7 @@ const Dashboard = () => {
                           : "bg-gray-200/60 border border-gray-300 text-gray-600 hover:bg-gray-300/60"
                     }`}
                   >
-                    Tickets Sold
-                  </button>
-                  <button
-                    onClick={() => setChartToggle("booking_trend")}
-                    className={`px-3 py-1.5 rounded-lg text-xs font-medium transition ${
-                      chartToggle === "booking_trend"
-                        ? theme === "dark"
-                          ? "bg-primary/20 text-primary border border-primary/40"
-                          : "bg-primary/10 text-primary border border-primary/30"
-                        : theme === "dark"
-                          ? "bg-gray-800/70 border border-gray-700 text-gray-300 hover:bg-gray-700/60"
-                          : "bg-gray-200/60 border border-gray-300 text-gray-600 hover:bg-gray-300/60"
-                    }`}
-                  >
-                    Booking Trend
+                    Genre Performance
                   </button>
                   <button
                     onClick={() => setChartToggle("movies")}
@@ -348,10 +338,12 @@ const Dashboard = () => {
               </div>
             </div>
             {getChartData().length > 0 ? (
-              chartToggle === "movies" ? (
-                <LeaderboardChart data={getChartData()} theme={theme} />
-              ) : chartToggle === "revenue" ? (
+              chartToggle === "genre_performance" ? (
                 <RevenueChart data={getChartData()} theme={theme} />
+              ) : chartToggle === "revenue" ? (
+                <LineChart data={getChartData()} isCurrency={true} theme={theme} />
+              ) : chartToggle === "movies" ? (
+                <TopMoviesBarChart data={getChartData()} theme={theme} />
               ) : (
                 <LineChart data={getChartData()} isCurrency={chartToggle === "revenue"} theme={theme} />
               )
