@@ -1,8 +1,8 @@
 import React, { useMemo } from "react";
 import {
   ResponsiveContainer,
-  BarChart,
-  Bar,
+  AreaChart,
+  Area,
   XAxis,
   YAxis,
   Tooltip,
@@ -13,7 +13,7 @@ import { useTheme } from "../../context/ThemeContext";
 const getChartColors = () => {
   const style = getComputedStyle(document.documentElement);
   return {
-    gradientId: "dashboardRevenueGradient",
+    gradientId: "dashboardLineGradient",
     gradientStart: style.getPropertyValue("--chart-gradient-start").trim(),
     gradientEnd: style.getPropertyValue("--chart-gradient-end").trim(),
     grid: style.getPropertyValue("--chart-grid").trim(),
@@ -29,17 +29,17 @@ const getChartColors = () => {
 
 const currencySymbol = "\u20B9";
 
-const RevenueChart = ({ data }) => {
+const LineChart = ({ data, isCurrency = true }) => {
   const { theme } = useTheme();
   const colors = useMemo(() => getChartColors(), [theme]);
 
   return (
     <ResponsiveContainer width="100%" height={300}>
-      <BarChart data={data} margin={{ top: 10, right: 10, left: -20, bottom: 0 }} barSize={36}>
+      <AreaChart data={data} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
         <defs>
           <linearGradient id={colors.gradientId} x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor={colors.gradientStart} stopOpacity={1} />
-            <stop offset="100%" stopColor={colors.gradientEnd} stopOpacity={0.62} />
+            <stop offset="0%" stopColor={colors.gradientStart} stopOpacity={0.8} />
+            <stop offset="100%" stopColor={colors.gradientEnd} stopOpacity={0.1} />
           </linearGradient>
         </defs>
 
@@ -60,9 +60,11 @@ const RevenueChart = ({ data }) => {
           tickLine={false}
           tick={{ fontSize: 13, fill: colors.axis }}
           tickFormatter={(value) =>
-            value >= 1000
-              ? `${currencySymbol}${Math.round(value / 1000)}k`
-              : `${currencySymbol}${Math.round(value)}`
+            isCurrency
+              ? value >= 1000
+                ? `${currencySymbol}${Math.round(value / 1000)}k`
+                : `${currencySymbol}${Math.round(value)}`
+              : Math.round(value)
           }
         />
 
@@ -77,13 +79,23 @@ const RevenueChart = ({ data }) => {
           }}
           labelStyle={{ color: colors.tooltipText, fontWeight: 600 }}
           itemStyle={{ color: colors.tooltipAccent, fontWeight: 700 }}
-          formatter={(value) => [`${currencySymbol}${Math.round(value).toLocaleString()}`, "Revenue"]}
+          formatter={(value) => [
+            isCurrency ? `${currencySymbol}${Math.round(value).toLocaleString()}` : Math.round(value),
+            "Value",
+          ]}
         />
 
-        <Bar dataKey="revenue" fill={`url(#${colors.gradientId})`} radius={[8, 8, 0, 0]} />
-      </BarChart>
+        <Area
+          type="monotone"
+          dataKey="revenue"
+          fill={`url(#${colors.gradientId})`}
+          stroke={colors.gradientStart}
+          strokeWidth={2}
+          dot={false}
+        />
+      </AreaChart>
     </ResponsiveContainer>
   );
 };
 
-export default RevenueChart;
+export default LineChart;

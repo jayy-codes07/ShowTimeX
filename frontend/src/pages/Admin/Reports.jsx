@@ -90,81 +90,112 @@ const Reports = () => {
   };
 
   const handleDownloadCSV = async () => {
-  if (!reportData) return toast.error("No data to download");
+    if (!reportData) return toast.error("No data to download");
 
-  const XLSX = await import("xlsx");
+    const XLSX = await import("xlsx");
 
-  const wb = XLSX.utils.book_new();
+    const wb = XLSX.utils.book_new();
 
-  // ─── SHEET 1: SUMMARY ───────────────────────────────────────
-  const summaryData = [
-    ["ShowTimeX - Sales Report"],
-    [`Period: ${dateRange.startDate}  to  ${dateRange.endDate}`],
-    [`Generated: ${new Date().toLocaleString()}`],
-    [],
-    ["Metric", "Value", "Change vs Previous Period"],
-    ["Total Revenue", `Rs.${Math.round(reportData.totalRevenue || 0).toLocaleString()}`, `${reportData.changes?.revenue || 0}%`],
-    ["Total Bookings", reportData.totalBookings || 0, `${reportData.changes?.bookings || 0}%`],
-    ["Total Tickets", reportData.totalTickets || 0, `${reportData.changes?.tickets || 0}%`],
-    ["Avg Booking Value", `Rs.${Math.round(reportData.avgBookingValue || 0).toLocaleString()}`, `${reportData.changes?.avgValue || 0}%`],
-  ];
-  const summarySheet = XLSX.utils.aoa_to_sheet(summaryData);
-  summarySheet['!cols'] = [{ wch: 22 }, { wch: 18 }, { wch: 28 }];
-  XLSX.utils.book_append_sheet(wb, summarySheet, "Summary");
+    // ─── SHEET 1: SUMMARY ───────────────────────────────────────
+    const summaryData = [
+      ["ShowTimeX - Sales Report"],
+      [`Period: ${dateRange.startDate}  to  ${dateRange.endDate}`],
+      [`Generated: ${new Date().toLocaleString()}`],
+      [],
+      ["Metric", "Value", "Change vs Previous Period"],
+      [
+        "Total Revenue",
+        `Rs.${Math.round(reportData.totalRevenue || 0).toLocaleString()}`,
+        `${reportData.changes?.revenue || 0}%`,
+      ],
+      [
+        "Total Bookings",
+        reportData.totalBookings || 0,
+        `${reportData.changes?.bookings || 0}%`,
+      ],
+      [
+        "Total Tickets",
+        reportData.totalTickets || 0,
+        `${reportData.changes?.tickets || 0}%`,
+      ],
+      [
+        "Avg Booking Value",
+        `Rs.${Math.round(reportData.avgBookingValue || 0).toLocaleString()}`,
+        `${reportData.changes?.avgValue || 0}%`,
+      ],
+    ];
+    const summarySheet = XLSX.utils.aoa_to_sheet(summaryData);
+    summarySheet["!cols"] = [{ wch: 22 }, { wch: 18 }, { wch: 28 }];
+    XLSX.utils.book_append_sheet(wb, summarySheet, "Summary");
 
-  // ─── SHEET 2: TOP MOVIES ────────────────────────────────────
-  const moviesData = [
-    ["Top Performing Movies"],
-    [`Period: ${dateRange.startDate}  to  ${dateRange.endDate}`],
-    [],
-    ["Rank", "Movie", "Bookings", "Tickets Sold", "Revenue"],
-    ...(reportData.topMovies || []).map((movie, i) => [
-      i + 1,
-      movie.title,
-      movie.bookings,
-      movie.tickets,
-      `Rs.${movie.revenue?.toLocaleString()}`,
-    ]),
-  ];
-  const moviesSheet = XLSX.utils.aoa_to_sheet(moviesData);
-  moviesSheet['!cols'] = [
-    { wch: 6 }, { wch: 35 }, { wch: 12 }, { wch: 14 }, { wch: 16 }
-  ];
-  XLSX.utils.book_append_sheet(wb, moviesSheet, "Top Movies");
+    // ─── SHEET 2: TOP MOVIES ────────────────────────────────────
+    const moviesData = [
+      ["Top Performing Movies"],
+      [`Period: ${dateRange.startDate}  to  ${dateRange.endDate}`],
+      [],
+      ["Rank", "Movie", "Bookings", "Tickets Sold", "Revenue"],
+      ...(reportData.topMovies || []).map((movie, i) => [
+        i + 1,
+        movie.title,
+        movie.bookings,
+        movie.tickets,
+        `Rs.${movie.revenue?.toLocaleString()}`,
+      ]),
+    ];
+    const moviesSheet = XLSX.utils.aoa_to_sheet(moviesData);
+    moviesSheet["!cols"] = [
+      { wch: 6 },
+      { wch: 35 },
+      { wch: 12 },
+      { wch: 14 },
+      { wch: 16 },
+    ];
+    XLSX.utils.book_append_sheet(wb, moviesSheet, "Top Movies");
 
-  // ─── SHEET 3: ALL TRANSACTIONS ──────────────────────────────
-  const txData = [
-    ["All Transactions"],
-    [`Period: ${dateRange.startDate}  to  ${dateRange.endDate}`],
-    [`Total: ${pagination.total} transactions`],
-    [],
-    ["Date", "Booking ID", "Customer", "Movie", "Tickets", "Amount", "Status"],
-    ...(transactions || []).map((t) => [
-      formatDate(t.date),
-      t.bookingId,
-      t.customer,
-      t.movie,
-      t.tickets,
-      `Rs.${t.amount?.toFixed(2)}`,
-      t.status?.toUpperCase(),
-    ]),
-  ];
-  const txSheet = XLSX.utils.aoa_to_sheet(txData);
-  txSheet['!cols'] = [
-    { wch: 14 }, // Date
-    { wch: 20 }, // Booking ID
-    { wch: 16 }, // Customer
-    { wch: 35 }, // Movie
-    { wch: 10 }, // Tickets
-    { wch: 14 }, // Amount
-    { wch: 12 }, // Status
-  ];
-  XLSX.utils.book_append_sheet(wb, txSheet, "All Transactions");
+    // ─── SHEET 3: ALL TRANSACTIONS ──────────────────────────────
+    const txData = [
+      ["All Transactions"],
+      [`Period: ${dateRange.startDate}  to  ${dateRange.endDate}`],
+      [`Total: ${pagination.total} transactions`],
+      [],
+      [
+        "Date",
+        "Booking ID",
+        "Customer",
+        "Movie",
+        "Tickets",
+        "Amount",
+        "Status",
+      ],
+      ...(transactions || []).map((t) => [
+        formatDate(t.date),
+        t.bookingId,
+        t.customer,
+        t.movie,
+        t.tickets,
+        `Rs.${t.amount?.toFixed(2)}`,
+        t.status?.toUpperCase(),
+      ]),
+    ];
+    const txSheet = XLSX.utils.aoa_to_sheet(txData);
+    txSheet["!cols"] = [
+      { wch: 14 }, // Date
+      { wch: 20 }, // Booking ID
+      { wch: 16 }, // Customer
+      { wch: 35 }, // Movie
+      { wch: 10 }, // Tickets
+      { wch: 14 }, // Amount
+      { wch: 12 }, // Status
+    ];
+    XLSX.utils.book_append_sheet(wb, txSheet, "All Transactions");
 
-  // ─── DOWNLOAD ───────────────────────────────────────────────
-  XLSX.writeFile(wb, `ShowTimeX_Report_${dateRange.startDate}_to_${dateRange.endDate}.xlsx`);
-  toast.success("Excel Downloaded!");
-};
+    // ─── DOWNLOAD ───────────────────────────────────────────────
+    XLSX.writeFile(
+      wb,
+      `ShowTimeX_Report_${dateRange.startDate}_to_${dateRange.endDate}.xlsx`,
+    );
+    toast.success("Excel Downloaded!");
+  };
 
   const handleDownloadPDF = async () => {
     if (!reportData) return toast.error("No data to download");
@@ -277,7 +308,7 @@ const Reports = () => {
     doc.save(
       `ShowTimeX_Report_${dateRange.startDate}_to_${dateRange.endDate}.pdf`,
     );
-    toast.success("✅ PDF Downloaded!");
+    toast.success("PDF Downloaded!");
   };
 
   if (loading) {
@@ -329,9 +360,9 @@ const Reports = () => {
   return (
     <div className="min-h-screen bg-dark py-8">
       <div className="container-custom">
-          {/* Header */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
+        {/* Header */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           className="flex flex-col md:flex-row md:items-center md:justify-between mb-8"
         >
@@ -622,7 +653,7 @@ const Reports = () => {
               {/* All loaded message */}
               {!pagination.hasMore && transactions.length > 10 && (
                 <p className="text-center text-gray-500 text-sm mt-4">
-                  ✅ All {pagination.total} transactions loaded
+                  All {pagination.total} transactions loaded
                 </p>
               )}
             </>

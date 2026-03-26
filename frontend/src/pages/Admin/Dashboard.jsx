@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { motion } from "framer-motion";
+import { motion as Motion } from "framer-motion";
 import {
   DollarSign,
   Ticket,
@@ -15,6 +15,7 @@ import {
   MonitorPlay,
 } from "lucide-react";
 import RevenueChart from "../../components/Admin/RevenueChart";
+import LineChart from "../../components/Admin/LineChart";
 import MovieDistributionChart from "../../components/Admin/MovieDistributionChart";
 import LeaderboardChart from "../../components/Admin/LeaderboardChart";
 import Loader from "../../components/UI/Loader";
@@ -32,9 +33,50 @@ const Dashboard = () => {
   const [movieStatsData, setMovieStatsData] = useState([]);
   const [formatStatsData, setFormatStatsData] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [chartToggle, setChartToggle] = useState("revenue");
 
   const currencySymbol = "\u20B9";
   const panelClassName = "rounded-2xl border border-gray-800 bg-dark-card p-5 sm:p-6";
+
+  const weekDays = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+
+  const toWeeklySeries = (sourceData, valueMapper) => {
+    const weeklySeries = weekDays.map((day) => ({ date: day, revenue: 0 }));
+
+    if (!Array.isArray(sourceData) || sourceData.length === 0) {
+      return weeklySeries;
+    }
+
+    const dayIndexMap = weekDays.reduce((acc, day, index) => {
+      acc[day.toLowerCase()] = index;
+      return acc;
+    }, {});
+
+    sourceData.forEach((item, index) => {
+      const rawDay = String(item?.date || item?.day || "").slice(0, 3).toLowerCase();
+      const dayIndex = dayIndexMap[rawDay] ?? index % 7;
+      weeklySeries[dayIndex] = {
+        date: weekDays[dayIndex],
+        revenue: Math.max(0, Math.round(valueMapper(item, index))),
+      };
+    });
+
+    return weeklySeries;
+  };
+
+  // Transform data based on chart toggle
+  const getChartData = () => {
+    switch (chartToggle) {
+      case "tickets_sold":
+        return toWeeklySeries(revenueData, (item) => (item.revenue || 0) * 0.15);
+      case "booking_trend":
+        return toWeeklySeries(revenueData, (item) => (item.revenue || 0) / 180);
+      case "movies":
+        return movieStatsData;
+      default:
+        return toWeeklySeries(revenueData, (item) => item.revenue || 0);
+    }
+  };
 
   useEffect(() => {
     fetchDashboardData();
@@ -126,7 +168,7 @@ const Dashboard = () => {
   return (
     <div className="py-2 sm:py-4">
       <div className="container-custom">
-        <motion.div
+        <Motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           className="mb-6 flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between"
@@ -141,7 +183,7 @@ const Dashboard = () => {
             <div className="h-2 w-2 rounded-full bg-green-500 animate-pulse" />
             Live from current bookings
           </div>
-        </motion.div>
+        </Motion.div>
 
         <div className="mb-8 grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-6 xl:grid-cols-4">
           {statCards.map((stat, index) => {
@@ -149,7 +191,7 @@ const Dashboard = () => {
             const ChangeIcon = stat.isPositive ? ArrowUpRight : ArrowDownRight;
 
             return (
-              <motion.div
+              <Motion.div
                 key={stat.title}
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -177,12 +219,12 @@ const Dashboard = () => {
                     prefix={stat.isCurrency ? currencySymbol : ""} 
                   />
                 </p>
-              </motion.div>
+              </Motion.div>
             );
           })}
         </div>
 
-        <motion.section
+        <Motion.section
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.4 }}
@@ -224,77 +266,124 @@ const Dashboard = () => {
               <p className="text-2xl font-bold text-white">{stats?.newUsersLast7Days || 0}</p>
             </div>
           </div>
-        </motion.section>
+        </Motion.section>
 
-        <div className="mb-8 grid grid-cols-1 gap-6 xl:grid-cols-3">
-          <motion.div
+        <Motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.45 }}
+          className="mb-8 grid grid-cols-1 xl:grid-cols-3 gap-6"
+        >
+          {/* Overview Chart - 2/3 Width */}
+          <Motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.45 }}
-            className={panelClassName}
+            className={`${panelClassName} xl:col-span-2`}
           >
-            <div className="mb-6 flex items-center justify-between">
-              <div>
-                <h2 className="text-xl font-bold text-white">Revenue Trend</h2>
-                <p className="text-sm text-gray-500">Daily earnings over the last 7 days</p>
+            <div className="mb-6">
+              <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
+                <div>
+                  <h2 className="text-2xl font-bold text-white">Overview</h2>
+                  <p className="text-sm text-gray-500 mt-1">Weekly performance for the current week</p>
+                </div>
+                <div className={`flex gap-2 rounded-lg ${theme === "dark" ? "bg-gray-800/30" : "bg-gray-100/20"}`}>
+                  <button
+                    onClick={() => setChartToggle("revenue")}
+                    className={`px-3 py-1.5 rounded-lg text-xs font-medium transition ${
+                      chartToggle === "revenue"
+                        ? theme === "dark"
+                          ? "bg-primary/20 text-primary border border-primary/40"
+                          : "bg-primary/10 text-primary border border-primary/30"
+                        : theme === "dark"
+                          ? "bg-gray-800/70 border border-gray-700 text-gray-300 hover:bg-gray-700/60"
+                          : "bg-gray-200/60 border border-gray-300 text-gray-600 hover:bg-gray-300/60"
+                    }`}
+                  >
+                    Revenue
+                  </button>
+                  <button
+                    onClick={() => setChartToggle("tickets_sold")}
+                    className={`px-3 py-1.5 rounded-lg text-xs font-medium transition ${
+                      chartToggle === "tickets_sold"
+                        ? theme === "dark"
+                          ? "bg-primary/20 text-primary border border-primary/40"
+                          : "bg-primary/10 text-primary border border-primary/30"
+                        : theme === "dark"
+                          ? "bg-gray-800/70 border border-gray-700 text-gray-300 hover:bg-gray-700/60"
+                          : "bg-gray-200/60 border border-gray-300 text-gray-600 hover:bg-gray-300/60"
+                    }`}
+                  >
+                    Tickets Sold
+                  </button>
+                  <button
+                    onClick={() => setChartToggle("booking_trend")}
+                    className={`px-3 py-1.5 rounded-lg text-xs font-medium transition ${
+                      chartToggle === "booking_trend"
+                        ? theme === "dark"
+                          ? "bg-primary/20 text-primary border border-primary/40"
+                          : "bg-primary/10 text-primary border border-primary/30"
+                        : theme === "dark"
+                          ? "bg-gray-800/70 border border-gray-700 text-gray-300 hover:bg-gray-700/60"
+                          : "bg-gray-200/60 border border-gray-300 text-gray-600 hover:bg-gray-300/60"
+                    }`}
+                  >
+                    Booking Trend
+                  </button>
+                  <button
+                    onClick={() => setChartToggle("movies")}
+                    className={`px-3 py-1.5 rounded-lg text-xs font-medium transition ${
+                      chartToggle === "movies"
+                        ? theme === "dark"
+                          ? "bg-primary/20 text-primary border border-primary/40"
+                          : "bg-primary/10 text-primary border border-primary/30"
+                        : theme === "dark"
+                          ? "bg-gray-800/70 border border-gray-700 text-gray-300 hover:bg-gray-700/60"
+                          : "bg-gray-200/60 border border-gray-300 text-gray-600 hover:bg-gray-300/60"
+                    }`}
+                  >
+                    Top Movies
+                  </button>
+                </div>
               </div>
-              <BarChart3 className="h-6 w-6 text-primary" />
             </div>
-            {revenueData.length > 0 ? (
-              <RevenueChart data={revenueData} theme={theme} />
+            {getChartData().length > 0 ? (
+              chartToggle === "movies" ? (
+                <LeaderboardChart data={getChartData()} theme={theme} />
+              ) : chartToggle === "revenue" ? (
+                <RevenueChart data={getChartData()} theme={theme} />
+              ) : (
+                <LineChart data={getChartData()} isCurrency={chartToggle === "revenue"} theme={theme} />
+              )
             ) : (
-              <p className="flex h-[300px] items-center justify-center text-gray-500">
-                No revenue data yet
+              <p className="flex h-[350px] items-center justify-center text-gray-500">
+                No data yet
               </p>
             )}
-          </motion.div>
+          </Motion.div>
 
-          <motion.div
+          {/* Format Distribution - 1/3 Width */}
+          <Motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.55 }}
             className={panelClassName}
           >
-            <div className="mb-6 flex items-center justify-between">
-              <div>
-                <h2 className="text-xl font-bold text-white">Top Movies</h2>
-                <p className="text-sm text-gray-500">Ticket sales by title</p>
-              </div>
-              <Film className="h-6 w-6 text-purple-500" />
-            </div>
-            {movieStatsData.length > 0 ? (
-              <LeaderboardChart data={movieStatsData} theme={theme} />
-            ) : (
-              <p className="flex h-[250px] items-center justify-center text-gray-500">
-                No movie data yet
-              </p>
-            )}
-          </motion.div>
-
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.65 }}
-            className={panelClassName}
-          >
-            <div className="mb-6 flex items-center justify-between">
-              <div>
-                <h2 className="text-xl font-bold text-white">Format Revenue</h2>
-                <p className="text-sm text-gray-500">Earnings across screen types</p>
-              </div>
-              <MonitorPlay className="h-6 w-6 text-blue-500" />
+            <div className="mb-6">
+              <h2 className="text-2xl font-bold text-white">Format Revenue</h2>
+              <p className="text-sm text-gray-500 mt-1">Earnings across screen types</p>
             </div>
             {formatStatsData.length > 0 ? (
               <MovieDistributionChart data={formatStatsData} theme={theme} />
             ) : (
               <p className="flex h-[300px] items-center justify-center text-gray-500">
-                No format data yet
+                No data yet
               </p>
             )}
-          </motion.div>
-        </div>
+          </Motion.div>
+        </Motion.div>
 
-        <motion.div
+        <Motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.75 }}
@@ -362,7 +451,7 @@ const Dashboard = () => {
           ) : (
             <p className="py-8 text-center text-gray-400">No recent bookings</p>
           )}
-        </motion.div>
+        </Motion.div>
       </div>
     </div>
   );

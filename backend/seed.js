@@ -1,12 +1,13 @@
 const dotenv = require('dotenv');
+const path = require('path');
 const connectDB = require('./config/db');
 const User = require('./models/User');
 const Movie = require('./models/Movie');
 const Show = require('./models/Show');
 const Booking = require('./models/Booking');
 
-// Load environment variables
-dotenv.config();
+// Load environment variables from backend/.env even when command is run from project root
+dotenv.config({ path: path.join(__dirname, '.env') });
 
 // Connect to database
 connectDB();
@@ -21,141 +22,174 @@ const users = [
     role: 'admin',
   },
   {
-    name: 'John Doe',
-    email: 'user@cinebook.com',
+    name: 'Rohit Solanki',
+    email: 'rohit.solanki@gmail.com',
+    phone: '9017362830',
+    password: 'User@123',
+    role: 'customer',
+  },
+  {
+    name: 'Meera Patel',
+    email: 'meera.patel@gmail.com',
     phone: '9876543211',
     password: 'User@123',
     role: 'customer',
   },
   {
-    name: 'Jane Smith',
-    email: 'jane@example.com',
+    name: 'Aarav Shah',
+    email: 'aarav.shah@gmail.com',
     phone: '9876543212',
+    password: 'User@123',
+    role: 'customer',
+  },
+  {
+    name: 'Priya Nair',
+    email: 'priya.nair@gmail.com',
+    phone: '9876543213',
+    password: 'User@123',
+    role: 'customer',
+  },
+  {
+    name: 'Kunal Verma',
+    email: 'kunal.verma@gmail.com',
+    phone: '9876543214',
+    password: 'User@123',
+    role: 'customer',
+  },
+  {
+    name: 'Nisha Rao',
+    email: 'nisha.rao@gmail.com',
+    phone: '9876543215',
+    password: 'User@123',
+    role: 'customer',
+  },
+  {
+    name: 'Vivek Trivedi',
+    email: 'vivek.trivedi@gmail.com',
+    phone: '9876543216',
+    password: 'User@123',
+    role: 'customer',
+  },
+  {
+    name: 'Sneha Joshi',
+    email: 'sneha.joshi@gmail.com',
+    phone: '9876543217',
+    password: 'User@123',
+    role: 'customer',
+  },
+  {
+    name: 'Harsh Mehta',
+    email: 'harsh.mehta@gmail.com',
+    phone: '9876543218',
+    password: 'User@123',
+    role: 'customer',
+  },
+  {
+    name: 'Isha Kapoor',
+    email: 'isha.kapoor@gmail.com',
+    phone: '9876543219',
+    password: 'User@123',
+    role: 'customer',
+  },
+  {
+    name: 'Yash Parmar',
+    email: 'yash.parmar@gmail.com',
+    phone: '9876543220',
+    password: 'User@123',
+    role: 'customer',
+  },
+  {
+    name: 'Divya Bhatt',
+    email: 'divya.bhatt@gmail.com',
+    phone: '9876543221',
+    password: 'User@123',
+    role: 'customer',
+  },
+  {
+    name: 'Manav Desai',
+    email: 'manav.desai@gmail.com',
+    phone: '9876543222',
     password: 'User@123',
     role: 'customer',
   },
 ];
 
-const movies = [
-  {
-    title: 'Inception',
-    description: 'A thief who steals corporate secrets through the use of dream-sharing technology is given the inverse task of planting an idea into the mind of a C.E.O.',
-    genres: ['Action', 'Sci-Fi', 'Thriller'],
-    languages: ['English', 'Hindi'],
-    duration: 148,
-    releaseDate: new Date('2010-07-16'),
-    rating: 8.8,
-    certificate: 'UA',
-    director: 'Christopher Nolan',
-    cast: ['Leonardo DiCaprio', 'Joseph Gordon-Levitt', 'Ellen Page'],
-    poster: 'https://images.unsplash.com/photo-1536440136628-849c177e76a1?w=300&h=450&fit=crop',
-    backdrop: 'https://images.unsplash.com/photo-1536440136628-849c177e76a1?w=1920&h=1080&fit=crop',
-    status: 'NOW_SHOWING',
-  },
-  {
-    title: 'The Dark Knight',
-    description: 'When the menace known as the Joker wreaks havoc and chaos on the people of Gotham, Batman must accept one of the greatest psychological and physical tests.',
-    genres: ['Action', 'Crime', 'Drama'],
-    languages: ['English', 'Hindi', 'Tamil'],
-    duration: 152,
-    releaseDate: new Date('2008-07-18'),
-    rating: 9.0,
-    certificate: 'UA',
-    director: 'Christopher Nolan',
-    cast: ['Christian Bale', 'Heath Ledger', 'Aaron Eckhart'],
-    poster: 'https://images.unsplash.com/photo-1478720568477-152d9b164e26?w=300&h=450&fit=crop',
-    backdrop: 'https://images.unsplash.com/photo-1478720568477-152d9b164e26?w=1920&h=1080&fit=crop',
-    status: 'NOW_SHOWING',
-  },
-  {
-    title: 'Interstellar',
-    description: 'A team of explorers travel through a wormhole in space in an attempt to ensure humanity\'s survival.',
-    genres: ['Adventure', 'Drama', 'Sci-Fi'],
-    languages: ['English', 'Hindi'],
-    duration: 169,
-    releaseDate: new Date('2014-11-07'),
-    rating: 8.6,
-    certificate: 'UA',
-    director: 'Christopher Nolan',
-    cast: ['Matthew McConaughey', 'Anne Hathaway', 'Jessica Chastain'],
-    poster: 'https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?w=300&h=450&fit=crop',
-    backdrop: 'https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?w=1920&h=1080&fit=crop',
-    status: 'NOW_SHOWING',
-  },
-  {
-    title: 'Avengers: Endgame',
-    description: 'After the devastating events of Avengers: Infinity War, the universe is in ruins. With the help of remaining allies, the Avengers assemble once more.',
-    genres: ['Action', 'Adventure', 'Sci-Fi'],
-    languages: ['English', 'Hindi', 'Tamil', 'Telugu'],
-    duration: 181,
-    releaseDate: new Date('2019-04-26'),
-    rating: 8.4,
-    certificate: 'UA',
-    director: 'Anthony Russo, Joe Russo',
-    cast: ['Robert Downey Jr.', 'Chris Evans', 'Scarlett Johansson'],
-    poster: 'https://images.unsplash.com/photo-1635805737707-575885ab0820?w=300&h=450&fit=crop',
-    backdrop: 'https://images.unsplash.com/photo-1635805737707-575885ab0820?w=1920&h=1080&fit=crop',
-    status: 'NOW_SHOWING',
-  },
-  {
-    title: 'Spider-Man: Beyond Reality',
-    description: 'Peter Parker discovers new dimensions and faces challenges that test his abilities beyond imagination.',
-    genres: ['Action', 'Adventure', 'Fantasy'],
-    languages: ['English', 'Hindi'],
-    duration: 135,
-    releaseDate: new Date('2025-06-15'),
-    rating: 0,
-    certificate: 'UA',
-    director: 'Jon Watts',
-    cast: ['Tom Holland', 'Zendaya', 'Benedict Cumberbatch'],
-    poster: 'https://images.unsplash.com/photo-1509347528160-9a9e33742cdb?w=300&h=450&fit=crop',
-    backdrop: 'https://images.unsplash.com/photo-1509347528160-9a9e33742cdb?w=1920&h=1080&fit=crop',
-    status: 'COMING_SOON',
-  },
-  {
-    title: 'The Matrix Resurrections',
-    description: 'Return to a world of two realities: one, everyday life; the other, what lies behind it.',
-    genres: ['Action', 'Sci-Fi'],
-    languages: ['English', 'Hindi'],
-    duration: 148,
-    releaseDate: new Date('2025-08-20'),
-    rating: 0,
-    certificate: 'UA',
-    director: 'Lana Wachowski',
-    cast: ['Keanu Reeves', 'Carrie-Anne Moss', 'Yahya Abdul-Mateen II'],
-    poster: 'https://images.unsplash.com/photo-1440404653325-ab127d49abc1?w=300&h=450&fit=crop',
-    backdrop: 'https://images.unsplash.com/photo-1440404653325-ab127d49abc1?w=1920&h=1080&fit=crop',
-    status: 'COMING_SOON',
-  },
-];
+const seatRows = ['A', 'B', 'C', 'D', 'E', 'F'];
+const seatsPerRow = 20;
+
+const getRandomInt = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min;
+
+const getRandomDateInLastDays = (days) => {
+  const now = new Date();
+  const date = new Date(now);
+  date.setDate(now.getDate() - getRandomInt(0, days - 1));
+  date.setHours(getRandomInt(8, 23), getRandomInt(0, 59), getRandomInt(0, 59), 0);
+  return date;
+};
+
+const pickSeatsForShow = (showId, count, occupiedMap) => {
+  const key = String(showId);
+  const occupied = occupiedMap.get(key) || new Set();
+  const selected = [];
+  const maxAttempts = 500;
+  let attempts = 0;
+
+  while (selected.length < count && attempts < maxAttempts) {
+    attempts += 1;
+    const row = seatRows[getRandomInt(0, seatRows.length - 1)];
+    const number = getRandomInt(1, seatsPerRow);
+    const seatKey = `${row}-${number}`;
+
+    if (!occupied.has(seatKey)) {
+      occupied.add(seatKey);
+      selected.push({ row, number });
+    }
+  }
+
+  occupiedMap.set(key, occupied);
+  return selected;
+};
 
 // Seed database
 const seedDatabase = async () => {
   try {
     console.log('🌱 Starting database seeding...\n');
 
-    // Clear existing data
-    console.log('🗑️  Clearing existing data...');
-    await User.deleteMany();
-    await Movie.deleteMany();
-    await Show.deleteMany();
-    await Booking.deleteMany();
-    console.log('✅ Existing data cleared\n');
+    const shouldReset = process.argv.includes('--reset');
+
+    // Reset only when explicitly requested: node backend/seed.js --reset
+    if (shouldReset) {
+      console.log('🗑️  Reset mode enabled. Clearing existing seedable data...');
+      await Booking.deleteMany();
+      await Show.updateMany({}, { $set: { bookedSeats: [], seatLocks: [] } });
+      await User.deleteMany({ role: 'customer' });
+      console.log(' Existing data cleared\n');
+    } else {
+      console.log('  Safe mode enabled. Existing data will be preserved. Use --reset to clear data.\n');
+    }
 
     // Create users
     console.log('👥 Creating users...');
-    const createdUsers = await User.create(users);
-    console.log(`✅ Created ${createdUsers.length} users\n`);
+    const createdUsers = [];
+    for (const userData of users) {
+      const existing = await User.findOne({ email: userData.email }).select('+password');
+      if (existing) {
+        existing.name = userData.name;
+        existing.phone = userData.phone;
+        existing.role = userData.role;
+        existing.password = userData.password;
+        await existing.save();
+        createdUsers.push(existing);
+      } else {
+        const created = await User.create(userData);
+        createdUsers.push(created);
+      }
+    }
+    console.log(` Created ${createdUsers.length} users\n`);
 
-    // Create movies
-    console.log('🎬 Creating movies...');
-    const createdMovies = await Movie.create(movies);
-    console.log(`✅ Created ${createdMovies.length} movies\n`);
-
-    // Create shows for NOW_SHOWING movies
-    console.log('🎭 Creating shows...');
-    const shows = [];
-    const nowShowingMovies = createdMovies.filter(m => m.status === 'NOW_SHOWING');
+    // Reuse existing shows; create fallback shows only when there are none
+    console.log('🎭 Loading existing shows...');
+    let createdShows = await Show.find({ isActive: true });
 
     const theaters = [
       { name: 'PVR Cinemas', location: 'Ahmedabad Central Mall' },
@@ -169,49 +203,117 @@ const seedDatabase = async () => {
 
     // Get next 7 days
     const today = new Date();
-    for (let i = 0; i < 7; i++) {
-      const showDate = new Date(today);
-      showDate.setDate(today.getDate() + i);
+    if (createdShows.length === 0) {
+      console.log(' No shows found. Creating fallback shows from existing movies...');
+      const nowShowingMovies = await Movie.find({ status: 'NOW_SHOWING', isActive: true });
 
-      for (const movie of nowShowingMovies) {
-        // Create 2-3 shows per day per movie
-        const numShows = Math.floor(Math.random() * 2) + 2;
+      if (nowShowingMovies.length === 0) {
+        throw new Error('No existing NOW_SHOWING movies found. Please add movies/shows first.');
+      }
 
-        for (let j = 0; j < numShows; j++) {
-          const theater = theaters[Math.floor(Math.random() * theaters.length)];
-          const time = timeslots[Math.floor(Math.random() * timeslots.length)];
-          const format = formats[Math.floor(Math.random() * formats.length)];
-          const basePrice = 200;
-          const formatMultiplier = format === 'IMAX' ? 1.5 : format === '3D' ? 1.3 : 1;
+      const shows = [];
+      for (let i = 0; i < 7; i++) {
+        const showDate = new Date(today);
+        showDate.setDate(today.getDate() + i);
 
-          shows.push({
-            movie: movie._id,
-            date: showDate,
-            time,
-            theater: theater.name,
-            location: theater.location,
-            format,
-            price: Math.round(basePrice * formatMultiplier),
-            totalSeats: 120,
-            bookedSeats: [],
-          });
+        for (const movie of nowShowingMovies) {
+          const numShows = Math.floor(Math.random() * 2) + 2;
+
+          for (let j = 0; j < numShows; j++) {
+            const theater = theaters[Math.floor(Math.random() * theaters.length)];
+            const time = timeslots[Math.floor(Math.random() * timeslots.length)];
+            const format = formats[Math.floor(Math.random() * formats.length)];
+            const basePrice = 200;
+            const formatMultiplier = format === 'IMAX' ? 1.5 : format === '3D' ? 1.3 : 1;
+
+            shows.push({
+              movie: movie._id,
+              date: showDate,
+              time,
+              theater: theater.name,
+              location: theater.location,
+              format,
+              price: Math.round(basePrice * formatMultiplier),
+              totalSeats: 120,
+              bookedSeats: [],
+            });
+          }
         }
+      }
+
+      createdShows = await Show.create(shows);
+    }
+    console.log(` Loaded ${createdShows.length} shows\n`);
+
+    // Create realistic bookings from different users
+    console.log('🎟️  Creating bookings...');
+    const customerUsers = createdUsers.filter((u) => u.role === 'customer');
+    const showSeatMap = new Map();
+    const createdBookings = [];
+
+    for (const customer of customerUsers) {
+      const bookingsForUser = getRandomInt(4, 8);
+
+      for (let i = 0; i < bookingsForUser; i++) {
+        const show = createdShows[getRandomInt(0, createdShows.length - 1)];
+        const seatCount = getRandomInt(1, 4);
+        const seats = pickSeatsForShow(show._id, seatCount, showSeatMap);
+
+        if (seats.length === 0) {
+          continue;
+        }
+
+        const booking = new Booking({
+          bookingId: `BK-${Date.now()}-${Math.floor(10000 + Math.random() * 90000)}`,
+          user: customer._id,
+          movie: show.movie,
+          show: show._id,
+          seats,
+          email: customer.email,
+          phone: customer.phone,
+          status: 'confirmed',
+          paymentStatus: 'completed',
+          paymentMethod: 'razorpay',
+          paymentId: `pay_seed_${Math.random().toString(36).slice(2, 10)}`,
+          orderId: `order_seed_${Math.random().toString(36).slice(2, 10)}`,
+          bookingDate: getRandomDateInLastDays(7),
+        });
+
+        booking.calculateTotal(show.price, seats.length);
+        await booking.save();
+
+        // Keep show seat matrix in sync with created bookings
+        show.bookedSeats.push({
+          date: show.date,
+          time: show.time,
+          seats,
+        });
+        await show.save();
+
+        createdBookings.push(booking);
       }
     }
 
-    const createdShows = await Show.create(shows);
-    console.log(`✅ Created ${createdShows.length} shows\n`);
+    // Mark users as logged in recently so user insights look active
+    await User.updateMany(
+      { role: 'customer' },
+      { $set: { lastLoginAt: getRandomDateInLastDays(3) } }
+    );
+
+    console.log(` Created ${createdBookings.length} bookings\n`);
 
     console.log('═══════════════════════════════════════');
     console.log('🎉 DATABASE SEEDING COMPLETED! 🎉');
     console.log('═══════════════════════════════════════');
     console.log('\n📊 Summary:');
     console.log(`   👥 Users: ${createdUsers.length}`);
-    console.log(`   🎬 Movies: ${createdMovies.length}`);
+    console.log(`   🎬 Movies: ${await Movie.countDocuments()}`);
     console.log(`   🎭 Shows: ${createdShows.length}`);
+    console.log(`   🎟️  Bookings: ${createdBookings.length}`);
     console.log('\n🔐 Login Credentials:');
     console.log('   Admin: admin@cinebook.com / Admin@123');
-    console.log('   User:  user@cinebook.com / User@123');
+    console.log('   Demo users: rohit.solanki@gmail.com / User@123');
+    console.log('   Demo users: meera.patel@gmail.com / User@123');
     console.log('═══════════════════════════════════════\n');
 
     process.exit(0);

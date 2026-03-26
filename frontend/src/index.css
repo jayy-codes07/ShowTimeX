@@ -39,6 +39,23 @@
     --app-seat-locked-text: #fde6b2;
     --site-logo-image: url('./assets/images/Showtime_logo.png');
     --site-logo-filter: hue-rotate(104deg) saturate(1.2) brightness(1.04);
+
+    /* Chart Colors - Dark Theme (based on accent color #22c55e) */
+    --chart-gradient-start: #22c55e;
+    --chart-gradient-end: #4ade80;
+    --chart-grid: rgba(255, 255, 255, 0.08);
+    --chart-axis: #9CA3AF;
+    --chart-tooltip-bg: #111827;
+    --chart-tooltip-border: #374151;
+    --chart-tooltip-text: #F9FAFB;
+    --chart-tooltip-accent: #86efac;
+    --chart-cursor: rgba(255, 255, 255, 0.06);
+    --chart-shadow: 0 16px 34px rgba(0, 0, 0, 0.3);
+    --chart-color-1: #22c55e;
+    --chart-color-2: #4ade80;
+    --chart-color-3: #86efac;
+    --chart-color-4: #a7f3d0;
+    --chart-color-5: #bbf7d0;
   }
 
   body {
@@ -89,6 +106,24 @@
   --app-seat-locked: rgba(21, 128, 61, 0.28);
   --app-seat-locked-text: #14532d;
   --site-logo-filter: hue-rotate(96deg) saturate(1.08) brightness(0.9);
+
+  /* Chart Colors - Light Theme (bright green for visibility on light background) */
+  --chart-gradient-start: #059669;
+  --chart-gradient-end: #10b981;
+  --chart-grid: rgba(22, 101, 52, 0.12);
+  --chart-axis: #0f2a1c;
+  --chart-tooltip-bg: #ecfdf5;
+  --chart-tooltip-border: rgba(16, 185, 129, 0.3);
+  --chart-tooltip-text: #0f2a1c;
+  --chart-tooltip-accent: #059669;
+  --chart-cursor: rgba(16, 185, 129, 0.1);
+  --chart-shadow: 0 16px 34px rgba(5, 150, 105, 0.15);
+  --chart-color-1: #059669;
+  --chart-color-2: #10b981;
+  --chart-color-3: #34d399;
+  --chart-color-4: #6ee7b7;
+  --chart-color-5: #a7f3d0;
+
   color: var(--app-text-strong);
   background-color: var(--app-bg);
   background-image: var(--app-bg-image);

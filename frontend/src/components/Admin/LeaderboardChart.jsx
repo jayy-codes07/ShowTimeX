@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useMemo } from "react";
 import {
   ResponsiveContainer,
   BarChart,
@@ -8,28 +8,51 @@ import {
   Tooltip,
   Cell,
 } from "recharts";
+import { useTheme } from "../../context/ThemeContext";
 
-const chartColors = {
-  dark: {
-    bars: ["#e50914", "#ef4444", "#f97316", "#f59e0b", "#fb7185"],
-    axis: "#D1D5DB",
-    tooltipBackground: "#111827",
-    tooltipBorder: "#374151",
-    tooltipText: "#F9FAFB",
-    shadow: "0 16px 34px rgba(0, 0, 0, 0.3)",
-  },
-  light: {
-    bars: ["#bc6c25", "#dda15e", "#606c38", "#7f5539", "#a98467"],
-    axis: "#5b4c35",
-    tooltipBackground: "#fff8e1",
-    tooltipBorder: "rgba(221, 161, 94, 0.55)",
-    tooltipText: "#283618",
-    shadow: "0 16px 34px rgba(40, 54, 24, 0.12)",
-  },
+const getChartColors = () => {
+  const style = getComputedStyle(document.documentElement);
+  return {
+    bars: [
+      style.getPropertyValue("--chart-color-1").trim(),
+      style.getPropertyValue("--chart-color-2").trim(),
+      style.getPropertyValue("--chart-color-3").trim(),
+      style.getPropertyValue("--chart-color-4").trim(),
+      style.getPropertyValue("--chart-color-5").trim(),
+    ],
+    axis: style.getPropertyValue("--chart-axis").trim(),
+    tooltipBackground: style.getPropertyValue("--chart-tooltip-bg").trim(),
+    tooltipBorder: style.getPropertyValue("--chart-tooltip-border").trim(),
+    tooltipText: style.getPropertyValue("--chart-tooltip-text").trim(),
+    shadow: style.getPropertyValue("--chart-shadow").trim(),
+  };
 };
 
-const LeaderboardChart = ({ data, theme = "dark" }) => {
-  const colors = chartColors[theme] || chartColors.dark;
+const LeaderboardChart = ({ data }) => {
+  const { theme } = useTheme();
+  const colors = useMemo(() => getChartColors(), [theme]);
+
+  const renderTooltipContent = ({ active, payload }) => {
+    if (!active || !payload || payload.length === 0) {
+      return null;
+    }
+
+    return (
+      <div
+        style={{
+          backgroundColor: colors.tooltipBackground,
+          border: `1px solid ${colors.tooltipBorder}`,
+          borderRadius: "12px",
+          color: colors.tooltipText,
+          boxShadow: colors.shadow,
+          padding: "8px 12px",
+          fontWeight: 600,
+        }}
+      >
+        Value: {payload[0].value}
+      </div>
+    );
+  };
 
   return (
     <ResponsiveContainer width="100%" height={250}>
@@ -52,15 +75,7 @@ const LeaderboardChart = ({ data, theme = "dark" }) => {
 
         <Tooltip
           cursor={{ fill: "transparent" }}
-          contentStyle={{
-            backgroundColor: colors.tooltipBackground,
-            border: `1px solid ${colors.tooltipBorder}`,
-            borderRadius: "12px",
-            color: colors.tooltipText,
-            boxShadow: colors.shadow,
-          }}
-          labelStyle={{ color: colors.tooltipText, fontWeight: 600 }}
-          itemStyle={{ color: colors.tooltipText, fontWeight: 600 }}
+          content={renderTooltipContent}
         />
 
         <Bar dataKey="value" radius={[0, 4, 4, 0]}>
