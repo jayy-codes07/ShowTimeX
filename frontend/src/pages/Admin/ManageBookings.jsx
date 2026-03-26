@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
-import { Search, RotateCcw, IndianRupee, Mail } from "lucide-react";
+import { Search, RotateCcw, IndianRupee } from "lucide-react";
 import Button from "../../components/UI/Button";
 import Loader from "../../components/UI/Loader";
 import { apiRequest } from "../../services/api";
@@ -15,7 +15,6 @@ const ManageBookings = () => {
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
   const [submittingRefund, setSubmittingRefund] = useState(false);
-  const [resendingBookingId, setResendingBookingId] = useState("");
   const [showRefundModal, setShowRefundModal] = useState(false);
   const [selectedBooking, setSelectedBooking] = useState(null);
   const [pagination, setPagination] = useState({
@@ -33,8 +32,8 @@ const ManageBookings = () => {
     refundStatus: "",
   });
   const [refundForm, setRefundForm] = useState({
-    reason: "",
-    note: "",
+    approvalNote: "",
+    refundedAmount: "",
   });
 
   const fetchBookings = useCallback(async (requestFilters, resetPage = true, pageToLoad = 1) => {
@@ -142,10 +141,7 @@ const ManageBookings = () => {
 
   const canInitiateRefund = (booking) =>
     booking?.paymentStatus === "completed" &&
-    ["none", "failed"].includes(booking?.refundStatus || "none");
-
-  const canResendTicket = (booking) =>
-    booking?.status === "confirmed" && booking?.paymentStatus === "completed";
+    ["none", "failed", "initiated", "processing"].includes(booking?.refundStatus || "none");
 
   const handleLoadMore = () => {
     if (!loadingMore && pagination.hasMore) {
@@ -171,17 +167,15 @@ const ManageBookings = () => {
 
   const openRefundModal = (booking) => {
     setSelectedBooking(booking);
-    setRefundForm({ reason: "", note: "" });
+    setRefundForm({
+      approvalNote: "",
+      refundedAmount: booking?.totalAmount || "",
+    });
     setShowRefundModal(true);
   };
 
   const submitRefund = async (e) => {
     e.preventDefault();
-
-    if (!refundForm.reason.trim()) {
-      toast.error("Refund reason is required");
-      return;
-    }
 
     if (!selectedBooking?._id) {
       toast.error("Booking selection is invalid");
@@ -193,8 +187,8 @@ const ManageBookings = () => {
       const response = await apiRequest.patch(
         API_ENDPOINTS.ADMIN_BOOKING_REFUND(selectedBooking._id),
         {
-          reason: refundForm.reason,
-          note: refundForm.note,
+          approvalNote: refundForm.approvalNote,
+          refundedAmount: refundForm.refundedAmount,
         },
       );
 
@@ -212,23 +206,37 @@ const ManageBookings = () => {
     }
   };
 
-  const handleResendTicket = async (booking) => {
-    if (!booking?._id) return;
+  const declineRefund = async () => {
+    if (!selectedBooking?._id) {
+      toast.error("Booking selection is invalid");
+      return;
+    }
+    if (!refundForm.approvalNote?.trim()) {
+      toast.error("Please provide a decline message");
+      return;
+    }
 
     try {
-      setResendingBookingId(booking._id);
-      const response = await apiRequest.post(
-        API_ENDPOINTS.ADMIN_BOOKING_RESEND(booking._id),
+      setSubmittingRefund(true);
+      const response = await apiRequest.patch(
+        API_ENDPOINTS.ADMIN_BOOKING_REFUND(selectedBooking._id),
+        {
+          action: "decline",
+          approvalNote: refundForm.approvalNote,
+        },
       );
 
       if (response.success) {
-        toast.success(response.message || "Ticket email resent successfully");
+        toast.success(response.message || "Refund declined");
+        setShowRefundModal(false);
+        setSelectedBooking(null);
+        fetchBookings(filters, true, 1);
       }
     } catch (error) {
-      console.error("Error resending ticket:", error);
-      toast.error(error.response?.data?.message || "Failed to resend ticket");
+      console.error("Error declining refund:", error);
+      toast.error(error.response?.data?.message || "Failed to decline refund");
     } finally {
-      setResendingBookingId("");
+      setSubmittingRefund(false);
     }
   };
 
@@ -422,17 +430,6 @@ const ManageBookings = () => {
                             <Button
                               type="button"
                               variant="secondary"
-                              onClick={() => handleResendTicket(booking)}
-                              disabled={!canResendTicket(booking) || resendingBookingId === booking._id}
-                              loading={resendingBookingId === booking._id}
-                              className="!px-3 !py-2"
-                              icon={<Mail className="w-4 h-4" />}
-                            >
-                              Resend
-                            </Button>
-                            <Button
-                              type="button"
-                              variant="secondary"
                               onClick={() => openRefundModal(booking)}
                               disabled={!canInitiateRefund(booking)}
                               className="!px-3 !py-2"
@@ -470,30 +467,70 @@ const ManageBookings = () => {
         {showRefundModal && (
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4">
             <div className="w-full max-w-lg rounded-xl bg-dark-card p-6">
-              <h3 className="text-xl font-bold text-white mb-2">Initiate Refund</h3>
-              <p className="text-sm text-gray-400 mb-5">
-                {selectedBooking?.bookingId} - customer will be informed that refund will reflect in 2-3 working days.
+              <h3 className="text-xl font-bold text-white mb-2">
+                {selectedBooking?.refundStatus === "initiated" ? "Approve Refund" : "Initiate Refund"}
+              </h3>
+              <p className="text-sm text-gray-400 mb-4">
+                {selectedBooking?.bookingId} - Refund will be reflected in 2-3 working days
               </p>
 
               <form onSubmit={submitRefund} className="space-y-4">
+                {selectedBooking?.refundStatus === "initiated" ? (
+                  <>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-300 mb-2">User's Cancellation Reason</label>
+                      <div className="bg-gray-800/50 border border-gray-700 rounded-lg p-3 text-gray-300 text-sm">
+                        {selectedBooking?.refundReason || "No reason provided"}
+                      </div>
+                    </div>
+
+                    {selectedBooking?.refundNote && (
+                      <div>
+                        <label className="block text-sm font-medium text-gray-300 mb-2">User's Additional Details</label>
+                        <div className="bg-gray-800/50 border border-gray-700 rounded-lg p-3 text-gray-300 text-sm">
+                          {selectedBooking.refundNote}
+                        </div>
+                      </div>
+                    )}
+                  </>
+                ) : (
+                  <div>
+                    <label className="block text-sm font-medium text-gray-300 mb-2">Refund Reason *</label>
+                    <input
+                      value={refundForm.approvalNote || ""}
+                      onChange={(e) => setRefundForm((prev) => ({ ...prev, approvalNote: e.target.value }))}
+                      className="input-field"
+                      placeholder="Why are you refunding this booking?"
+                      required
+                    />
+                  </div>
+                )}
+
                 <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-2">Refund Reason *</label>
-                  <input
-                    value={refundForm.reason}
-                    onChange={(e) => setRefundForm((prev) => ({ ...prev, reason: e.target.value }))}
-                    className="input-field"
-                    placeholder="User requested cancellation"
+                  <label className="block text-sm font-medium text-gray-300 mb-2">
+                    {selectedBooking?.refundStatus === "initiated"
+                      ? "Approval / Decline Message *"
+                      : "Approval Note *"}
+                  </label>
+                  <textarea
+                    value={refundForm.approvalNote}
+                    onChange={(e) => setRefundForm((prev) => ({ ...prev, approvalNote: e.target.value }))}
+                    className="input-field min-h-[100px]"
+                    placeholder="Explain why this refund is approved or declined"
                     required
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-2">Admin Note (Optional)</label>
-                  <textarea
-                    value={refundForm.note}
-                    onChange={(e) => setRefundForm((prev) => ({ ...prev, note: e.target.value }))}
-                    className="input-field min-h-[100px]"
-                    placeholder="Additional notes for tracking"
+                  <label className="block text-sm font-medium text-gray-300 mb-2">Refunded Amount (Rs.)</label>
+                  <input
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    value={refundForm.refundedAmount || ""}
+                    onChange={(e) => setRefundForm((prev) => ({ ...prev, refundedAmount: e.target.value }))}
+                    className="input-field"
+                    placeholder="Enter refunded amount"
                   />
                 </div>
 
@@ -506,10 +543,20 @@ const ManageBookings = () => {
                       setSelectedBooking(null);
                     }}
                   >
-                    Cancel
+                    Close
                   </Button>
+                  {selectedBooking?.refundStatus === "initiated" && (
+                    <Button
+                      type="button"
+                      variant="secondary"
+                      onClick={declineRefund}
+                      loading={submittingRefund}
+                    >
+                      Decline Refund
+                    </Button>
+                  )}
                   <Button type="submit" variant="primary" loading={submittingRefund}>
-                    Confirm Refund Start
+                    Approve & Process Refund
                   </Button>
                 </div>
               </form>

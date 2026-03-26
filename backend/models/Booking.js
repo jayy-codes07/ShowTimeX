@@ -106,9 +106,23 @@ const bookingSchema = new mongoose.Schema(
       default: '',
       trim: true,
     },
+    refundApprovalNote: {
+      type: String,
+      default: '',
+      trim: true,
+    },
     refundRequestedBy: {
       type: String,
       enum: ['user', 'admin', 'system', null],
+      default: null,
+    },
+    refundApprovedBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User',
+      default: null,
+    },
+    refundApprovedAt: {
+      type: Date,
       default: null,
     },
     refundInitiatedAt: {
@@ -117,6 +131,16 @@ const bookingSchema = new mongoose.Schema(
     },
     refundCompletedAt: {
       type: Date,
+      default: null,
+    },
+    refundedAmount: {
+      type: Number,
+      min: 0,
+      default: 0,
+    },
+    refundFinalStatus: {
+      type: String,
+      enum: ['refunded', 'failed', null],
       default: null,
     },
     refundReference: {
@@ -128,6 +152,30 @@ const bookingSchema = new mongoose.Schema(
       type: String,
       default: '',
       trim: true,
+    },
+    refundApprovedBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User',
+      default: null,
+    },
+    refundApprovedAt: {
+      type: Date,
+      default: null,
+    },
+    refundApprovalNote: {
+      type: String,
+      default: '',
+      trim: true,
+    },
+    refundedAmount: {
+      type: Number,
+      default: 0,
+      min: 0,
+    },
+    refundFinalStatus: {
+      type: String,
+      enum: ['none', 'approved', 'refunded', 'failed'],
+      default: 'none',
     },
   },
   {
@@ -145,9 +193,9 @@ bookingSchema.index({ paymentStatus: 1 });
 // Generate unique booking ID before saving
 bookingSchema.pre('save', async function (next) {
   if (!this.bookingId) {
-    const timestamp = Date.now().toString(36).toUpperCase();
-    const random = Math.random().toString(36).substring(2, 7).toUpperCase();
-    this.bookingId = `BK${timestamp}${random}`;
+    const timestamp = Date.now();
+    const random = Math.floor(10000 + Math.random() * 90000);
+    this.bookingId = `BK-${timestamp}-${random}`;
   }
   next();
 });

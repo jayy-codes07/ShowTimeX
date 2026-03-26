@@ -226,7 +226,7 @@ const styles = StyleSheet.create({
   },
 });
 
-const TicketDocument = ({ booking }) => {
+const TicketDocument = ({ booking, logoSrc }) => {
   return (
     <Document>
       <Page size="A4" style={styles.page}>
@@ -237,7 +237,7 @@ const TicketDocument = ({ booking }) => {
               <Text style={styles.headerLabel}>Booking ID</Text>
               <Text style={styles.bookingId}>{booking.bookingId}</Text>
             </View>
-            <Image src={logo} style={styles.logo} />
+            <Image src={logoSrc || logo} style={styles.logo} />
           </View>
           <View style={styles.passRow}>
             <Text style={styles.passTag}>Entry Pass</Text>

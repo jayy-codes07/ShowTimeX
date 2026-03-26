@@ -6,6 +6,50 @@ import Button from '../UI/Button';
 import toast from 'react-hot-toast';
 import logo from './../../assets/images/Showtime_logo.png'
 
+const createWhiteLogoDataUrl = (src) =>
+  new Promise((resolve) => {
+    try {
+      const img = new Image();
+      img.crossOrigin = 'anonymous';
+      img.onload = () => {
+        const width = img.naturalWidth || img.width;
+        const height = img.naturalHeight || img.height;
+        if (!width || !height) {
+          resolve(src);
+          return;
+        }
+
+        const canvas = document.createElement('canvas');
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        if (!ctx) {
+          resolve(src);
+          return;
+        }
+
+        ctx.drawImage(img, 0, 0, width, height);
+        const imageData = ctx.getImageData(0, 0, width, height);
+        const data = imageData.data;
+
+        for (let i = 0; i < data.length; i += 4) {
+          if (data[i + 3] > 0) {
+            data[i] = 255;
+            data[i + 1] = 255;
+            data[i + 2] = 255;
+          }
+        }
+
+        ctx.putImageData(imageData, 0, 0);
+        resolve(canvas.toDataURL('image/png'));
+      };
+      img.onerror = () => resolve(src);
+      img.src = src;
+    } catch {
+      resolve(src);
+    }
+  });
+
 const Receipt = ({ booking }) => {
   const navigate = useNavigate();
   const [qrError, setQrError] = useState(false);
@@ -20,7 +64,8 @@ const Receipt = ({ booking }) => {
         import('@react-pdf/renderer'),
         import('./TicketDocument'),
       ]);
-      const doc = <TicketDocument booking={booking} />;
+      const whiteLogo = await createWhiteLogoDataUrl(logo);
+      const doc = <TicketDocument booking={booking} logoSrc={whiteLogo} />;
       const blob = await pdf(doc).toBlob();
       const url = URL.createObjectURL(blob);
       const link = document.createElement('a');

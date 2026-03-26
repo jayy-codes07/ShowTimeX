@@ -1,4 +1,5 @@
 const crypto = require("crypto");
+const mongoose = require("mongoose");
 const Booking = require("../models/Booking");
 const Show = require("../models/Show");
 const Movie = require("../models/Movie");
@@ -22,6 +23,44 @@ const getDayRange = (dateString) => {
   end.setHours(23, 59, 59, 999);
   start.setHours(0, 0, 0, 0);
   return { start, end };
+};
+
+const removeSeatsFromShow = async (showId, seats, userId) => {
+  if (!showId || !Array.isArray(seats) || seats.length === 0) {
+    return null;
+  }
+
+  const show = await Show.findById(showId);
+  if (!show) return null;
+
+  const seatsToRemove = new Set(
+    seats.map((s) => `${s.row}:${s.number}`)
+  );
+
+  const updatedBookedSeats = [];
+  for (const entry of show.bookedSeats || []) {
+    if (entry && Array.isArray(entry.seats)) {
+      const remainingSeats = entry.seats.filter(
+        (s) => !seatsToRemove.has(`${s.row}:${s.number}`)
+      );
+      if (remainingSeats.length > 0) {
+        updatedBookedSeats.push({ ...entry.toObject?.() || entry, seats: remainingSeats });
+      }
+      continue;
+    }
+
+    if (entry && entry.row) {
+      const key = `${entry.row}:${entry.number}`;
+      if (!seatsToRemove.has(key)) {
+        updatedBookedSeats.push(entry);
+      }
+    }
+  }
+
+  show.bookedSeats = updatedBookedSeats;
+  removeUserLockedSeats(show, userId, seats);
+  await show.save();
+  return show;
 };
 
 const createRazorpayOrder = async (req, res) => {
@@ -169,7 +208,7 @@ const createBooking = async (req, res) => {
     upsertUserLock(show, req.user._id, seatsToBook, DEFAULT_LOCK_MINUTES);
     await show.save();
 
-    const bookingId = `CB-${new Date().getFullYear()}-${Math.floor(100000 + Math.random() * 900000)}`;
+    const bookingId = `BK-${Date.now()}-${Math.floor(10000 + Math.random() * 90000)}`;
 
     // Create booking
     const booking = new Booking({
@@ -233,7 +272,7 @@ const verifyPayment = async (req, res) => {
         });
     }
 
-    // 🛠️ FIX: Check BOTH the custom CB-ID and the MongoDB _id
+    // 🛠️ FIX: Check BOTH the custom bookingId and the MongoDB _id
     let booking = await Booking.findOne({ bookingId: bookingId }).populate(
       "show",
     );
@@ -353,10 +392,22 @@ const getUserBookings = async (req, res) => {
 // @access  Private
 const getBookingById = async (req, res) => {
   try {
-    const booking = await Booking.findById(req.params.id)
-      .populate("user", "name email phone")
-      .populate("movie", "title poster duration genres languages")
-      .populate("show", "date time theater location format price");
+    const { id } = req.params;
+    let booking = null;
+
+    if (mongoose.Types.ObjectId.isValid(id)) {
+      booking = await Booking.findById(id)
+        .populate("user", "name email phone")
+        .populate("movie", "title poster duration genres languages")
+        .populate("show", "date time theater location format price");
+    }
+
+    if (!booking) {
+      booking = await Booking.findOne({ bookingId: id })
+        .populate("user", "name email phone")
+        .populate("movie", "title poster duration genres languages")
+        .populate("show", "date time theater location format price");
+    }
 
     if (!booking) {
       return res.status(404).json({
@@ -423,40 +474,13 @@ const cancelBooking = async (req, res) => {
     await booking.cancelBooking();
 
     // Remove seats from show
-    const show = await Show.findById(booking.show._id);
-    if (show) {
-      const seatsToRemove = new Set(
-        (booking.seats || []).map((s) => `${s.row}:${s.number}`)
-      );
-
-      const updatedBookedSeats = [];
-      for (const entry of show.bookedSeats || []) {
-        if (entry && Array.isArray(entry.seats)) {
-          const remainingSeats = entry.seats.filter(
-            (s) => !seatsToRemove.has(`${s.row}:${s.number}`)
-          );
-          if (remainingSeats.length > 0) {
-            updatedBookedSeats.push({ ...entry.toObject?.() || entry, seats: remainingSeats });
-          }
-          continue;
-        }
-
-        if (entry && entry.row) {
-          const key = `${entry.row}:${entry.number}`;
-          if (!seatsToRemove.has(key)) {
-            updatedBookedSeats.push(entry);
-          }
-        }
-      }
-
-      show.bookedSeats = updatedBookedSeats;
-      await show.save();
-    }
+    await removeSeatsFromShow(booking.show?._id || booking.show, booking.seats || [], booking.user);
 
     if (booking.paymentStatus === "completed" && booking.refundStatus === "none") {
       booking.refundStatus = "initiated";
       booking.refundRequestedBy = "user";
-      booking.refundReason = "User requested cancellation";
+      booking.refundReason = req.body.reason || "User requested cancellation";
+      booking.refundNote = req.body.additionalNote || "";
       booking.refundInitiatedAt = new Date();
       await booking.save();
     }
@@ -588,14 +612,7 @@ const getAllBookings = async (req, res) => {
 // @access  Private/Admin
 const initiateBookingRefund = async (req, res) => {
   try {
-    const { reason, note } = req.body;
-
-    if (!reason || !reason.trim()) {
-      return res.status(400).json({
-        success: false,
-        message: "Refund reason is required",
-      });
-    }
+    const { approvalNote, refundedAmount, action } = req.body;
 
     const booking = await Booking.findById(req.params.id)
       .populate("user", "name email")
@@ -616,41 +633,118 @@ const initiateBookingRefund = async (req, res) => {
       });
     }
 
-    if (booking.refundStatus === "initiated" || booking.refundStatus === "processing") {
+    if (booking.refundStatus === "processing" || booking.refundStatus === "refunded") {
       return res.status(400).json({
         success: false,
-        message: "Refund is already in progress for this booking",
+        message: "Refund is already in progress or completed for this booking",
       });
     }
 
-    booking.status = "cancelled";
-    booking.refundStatus = "initiated";
-    booking.refundRequestedBy = "admin";
-    booking.refundReason = reason.trim();
-    booking.refundNote = (note || "").trim();
-    booking.refundInitiatedAt = new Date();
+    if (action === "decline") {
+      if (!["initiated", "processing"].includes(booking.refundStatus)) {
+        return res.status(400).json({
+          success: false,
+          message: "Only initiated or processing refunds can be declined",
+        });
+      }
 
-    await booking.save();
+      booking.refundStatus = "failed";
+      booking.refundFinalStatus = "failed";
+      booking.refundApprovalNote = (approvalNote || "").trim();
+      booking.refundApprovedBy = req.user._id;
+      booking.refundApprovedAt = new Date();
+      booking.refundCompletedAt = new Date();
 
-    await triggerN8n("refund-initiated", {
-      userName: booking.user?.name || "Customer",
-      userEmail: booking.user?.email || booking.email,
-      bookingId: booking.bookingId,
-      movieTitle: booking.movie?.title || "Movie",
-      showDate: booking.show?.date,
-      showTime: booking.show?.time,
-      theater: booking.show?.theater,
-      reason: booking.refundReason,
-      note: booking.refundNote,
-      timeline: "2-3 working days",
-      amount: booking.totalAmount,
-    });
+      await booking.save();
 
-    res.status(200).json({
-      success: true,
-      message: "Refund initiated successfully. Customer will receive amount in 2-3 working days.",
-      booking,
-    });
+      return res.status(200).json({
+        success: true,
+        message: "Refund declined successfully.",
+        booking,
+      });
+    }
+
+    const parsedRefundedAmount = Number(refundedAmount);
+    const finalRefundAmount = Number.isFinite(parsedRefundedAmount) && parsedRefundedAmount > 0
+      ? parsedRefundedAmount
+      : booking.totalAmount;
+
+    // Approve user-initiated refund
+    if (booking.refundStatus === "initiated") {
+      booking.refundStatus = "refunded";
+      booking.paymentStatus = "refunded";
+      booking.refundApprovedBy = req.user._id;
+      booking.refundApprovedAt = new Date();
+      booking.refundApprovalNote = (approvalNote || "").trim();
+      booking.refundedAmount = finalRefundAmount;
+      booking.refundFinalStatus = "refunded";
+      booking.refundCompletedAt = new Date();
+      await booking.save();
+
+      await triggerN8n("refund-initiated", {
+        userName: booking.user?.name || "Customer",
+        userEmail: booking.user?.email || booking.email,
+        bookingId: booking.bookingId,
+        movieTitle: booking.movie?.title || "Movie",
+        showDate: booking.show?.date,
+        showTime: booking.show?.time,
+        theater: booking.show?.theater,
+        reason: booking.refundReason,
+        note: booking.refundNote,
+        timeline: "Refund completed",
+        amount: finalRefundAmount,
+      });
+
+      res.status(200).json({
+        success: true,
+        message: "Refund approved and marked as refunded.",
+        booking,
+      });
+    } 
+    // For future: admin-initiated refunds (none/failed status)
+    else if ((booking.refundStatus === "none" || booking.refundStatus === "failed") && approvalNote) {
+      booking.status = "cancelled";
+      booking.refundStatus = "refunded";
+      booking.paymentStatus = "refunded";
+      booking.refundRequestedBy = "admin";
+      booking.refundReason = approvalNote.trim() || "Cancelled by admin";
+      booking.refundApprovedBy = req.user._id;
+      booking.refundApprovedAt = new Date();
+      booking.refundApprovalNote = approvalNote.trim();
+      booking.refundInitiatedAt = new Date();
+      booking.refundedAmount = finalRefundAmount;
+      booking.refundFinalStatus = "refunded";
+      booking.refundCompletedAt = new Date();
+      await booking.save();
+
+      await removeSeatsFromShow(booking.show?._id || booking.show, booking.seats || [], booking.user);
+
+      await triggerN8n("refund-initiated", {
+        userName: booking.user?.name || "Customer",
+        userEmail: booking.user?.email || booking.email,
+        bookingId: booking.bookingId,
+        movieTitle: booking.movie?.title || "Movie",
+        showDate: booking.show?.date,
+        showTime: booking.show?.time,
+        theater: booking.show?.theater,
+        reason: "Admin initiated refund",
+        note: approvalNote,
+        timeline: "Refund completed",
+        amount: finalRefundAmount,
+      });
+
+      res.status(200).json({
+        success: true,
+        message: "Refund completed successfully.",
+        booking,
+      });
+    }
+    else {
+      res.status(400).json({
+        success: false,
+        message: "Cannot process refund for this booking status",
+      });
+    }
   } catch (error) {
     console.error("Initiate Booking Refund Error:", error);
     res.status(500).json({
