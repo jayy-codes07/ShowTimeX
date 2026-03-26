@@ -19,6 +19,7 @@ const ManageMovies = () => {
     description: "",
     duration: "",
     releaseDate: "",
+    endDate: "",
     rating: "",
     certificate: "",
     genres: [],
@@ -89,6 +90,7 @@ const ManageMovies = () => {
         ...formData,
         duration: parseInt(formData.duration),
         rating: parseFloat(formData.rating) || 0,
+        endDate: formData.endDate || null,
         cast: formData.cast
           .split(",")
           .map((c) => c.trim())
@@ -127,6 +129,7 @@ const ManageMovies = () => {
       description: movie.description || "",
       duration: movie.duration?.toString() || "",
       releaseDate: movie.releaseDate?.split("T")[0] || "",
+      endDate: movie.endDate?.split("T")[0] || "",
       rating: movie.rating?.toString() || "",
       certificate: movie.certificate || "",
       genres: movie.genres || [],
@@ -162,6 +165,7 @@ const ManageMovies = () => {
       description: "",
       duration: "",
       releaseDate: "",
+      endDate: "",
       rating: "",
       certificate: "",
       genres: [],
@@ -214,6 +218,33 @@ const ManageMovies = () => {
   const filteredMovies = movies.filter((movie) =>
     movie.title.toLowerCase().includes(searchQuery.toLowerCase()),
   );
+
+  const getComputedStatus = (movie) => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const releaseDate = movie.releaseDate ? new Date(movie.releaseDate) : null;
+    const endDate = movie.endDate ? new Date(movie.endDate) : null;
+
+    if (endDate && endDate <= today) {
+      return "ENDED";
+    }
+
+    if (releaseDate && releaseDate > today) {
+      return "COMING_SOON";
+    }
+
+    return "NOW_SHOWING";
+  };
+
+  const getStatusBadge = (status) => {
+    if (status === "COMING_SOON") {
+      return "bg-amber-500/20 text-amber-500";
+    }
+    if (status === "ENDED") {
+      return "bg-gray-600/30 text-gray-300";
+    }
+    return "bg-green-500/20 text-green-500";
+  };
 
   if (loading) {
     return <Loader fullScreen message="Loading movies..." />;
@@ -288,6 +319,9 @@ const ManageMovies = () => {
                       Release Date
                     </th>
                     <th className="text-left py-4 px-6 text-gray-400 font-semibold">
+                      Status
+                    </th>
+                    <th className="text-left py-4 px-6 text-gray-400 font-semibold">
                       Actions
                     </th>
                   </tr>
@@ -326,6 +360,16 @@ const ManageMovies = () => {
                       </td>
                       <td className="py-4 px-6 text-gray-300">
                         {new Date(movie.releaseDate).toLocaleDateString()}
+                      </td>
+                      <td className="py-4 px-6 text-gray-300">
+                        {(() => {
+                          const status = getComputedStatus(movie);
+                          return (
+                            <span className={`inline-block px-2 py-1 rounded text-xs font-semibold uppercase ${getStatusBadge(status)}`}>
+                              {status}
+                            </span>
+                          );
+                        })()}
                       </td>
                       <td className="py-4 px-6">
                         <div className="flex space-x-2">
@@ -404,6 +448,13 @@ const ManageMovies = () => {
                     onChange={handleInputChange}
                     error={errors.releaseDate}
                     required
+                  />
+                  <Input
+                    label="End Date (optional)"
+                    name="endDate"
+                    type="date"
+                    value={formData.endDate}
+                    onChange={handleInputChange}
                   />
                 </div>
 

@@ -2,6 +2,56 @@ const Movie = require('../models/Movie');
 const { triggerN8n } = require('../n8nService');
 const User = require('../models/User');
 
+const getToday = () => {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  return today;
+};
+
+const computeStatusFromDates = (releaseDate, endDate) => {
+  const today = getToday();
+  const release = releaseDate ? new Date(releaseDate) : null;
+  const end = endDate ? new Date(endDate) : null;
+
+  if (end && end <= today) {
+    return 'ENDED';
+  }
+
+  if (release && release > today) {
+    return 'COMING_SOON';
+  }
+
+  return 'NOW_SHOWING';
+};
+
+const buildStatusFilter = (status) => {
+  const today = getToday();
+  if (!status) return {};
+
+  if (status === 'COMING_SOON') {
+    return { releaseDate: { $gt: today } };
+  }
+
+  if (status === 'NOW_SHOWING') {
+    return {
+      releaseDate: { $lte: today },
+      $or: [{ endDate: { $exists: false } }, { endDate: null }, { endDate: { $gt: today } }],
+    };
+  }
+
+  if (status === 'ENDED') {
+    return { endDate: { $lte: today } };
+  }
+
+  return {};
+};
+
+const withComputedStatus = (movie) => {
+  const data = movie.toObject();
+  data.status = computeStatusFromDates(data.releaseDate, data.endDate);
+  return data;
+};
+
 // @desc    Get all movies
 // @route   GET /api/movies
 // @access  Public
@@ -13,7 +63,9 @@ const getAllMovies = async (req, res) => {
     
     if (genre) filter.genres = genre;
     if (language) filter.languages = language;
-    if (status) filter.status = status;
+    if (status) {
+      Object.assign(filter, buildStatusFilter(status));
+    }
 
     const shouldPaginate = page !== undefined || limit !== undefined;
 
@@ -23,7 +75,7 @@ const getAllMovies = async (req, res) => {
       return res.status(200).json({
         success: true,
         count: movies.length,
-        movies,
+        movies: movies.map(withComputedStatus),
       });
     }
 
@@ -46,7 +98,7 @@ const getAllMovies = async (req, res) => {
       limit: parsedLimit,
       hasMore,
       count: movies.length,
-      movies,
+      movies: movies.map(withComputedStatus),
     });
   } catch (error) {
     console.error('Get All Movies Error:', error);
@@ -73,7 +125,7 @@ const getMovieById = async (req, res) => {
 
     res.status(200).json({
       success: true,
-      movie,
+      movie: withComputedStatus(movie),
     });
   } catch (error) {
     console.error('Get Movie By ID Error:', error);
@@ -90,14 +142,14 @@ const getMovieById = async (req, res) => {
 const getNowShowing = async (req, res) => {
   try {
     const movies = await Movie.find({
-      status: 'NOW_SHOWING',
       isActive: true,
+      ...buildStatusFilter('NOW_SHOWING'),
     }).sort({ releaseDate: -1 });
 
     res.status(200).json({
       success: true,
       count: movies.length,
-      movies,
+      movies: movies.map(withComputedStatus),
     });
   } catch (error) {
     console.error('Get Now Showing Error:', error);
@@ -108,20 +160,20 @@ const getNowShowing = async (req, res) => {
   }
 };
 
-// @desc    Get coming soon movies
+// @desc    Get coming soon movies (by status OR future release date)
 // @route   GET /api/movies/coming-soon
 // @access  Public
 const getComingSoon = async (req, res) => {
   try {
     const movies = await Movie.find({
-      status: 'COMING_SOON',
       isActive: true,
+      ...buildStatusFilter('COMING_SOON'),
     }).sort({ releaseDate: 1 });
 
     res.status(200).json({
       success: true,
       count: movies.length,
-      movies,
+      movies: movies.map(withComputedStatus),
     });
   } catch (error) {
     console.error('Get Coming Soon Error:', error);
@@ -156,7 +208,7 @@ const searchMovies = async (req, res) => {
     res.status(200).json({
       success: true,
       count: movies.length,
-      movies,
+      movies: movies.map(withComputedStatus),
     });
   } catch (error) {
     console.error('Search Movies Error:', error);

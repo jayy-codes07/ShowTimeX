@@ -43,6 +43,10 @@ const movieSchema = new mongoose.Schema(
       type: Date,
       required: [true, 'Please provide a release date'],
     },
+    endDate: {
+      type: Date,
+      default: null,
+    },
     rating: {
       type: Number,
       min: 0,
@@ -101,12 +105,31 @@ movieSchema.virtual('shows', {
 
 // Method to check if movie is currently showing
 movieSchema.methods.isNowShowing = function () {
-  return this.status === 'NOW_SHOWING' && this.isActive;
+  return this.getComputedStatus() === 'NOW_SHOWING' && this.isActive;
 };
 
-// Method to check if movie is coming soon
+// Method to check if movie is coming soon (by status OR future release date)
 movieSchema.methods.isComingSoon = function () {
-  return this.status === 'COMING_SOON' && this.isActive;
+  if (!this.isActive) return false;
+  return this.getComputedStatus() === 'COMING_SOON';
+};
+
+// Compute status dynamically based on dates
+movieSchema.methods.getComputedStatus = function () {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const releaseDate = this.releaseDate ? new Date(this.releaseDate) : null;
+  const endDate = this.endDate ? new Date(this.endDate) : null;
+
+  if (endDate && endDate <= today) {
+    return 'ENDED';
+  }
+
+  if (releaseDate && releaseDate > today) {
+    return 'COMING_SOON';
+  }
+
+  return 'NOW_SHOWING';
 };
 
 const Movie = mongoose.model('Movie', movieSchema);
