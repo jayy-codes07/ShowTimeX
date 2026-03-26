@@ -26,6 +26,37 @@ const BookingForm = ({ onSubmit, loading }) => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    
+    // Validate required fields
+    if (!formData.email || !formData.phone) {
+      const missingFields = [];
+      if (!formData.email) missingFields.push('email');
+      if (!formData.phone) missingFields.push('phone');
+      
+      import('react-hot-toast').then(({ default: toast }) => {
+        toast.error(`Please fill in: ${missingFields.join(', ')}`);
+      });
+      return;
+    }
+    
+    // Validate email format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(formData.email)) {
+      import('react-hot-toast').then(({ default: toast }) => {
+        toast.error('Please enter a valid email address');
+      });
+      return;
+    }
+    
+    // Validate phone (10 digits, Indian format)
+    const phoneRegex = /^[6-9]\d{9}$/;
+    if (!phoneRegex.test(formData.phone.replace(/\D/g, ''))) {
+      import('react-hot-toast').then(({ default: toast }) => {
+        toast.error('Please enter a valid 10-digit phone number');
+      });
+      return;
+    }
+    
     onSubmit({ ...formData, paymentMethod });
   };
 
@@ -85,19 +116,29 @@ const BookingForm = ({ onSubmit, loading }) => {
       {/* Payment Method */}
       <div className="bg-dark-card rounded-xl p-4 sm:p-6">
         <h3 className="text-xl font-bold text-white mb-4">Payment Method</h3>
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4" role="radiogroup" aria-label="Payment method selection">
           {paymentMethods.map((method) => (
             <motion.button
               key={method.id}
               type="button"
+              role="radio"
+              aria-checked={paymentMethod === method.id}
+              tabIndex={paymentMethod === method.id ? 0 : -1}
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
               onClick={() => setPaymentMethod(method.id)}
-              className={`p-4 rounded-lg border-2 transition-all ${
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault();
+                  setPaymentMethod(method.id);
+                }
+              }}
+              className={`p-4 rounded-lg border-2 transition-all focus:outline-2 focus:outline-primary focus:outline-offset-2 ${
                 paymentMethod === method.id
                   ? 'border-primary bg-primary/10'
                   : 'border-gray-700 bg-dark-lighter hover:border-gray-600'
               }`}
+              aria-label={`${method.name}: ${method.description}`}
             >
               <div className="flex flex-col items-center space-y-2">
                 <div className={paymentMethod === method.id ? 'text-primary' : 'text-gray-400'}>

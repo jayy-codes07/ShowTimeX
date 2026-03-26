@@ -13,6 +13,7 @@ const Button = ({
   type = 'button',
   className = '',
   icon,
+  ariaLabel = '',
   ...props
 }) => {
   const baseClasses = 'flex items-center justify-center gap-2 rounded-xl transition-all duration-300 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50';
@@ -39,6 +40,7 @@ const Button = ({
       type={type}
       onClick={onClick}
       disabled={disabled || loading}
+      aria-label={ariaLabel || undefined}
       className={`${baseClasses} ${variantClasses[variant]} ${sizeClasses[size]} ${widthClass} ${className}`}
       {...props}
     >

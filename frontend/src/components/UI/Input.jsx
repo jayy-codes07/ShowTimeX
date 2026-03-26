@@ -25,7 +25,7 @@ const Input = ({
       
       <div className="relative">
         {icon && (
-          <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">
+          <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 pointer-events-none">
             {icon}
           </div>
         )}
@@ -38,13 +38,17 @@ const Input = ({
           onChange={onChange}
           placeholder={placeholder}
           disabled={disabled}
-          className={`input-field ${icon ? 'pl-10' : ''} ${error ? 'border-red-500 focus:ring-red-500' : ''}`}
+          required={required}
+          aria-required={required}
+          aria-invalid={!!error}
+          aria-describedby={error ? `${name}-error` : undefined}
+          className={`input-field ${icon ? 'pl-10' : ''} ${error ? 'border-red-500 focus:ring-red-500' : 'focus:outline-none focus:ring-2 focus:ring-primary'}`}
           {...props}
         />
       </div>
       
       {error && (
-        <p className="mt-1 text-sm text-red-500">{error}</p>
+        <p id={`${name}-error`} className="mt-1 text-sm text-red-500" role="alert">{error}</p>
       )}
     </div>
   );

@@ -90,12 +90,11 @@ userSchema.methods.toJSON = function () {
 
 // Generate and hash password reset OTP
 userSchema.methods.getResetPasswordOTP = function () {
-  // Generate a 6-digit OTP
-  const otp = Math.floor(100000 + Math.random() * 900000).toString();
-
-  // Hash the OTP using crypto (a quick hash like SHA-256) since bcrypt is async and heavy, 
-  // or we can just use crypto for simplicity since it's an ephemeral 6-digit code.
+  // Generate a 6-digit OTP using cryptographically secure random
   const crypto = require('crypto');
+  const otp = crypto.randomInt(0, 1000000).toString().padStart(6, '0');
+
+  // Hash the OTP using crypto
   this.resetPasswordOTP = crypto
     .createHash('sha256')
     .update(otp)

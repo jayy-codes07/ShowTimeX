@@ -127,6 +127,13 @@ const SeatMap = ({
     }
   };
 
+  const handleSeatKeyDown = (e, row, number) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      handleSeatClick(row, number);
+    }
+  };
+
   const getSeatStatus = (row, number) => {
     const isBooked = flatBookedSeats.some(
       (seat) => seat.row === row && seat.number === number
@@ -182,9 +189,9 @@ const SeatMap = ({
       </div>
 
       {/* Seat Grid */}
-      <div className="overflow-x-auto -mx-2 px-2 sm:mx-0 sm:px-0">
-        <div className="inline-block min-w-full">
-          <div className="space-y-3">
+      <div className="w-full overflow-x-auto -mx-2 sm:mx-0">
+        <div className="px-2 sm:px-0 py-4">
+          <div className="space-y-2">
             {/* 🟢 FIX 3: Map over activeRows instead of SEAT_CONFIG.ROWS */}
             {activeRows.map((row, rowIndex) => {
               
@@ -196,12 +203,12 @@ const SeatMap = ({
                   : seatsPerRow;
 
               return (
-                <div key={row} className="flex items-center justify-center space-x-1.5 sm:space-x-2">
-                  <div className="w-6 sm:w-8 text-center text-gray-400 font-semibold text-xs sm:text-sm">
+                <div key={row} className="flex items-center justify-center gap-1 sm:gap-1.5">
+                  <div className="w-5 sm:w-6 text-center text-gray-400 font-semibold text-xs sm:text-sm flex-shrink-0">
                     {row}
                   </div>
 
-                  <div className="flex space-x-1.5 sm:space-x-2">
+                  <div className="flex gap-0.5 sm:gap-1 justify-center">
                     {Array.from({ length: seatsInThisRow }, (_, i) => {
                       const seatNumber = i + 1;
                       const status = getSeatStatus(row, seatNumber);
@@ -209,16 +216,19 @@ const SeatMap = ({
 
                       return (
                         <React.Fragment key={seatNumber}>
-                          {isMiddle && <div className="w-2 sm:w-4"></div>}
+                          {isMiddle && <div className="w-1 sm:w-2"></div>}
                           <button
                             onClick={() => handleSeatClick(row, seatNumber)}
-                            disabled={status === 'booked'}
-                            className={getSeatClass(status)}
+                            onKeyDown={(e) => handleSeatKeyDown(e, row, seatNumber)}
+                            disabled={status === 'booked' || status === 'locked'}
+                            className={`${getSeatClass(status)} focus:outline-2 focus:outline-offset-1 focus:outline-primary disabled:cursor-not-allowed`}
                             title={
                               status === 'locked'
                                 ? `${row}${seatNumber} - Locked by another user`
                                 : `${row}${seatNumber} - ${status}`
                             }
+                            aria-label={`Seat ${row}${seatNumber} - ${status}`}
+                            aria-pressed={status === 'selected'}
                           >
                             {seatNumber}
                           </button>

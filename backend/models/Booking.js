@@ -153,30 +153,6 @@ const bookingSchema = new mongoose.Schema(
       default: '',
       trim: true,
     },
-    refundApprovedBy: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'User',
-      default: null,
-    },
-    refundApprovedAt: {
-      type: Date,
-      default: null,
-    },
-    refundApprovalNote: {
-      type: String,
-      default: '',
-      trim: true,
-    },
-    refundedAmount: {
-      type: Number,
-      default: 0,
-      min: 0,
-    },
-    refundFinalStatus: {
-      type: String,
-      enum: ['none', 'approved', 'refunded', 'failed'],
-      default: 'none',
-    },
   },
   {
     timestamps: true,

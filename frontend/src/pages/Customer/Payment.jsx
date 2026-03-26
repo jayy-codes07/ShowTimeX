@@ -156,6 +156,25 @@ const Payment = () => {
 
   return (
     <div className="min-h-screen bg-dark py-8">
+      {/* Loading Overlay */}
+      {loading && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center"
+        >
+          <div className="bg-dark-card rounded-xl p-8 text-center max-w-md">
+            <motion.div
+              animate={{ rotate: 360 }}
+              transition={{ duration: 2, repeat: Infinity, ease: 'linear' }}
+              className="w-16 h-16 border-4 border-primary/30 border-t-primary rounded-full mx-auto mb-4"
+            />
+            <h2 className="text-xl font-bold text-white mb-2">Processing Payment</h2>
+            <p className="text-gray-400">Please wait while we process your payment. Do not close this window.</p>
+          </div>
+        </motion.div>
+      )}
       <div className="container-custom">
         {/* Back Button */}
         <button

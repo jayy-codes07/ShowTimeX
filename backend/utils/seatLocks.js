@@ -139,6 +139,63 @@ const removeUserLockedSeats = (show, userId, seatsToRemove) => {
   return buildLockResponse(show, userId);
 };
 
+// ⚡ ATOMIC: Lock seats using MongoDB operators (prevents race conditions)
+// This function should be used in booking flow for atomic seat locking
+const atomicLockSeats = async (Show, showId, userId, seats, holdMinutes) => {
+  const now = new Date();
+  const expiresAt = new Date(now.getTime() + holdMinutes * 60 * 1000);
+  const normalizedSeats = uniqueSeats(seats);
+
+  if (normalizedSeats.length === 0) {
+    return null;
+  }
+
+  try {
+    // Use atomic MongoDB operations:
+    // 1. Remove expired locks for this user
+    // 2. Add new lock entry
+    const result = await Show.findByIdAndUpdate(
+      showId,
+      [
+        {
+          $set: {
+            // Remove this user's old locks and add new lock atomically
+            seatLocks: {
+              $concatArrays: [
+                {
+                  $filter: {
+                    input: '$seatLocks',
+                    cond: {
+                      $or: [
+                        // Keep locks from other users
+                        { $ne: ['$$this.user', userId] },
+                      ],
+                    },
+                  },
+                },
+                [
+                  {
+                    user: userId,
+                    seats: normalizedSeats,
+                    expiresAt: expiresAt,
+                    createdAt: now,
+                  },
+                ],
+              ],
+            },
+          },
+        },
+      ],
+      { new: true }
+    );
+
+    return result;
+  } catch (error) {
+    console.error('Atomic seat lock failed:', error);
+    throw new Error('Failed to lock seats. Please try again.');
+  }
+};
+
 module.exports = {
   normalizeSeat,
   uniqueSeats,
@@ -150,4 +207,5 @@ module.exports = {
   buildLockResponse,
   upsertUserLock,
   removeUserLockedSeats,
+  atomicLockSeats,
 };

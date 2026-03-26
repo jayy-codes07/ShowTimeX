@@ -12,6 +12,7 @@ const {
   isSeatLockedByOther,
   upsertUserLock,
   removeUserLockedSeats,
+  atomicLockSeats,
 } = require("../utils/seatLocks");
 
 const DEFAULT_LOCK_MINUTES = parseInt(process.env.SEAT_LOCK_MINUTES || "10", 10);
@@ -104,9 +105,17 @@ const createRazorpayOrder = async (req, res) => {
         .json({ success: false, message: "Booking not found" });
     }
 
+    // Validate payment amount
+    if (!booking.totalAmount || booking.totalAmount <= 0 || typeof booking.totalAmount !== 'number') {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid booking amount",
+      });
+    }
+
     // 3. Create the order
     const order = await razorpay.orders.create({
-      amount: booking.totalAmount * 100, // Make sure totalAmount exists!
+      amount: booking.totalAmount * 100,
       currency: "INR",
       receipt: booking.bookingId,
     });
@@ -204,9 +213,21 @@ const createBooking = async (req, res) => {
       });
     }
 
-    // Lock seats while user completes payment
-    upsertUserLock(show, req.user._id, seatsToBook, DEFAULT_LOCK_MINUTES);
-    await show.save();
+    // Lock seats while user completes payment (ATOMIC operation)
+    try {
+      const lockedShow = await atomicLockSeats(Show, showId, req.user._id, seatsToBook, DEFAULT_LOCK_MINUTES);
+      if (!lockedShow) {
+        return res.status(409).json({
+          success: false,
+          message: "Failed to lock seats. They may have been booked by someone else.",
+        });
+      }
+    } catch (lockError) {
+      return res.status(409).json({
+        success: false,
+        message: lockError.message || "Could not lock seats. Please try again.",
+      });
+    }
 
     const bookingId = `BK-${Date.now()}-${Math.floor(10000 + Math.random() * 90000)}`;
 
@@ -291,6 +312,15 @@ const verifyPayment = async (req, res) => {
         .json({ success: false, message: "Booking not found" });
     }
 
+    // ✅ Idempotency check: If already confirmed, return success (for webhook retries)
+    if (booking.status === "confirmed" && booking.paymentStatus === "completed") {
+      return res.status(200).json({
+        success: true,
+        message: "Payment already verified for this booking",
+        booking,
+      });
+    }
+
     // 🔐 Verify signature
     const sign = razorpay_order_id + "|" + razorpay_payment_id;
 
@@ -322,17 +352,26 @@ const verifyPayment = async (req, res) => {
       }
     }
 
-    // ✅ NOW book seats
-    booking.show.bookSeats(booking.seats);
-    removeUserLockedSeats(booking.show, booking.user, booking.seats);
-    await booking.show.save();
+    // ✅ Start atomic operations: Book seats AND confirm booking
+    try {
+      // ✅ NOW book seats
+      booking.show.bookSeats(booking.seats);
+      removeUserLockedSeats(booking.show, booking.user, booking.seats);
+      await booking.show.save();
 
-    // ✅ Confirm booking
-    booking.status = "confirmed";
-    booking.paymentStatus = "completed";
-    booking.orderId = razorpay_order_id;
-    booking.paymentId = razorpay_payment_id;
-    await booking.save();
+      // ✅ Confirm booking
+      booking.status = "confirmed";
+      booking.paymentStatus = "completed";
+      booking.orderId = razorpay_order_id;
+      booking.paymentId = razorpay_payment_id;
+      await booking.save();
+    } catch (atomicError) {
+      // If atomic operations fail, clean up
+      console.error("Payment confirmation atomic operation failed:", atomicError);
+      // Attempt to rollback show updates
+      booking.show.save().catch(e => console.error("Rollback failed:", e));
+      throw atomicError;
+    }
 
     // Populate for email details
     const confirmedBooking = await Booking.findById(booking._id)
@@ -548,7 +587,9 @@ const getAllBookings = async (req, res) => {
       .sort({ bookingDate: -1 });
 
     if (search) {
-      const searchRegex = new RegExp(search, "i");
+      // Escape special regex characters to prevent ReDoS attacks
+      const escapedSearch = search.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      const searchRegex = new RegExp(escapedSearch, "i");
       const matchingUsers = await User.find({
         $or: [{ name: searchRegex }, { email: searchRegex }],
       }).select("_id");
@@ -581,7 +622,7 @@ const getAllBookings = async (req, res) => {
     }
 
     const parsedPage = Math.max(parseInt(page, 10) || 1, 1);
-    const parsedLimit = Math.max(parseInt(limit, 10) || 10, 1);
+    const parsedLimit = Math.min(Math.max(parseInt(limit, 10) || 10, 1), 100);
     const skip = (parsedPage - 1) * parsedLimit;
     const total = await Booking.countDocuments(query.getFilter());
 
@@ -669,6 +710,15 @@ const initiateBookingRefund = async (req, res) => {
       ? parsedRefundedAmount
       : booking.totalAmount;
 
+    // Validate refund amount doesn't exceed total amount
+    const maxRefundAmount = booking.totalAmount - (booking.refundedAmount || 0);
+    if (finalRefundAmount > maxRefundAmount) {
+      return res.status(400).json({
+        success: false,
+        message: `Refund amount ₹${finalRefundAmount} exceeds available refund amount ₹${maxRefundAmount}`,
+      });
+    }
+
     // Approve user-initiated refund
     if (booking.refundStatus === "initiated") {
       booking.refundStatus = "refunded";
@@ -676,7 +726,7 @@ const initiateBookingRefund = async (req, res) => {
       booking.refundApprovedBy = req.user._id;
       booking.refundApprovedAt = new Date();
       booking.refundApprovalNote = (approvalNote || "").trim();
-      booking.refundedAmount = finalRefundAmount;
+      booking.refundedAmount = (booking.refundedAmount || 0) + finalRefundAmount;
       booking.refundFinalStatus = "refunded";
       booking.refundCompletedAt = new Date();
       await booking.save();
@@ -1001,7 +1051,7 @@ const getAdminUserInsights = async (req, res) => {
   try {
     const { page = 1, limit = 10 } = req.query;
     const parsedPage = Math.max(parseInt(page, 10) || 1, 1);
-    const parsedLimit = Math.max(parseInt(limit, 10) || 10, 1);
+    const parsedLimit = Math.min(Math.max(parseInt(limit, 10) || 10, 1), 100);
     const skip = (parsedPage - 1) * parsedLimit;
 
     const sevenDaysAgo = new Date();

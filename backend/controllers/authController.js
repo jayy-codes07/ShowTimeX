@@ -243,8 +243,6 @@ If you did not request a password reset, please ignore this message or contact s
       res.status(200).json({
         success: true,
         message: 'OTP sent to email',
-        // Optional: Include OTP in dev mode for easy testing without ethereal
-        ...(process.env.NODE_ENV !== 'production' && { dev_otp: resetOTP })
       });
     } catch (err) {
       user.resetPasswordOTP = undefined;
