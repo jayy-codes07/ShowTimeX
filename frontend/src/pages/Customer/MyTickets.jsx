@@ -70,6 +70,76 @@ const createWhiteLogoDataUrl = (src) =>
     }
   });
 
+const getShowDateTime = (show) => {
+  if (!show?.date) {
+    return null;
+  }
+
+  const baseDate = new Date(show.date);
+  if (Number.isNaN(baseDate.getTime())) {
+    return null;
+  }
+
+  const timeStr = String(show.time || "").trim();
+  const twelveHourMatch = timeStr.match(/^(\d{1,2}):(\d{2})\s*(AM|PM)$/i);
+  if (twelveHourMatch) {
+    let hours = parseInt(twelveHourMatch[1], 10);
+    const minutes = parseInt(twelveHourMatch[2], 10);
+    const meridiem = twelveHourMatch[3].toUpperCase();
+
+    if (hours === 12) hours = 0;
+    if (meridiem === "PM") hours += 12;
+
+    baseDate.setHours(hours, minutes, 0, 0);
+    return baseDate;
+  }
+
+  const twentyFourHourMatch = timeStr.match(/^(\d{1,2}):(\d{2})$/);
+  if (twentyFourHourMatch) {
+    baseDate.setHours(
+      parseInt(twentyFourHourMatch[1], 10),
+      parseInt(twentyFourHourMatch[2], 10),
+      0,
+      0,
+    );
+  }
+
+  return baseDate;
+};
+
+const roundMoney = (value) => Number((Number(value) || 0).toFixed(2));
+
+const getRefundPreview = (booking) => {
+  const showDateTime = getShowDateTime(booking?.show);
+  if (!showDateTime) {
+    return null;
+  }
+
+  const msUntilShow = showDateTime.getTime() - Date.now();
+  if (msUntilShow <= 0) {
+    return null;
+  }
+
+  const hoursBeforeShow = msUntilShow / (1000 * 60 * 60);
+  let percentage = 50;
+  let windowLabel = "Less than 12 hours before show";
+
+  if (hoursBeforeShow > 24) {
+    percentage = 90;
+    windowLabel = "More than 24 hours before show";
+  } else if (hoursBeforeShow >= 12) {
+    percentage = 70;
+    windowLabel = "12 to 24 hours before show";
+  }
+
+  return {
+    percentage,
+    amount: roundMoney((booking?.totalAmount || 0) * (percentage / 100)),
+    hoursBeforeShow: roundMoney(hoursBeforeShow),
+    windowLabel,
+  };
+};
+
 const MyTickets = () => {
   const navigate = useNavigate();
   const [bookings, setBookings] = useState([]);
@@ -77,7 +147,7 @@ const MyTickets = () => {
   const [filter, setFilter] = useState("all");
   const [qrFailed, setQrFailed] = useState({});
   const [downloadingId, setDownloadingId] = useState(null);
-  const [cancellationModal, setCancellationModal] = useState({ isOpen: false, bookingId: null });
+  const [cancellationModal, setCancellationModal] = useState({ isOpen: false, bookingId: null, booking: null });
   const [cancellingBookingId, setCancellingBookingId] = useState(null);
   const { theme } = useTheme();
   const isDark = theme === "dark";
@@ -103,12 +173,12 @@ const MyTickets = () => {
     }
   };
 
-  const handleOpenCancellationModal = (bookingId) => {
-    setCancellationModal({ isOpen: true, bookingId });
+  const handleOpenCancellationModal = (booking) => {
+    setCancellationModal({ isOpen: true, bookingId: booking?._id || null, booking });
   };
 
   const handleCloseCancellationModal = () => {
-    setCancellationModal({ isOpen: false, bookingId: null });
+    setCancellationModal({ isOpen: false, bookingId: null, booking: null });
   };
 
   const handleConfirmCancellation = async (reason, additionalNote) => {
@@ -140,7 +210,7 @@ const MyTickets = () => {
 
     try {
       const whiteLogo = await createWhiteLogoDataUrl(logo);
-      const doc = <TicketDocument booking={booking} logoSrc={whiteLogo} />;
+      const doc = <TicketDocument booking={booking} logoSrc={whiteLogo} theme={theme} />;
       const blob = await pdf(doc).toBlob();
       const url = URL.createObjectURL(blob);
       const link = document.createElement("a");
@@ -259,6 +329,11 @@ const MyTickets = () => {
     );
   }, [bookings, filter]);
 
+  const cancellationRefundPreview = useMemo(
+    () => getRefundPreview(cancellationModal.booking),
+    [cancellationModal.booking],
+  );
+
   const ticketStats = useMemo(() => {
     const now = new Date();
     const upcoming = bookings.filter(
@@ -282,18 +357,23 @@ const MyTickets = () => {
   const getStatusBadge = (status) => {
     const statusConfig = {
       confirmed: {
-        color:
-          "bg-emerald-500/10 text-emerald-300 border border-emerald-500/30",
+        color: isDark
+          ? "bg-emerald-500/10 text-emerald-300 border border-emerald-500/30"
+          : "bg-emerald-50 text-emerald-700 border border-emerald-200",
         icon: CheckCircle,
         text: "Confirmed",
       },
       cancelled: {
-        color: "bg-rose-500/10 text-rose-300 border border-rose-500/30",
+        color: isDark
+          ? "bg-rose-500/10 text-rose-300 border border-rose-500/30"
+          : "bg-rose-50 text-rose-700 border border-rose-200",
         icon: XCircle,
         text: "Cancelled",
       },
       pending: {
-        color: "bg-amber-500/10 text-amber-300 border border-amber-500/30",
+        color: isDark
+          ? "bg-amber-500/10 text-amber-300 border border-amber-500/30"
+          : "bg-amber-50 text-amber-700 border border-amber-200",
         icon: Clock,
         text: "Pending",
       },
@@ -339,7 +419,7 @@ const MyTickets = () => {
 
   return (
     <>
-    <div className="min-h-screen bg-dark py-8 px-4 sm:px-6">
+    <div className={`min-h-screen py-8 px-4 sm:px-6 ${isDark ? "bg-dark" : "bg-[var(--app-bg)]"}`}>
       <div className="container-custom max-w-6xl mx-auto">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -349,21 +429,21 @@ const MyTickets = () => {
           <div className="card overflow-hidden p-0">
             <div className="grid grid-cols-1 gap-5 p-6 md:grid-cols-[1.2fr_1fr] md:p-7">
               <div>
-                <h1 className="mt-4 text-3xl font-black leading-tight text-white sm:text-4xl">
+                <h1 className={`mt-4 text-3xl font-black leading-tight sm:text-4xl ${isDark ? "text-white" : "text-[var(--app-text-strong)]"}`}>
                   My Tickets
                 </h1>
-                <p className="mt-3 max-w-xl text-sm text-gray-300 sm:text-base">
+                <p className={`mt-3 max-w-xl text-sm sm:text-base ${isDark ? "text-gray-300" : "text-[var(--app-text-muted)]"}`}>
                   Keep all your movie passes in one place. Download PDFs, scan
                   QR at entry, and manage upcoming bookings.
                 </p>
               </div>
 
               <div className="grid grid-cols-4 h-full items-center gap-3">
-                <div className="rounded-2xl border h-[90px] border-gray-700/60 bg-gray-800/45 p-3 text-center">
-                  <p className="text-xs uppercase tracking-wider text-gray-400">
+                <div className={`rounded-2xl border h-[90px] p-3 text-center ${isDark ? "border-gray-700/60 bg-gray-800/45" : "border-gray-300 bg-white/80"}`}>
+                  <p className={`text-xs uppercase tracking-wider ${isDark ? "text-gray-400" : "text-gray-600"}`}>
                     All
                   </p>
-                  <p className="mt-1 text-2xl font-bold text-white">
+                  <p className={`mt-1 text-2xl font-bold ${isDark ? "text-white" : "text-[var(--app-text-strong)]"}`}>
                     {bookings.length}
                   </p>
                 </div>
@@ -371,23 +451,23 @@ const MyTickets = () => {
                   <p className="text-xs uppercase tracking-wider text-primary/90">
                     Active
                   </p>
-                  <p className="mt-1 text-2xl font-bold text-white">
+                  <p className={`mt-1 text-2xl font-bold ${isDark ? "text-white" : "text-primary"}`}>
                     {ticketStats.upcoming}
                   </p>
                 </div>
                 <div className="rounded-2xl border h-[90px] border-emerald-500/30 bg-emerald-500/10 p-3 text-center">
-                  <p className="text-xs uppercase tracking-wider text-black/90">
+                  <p className={`text-xs uppercase tracking-wider ${isDark ? "text-emerald-100" : "text-emerald-700"}`}>
                     Refunded
                   </p>
-                  <p className="mt-1 text-lg font-bold text-white">
+                  <p className={`mt-1 text-lg font-bold ${isDark ? "text-white" : "text-emerald-800"}`}>
                     Rs. {ticketStats.refunded.toFixed(0)}
                   </p>
                 </div>
-                <div className="rounded-2xl border h-[90px] border-gray-700/60 bg-gray-800/45 p-3 text-center">
-                  <p className="text-xs uppercase tracking-wider text-gray-400">
+                <div className={`rounded-2xl border h-[90px] p-3 text-center ${isDark ? "border-gray-700/60 bg-gray-800/45" : "border-gray-300 bg-white/80"}`}>
+                  <p className={`text-xs uppercase tracking-wider ${isDark ? "text-gray-400" : "text-gray-600"}`}>
                     Spent
                   </p>
-                  <p className="mt-1 text-lg font-bold text-white">
+                  <p className={`mt-1 text-lg font-bold ${isDark ? "text-white" : "text-[var(--app-text-strong)]"}`}>
                     Rs. {ticketStats.spent.toFixed(0)}
                   </p>
                 </div>
@@ -402,8 +482,12 @@ const MyTickets = () => {
                 onClick={() => setFilter(tab.id)}
                 className={`rounded-xl border px-4 py-2 text-sm font-semibold transition-all duration-200 ${
                   filter === tab.id
-                    ? "border-primary/50 bg-primary/15 text-white"
-                    : "border-gray-700/70 bg-gray-800/40 text-gray-300 hover:bg-gray-800/65"
+                    ? isDark
+                      ? "border-primary/50 bg-primary/15 text-white"
+                      : "border-primary/40 bg-primary/10 text-primary"
+                    : isDark
+                      ? "border-gray-700/70 bg-gray-800/40 text-gray-300 hover:bg-gray-800/65"
+                      : "border-gray-300 bg-white/70 text-gray-700 hover:bg-white"
                 }`}
               >
                 {tab.label}{" "}
@@ -449,23 +533,23 @@ const MyTickets = () => {
                           <p className="text-xs font-semibold uppercase tracking-[0.18em] text-primary">
                             {isActivePass ? "Active Pass" : "Ticket Record"}
                           </p>
-                          <h3 className="text-2xl font-bold text-white">
+                          <h3 className={`text-2xl font-bold ${isDark ? "text-white" : "text-[var(--app-text-strong)]"}`}>
                             {booking.movie?.title}
                           </h3>
-                          <p className="text-xs text-gray-400">
+                          <p className={`text-xs ${isDark ? "text-gray-400" : "text-gray-600"}`}>
                             Booking ID:{" "}
-                            <span className="font-mono text-gray-300">
+                            <span className={`font-mono ${isDark ? "text-gray-300" : "text-gray-800"}`}>
                               {booking.bookingId}
                             </span>
                           </p>
                         </div>
 
                         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
-                          <div className="rounded-xl border border-gray-700/60 bg-gray-800/35 p-3">
-                            <p className="text-[11px] uppercase tracking-wider text-gray-400">
+                          <div className={`rounded-xl border p-3 ${isDark ? "border-gray-700/60 bg-gray-800/35" : "border-gray-300 bg-white/80"}`}>
+                            <p className={`text-[11px] uppercase tracking-wider ${isDark ? "text-gray-400" : "text-gray-600"}`}>
                               Date
                             </p>
-                            <div className="mt-1 flex items-center gap-2 text-white">
+                            <div className={`mt-1 flex items-center gap-2 ${isDark ? "text-white" : "text-[var(--app-text-strong)]"}`}>
                               <Calendar className="h-4 w-4 text-primary" />
                               <span className="text-sm font-semibold">
                                 {formatDate(booking.show?.date)}
@@ -473,11 +557,11 @@ const MyTickets = () => {
                             </div>
                           </div>
 
-                          <div className="rounded-xl border border-gray-700/60 bg-gray-800/35 p-3">
-                            <p className="text-[11px] uppercase tracking-wider text-gray-400">
+                          <div className={`rounded-xl border p-3 ${isDark ? "border-gray-700/60 bg-gray-800/35" : "border-gray-300 bg-white/80"}`}>
+                            <p className={`text-[11px] uppercase tracking-wider ${isDark ? "text-gray-400" : "text-gray-600"}`}>
                               Time
                             </p>
-                            <div className="mt-1 flex items-center gap-2 text-white">
+                            <div className={`mt-1 flex items-center gap-2 ${isDark ? "text-white" : "text-[var(--app-text-strong)]"}`}>
                               <Clock className="h-4 w-4 text-primary" />
                               <span className="text-sm font-semibold">
                                 {formatTime(booking.show?.time)}
@@ -485,17 +569,17 @@ const MyTickets = () => {
                             </div>
                           </div>
 
-                          <div className="rounded-xl border border-gray-700/60 bg-gray-800/35 p-3 sm:col-span-2">
-                            <p className="text-[11px] uppercase tracking-wider text-gray-400">
+                          <div className={`rounded-xl border p-3 sm:col-span-2 ${isDark ? "border-gray-700/60 bg-gray-800/35" : "border-gray-300 bg-white/80"}`}>
+                            <p className={`text-[11px] uppercase tracking-wider ${isDark ? "text-gray-400" : "text-gray-600"}`}>
                               Theater
                             </p>
-                            <div className="mt-1 flex items-start gap-2 text-white">
+                            <div className={`mt-1 flex items-start gap-2 ${isDark ? "text-white" : "text-[var(--app-text-strong)]"}`}>
                               <MapPin className="mt-0.5 h-4 w-4 text-primary" />
                               <div>
                                 <p className="text-sm font-semibold">
                                   {booking.show?.theater}
                                 </p>
-                                <p className="text-xs text-gray-400">
+                                <p className={`text-xs ${isDark ? "text-gray-400" : "text-gray-600"}`}>
                                   {booking.show?.location}
                                 </p>
                               </div>
@@ -503,16 +587,16 @@ const MyTickets = () => {
                           </div>
                         </div>
 
-                        <div className="mt-5 flex flex-col gap-4 border-t border-gray-700/60 pt-4 md:flex-row md:items-center md:justify-between">
+                        <div className={`mt-5 flex flex-col gap-4 border-t pt-4 md:flex-row md:items-center md:justify-between ${isDark ? "border-gray-700/60" : "border-gray-300"}`}>
                           <div>
-                            <p className="text-[11px] uppercase tracking-wider text-gray-400">
+                            <p className={`text-[11px] uppercase tracking-wider ${isDark ? "text-gray-400" : "text-gray-600"}`}>
                               Seats ({booking.seats?.length || 0})
                             </p>
                             <div className="mt-2 flex flex-wrap gap-2">
                               {booking.seats?.map((seat, idx) => (
                                 <span
                                   key={idx}
-                                  className="rounded-lg border border-gray-700 bg-gray-800/60 px-2.5 py-1 text-xs font-semibold text-white"
+                                  className={`rounded-lg border px-2.5 py-1 text-xs font-semibold ${isDark ? "border-gray-700 bg-gray-800/60 text-white" : "border-gray-300 bg-white text-gray-800"}`}
                                 >
                                   {seat.row}
                                   {seat.number}
@@ -522,12 +606,12 @@ const MyTickets = () => {
                           </div>
 
                           <div className="text-left md:text-right">
-                            <p className="text-[11px] uppercase tracking-wider text-gray-400">
+                            <p className={`text-[11px] uppercase tracking-wider ${isDark ? "text-gray-400" : "text-gray-600"}`}>
                               Total Paid
                             </p>
                             <div className="mt-1 flex items-center gap-2 md:justify-end">
                               <Wallet className="h-4 w-4 text-primary" />
-                              <p className="money-value text-xl font-bold text-white">
+                              <p className={`money-value text-xl font-bold ${isDark ? "text-white" : "text-[var(--app-text-strong)]"}`}>
                                 Rs. {(booking.totalAmount || 0).toFixed(2)}
                               </p>
                             </div>
@@ -573,7 +657,7 @@ const MyTickets = () => {
                             <Button
                               variant="outline"
                               size="sm"
-                              onClick={() => handleOpenCancellationModal(booking._id)}
+                              onClick={() => handleOpenCancellationModal(booking)}
                               disabled={cancellingBookingId === booking._id}
                               icon={<XCircle className="h-4 w-4" />}
                             >
@@ -597,6 +681,20 @@ const MyTickets = () => {
                                   {refundMeta.note && (
                                     <p className={`text-xs ${refundMeta.textClass}`}>{refundMeta.note}</p>
                                   )}
+                                  {["initiated", "processing"].includes(booking.refundStatus) &&
+                                    Number(booking.refundEligibleAmount || 0) > 0 && (
+                                      <p className={`text-xs ${refundMeta.textClass}`}>
+                                        Eligible Refund: Rs.{" "}
+                                        {Number(booking.refundEligibleAmount || 0).toFixed(2)}
+                                        {booking.refundPercentage ? ` (${booking.refundPercentage}% of fare)` : ""}
+                                      </p>
+                                    )}
+                                  {["initiated", "processing"].includes(booking.refundStatus) &&
+                                    Number(booking.refundHoursBeforeShow || 0) > 0 && (
+                                      <p className={`text-xs ${refundMeta.textClass}`}>
+                                        Time left at cancellation: {Number(booking.refundHoursBeforeShow).toFixed(1)} hours
+                                      </p>
+                                    )}
                                   {declineNote && (
                                     <p className={`text-xs ${refundMeta.textClass}`}>
                                       Message: {declineNote}
@@ -616,8 +714,8 @@ const MyTickets = () => {
                       </div>
 
                       {isActivePass && (
-                        <div className="border-t border-gray-700/60 bg-black/25 p-6 lg:w-56 lg:border-l lg:border-t-0">
-                          <p className="mb-3 text-center text-xs font-semibold uppercase tracking-[0.2em] text-gray-400">
+                        <div className={`border-t p-6 lg:w-56 lg:border-l lg:border-t-0 ${isDark ? "border-gray-700/60 bg-black/25" : "border-gray-300 bg-white/75"}`}>
+                          <p className={`mb-3 text-center text-xs font-semibold uppercase tracking-[0.2em] ${isDark ? "text-gray-400" : "text-gray-600"}`}>
                             Scan at Entry
                           </p>
                           <div className="mx-auto w-fit rounded-2xl bg-white p-3">
@@ -657,11 +755,11 @@ const MyTickets = () => {
             animate={{ opacity: 1, scale: 1 }}
             className="card mx-auto max-w-2xl py-16 text-center"
           >
-            <div className="mx-auto mb-5 flex h-20 w-20 items-center justify-center rounded-full border border-gray-700 bg-gray-800/40">
-              <Ticket className="h-8 w-8 text-gray-400" />
+            <div className={`mx-auto mb-5 flex h-20 w-20 items-center justify-center rounded-full border ${isDark ? "border-gray-700 bg-gray-800/40" : "border-gray-300 bg-white"}`}>
+              <Ticket className={`h-8 w-8 ${isDark ? "text-gray-400" : "text-gray-600"}`} />
             </div>
-            <h3 className="text-2xl font-bold text-white">No tickets found</h3>
-            <p className="mx-auto mt-3 max-w-md text-gray-400">
+            <h3 className={`text-2xl font-bold ${isDark ? "text-white" : "text-[var(--app-text-strong)]"}`}>No tickets found</h3>
+            <p className={`mx-auto mt-3 max-w-md ${isDark ? "text-gray-400" : "text-[var(--app-text-muted)]"}`}>
               {filter === "all"
                 ? "You have not booked any movie yet. Your tickets will appear here once you complete a booking."
                 : `No ${filter} bookings available right now.`}
@@ -685,6 +783,8 @@ const MyTickets = () => {
       onClose={handleCloseCancellationModal}
       onConfirm={handleConfirmCancellation}
       isLoading={cancellingBookingId === cancellationModal.bookingId}
+      booking={cancellationModal.booking}
+      refundPreview={cancellationRefundPreview}
     />
     </>
   );

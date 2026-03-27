@@ -133,6 +133,22 @@ const bookingSchema = new mongoose.Schema(
       type: Date,
       default: null,
     },
+    refundPercentage: {
+      type: Number,
+      min: 0,
+      max: 100,
+      default: 0,
+    },
+    refundEligibleAmount: {
+      type: Number,
+      min: 0,
+      default: 0,
+    },
+    refundHoursBeforeShow: {
+      type: Number,
+      min: 0,
+      default: null,
+    },
     refundedAmount: {
       type: Number,
       min: 0,

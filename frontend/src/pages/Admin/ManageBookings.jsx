@@ -8,6 +8,43 @@ import { formatDate, formatTime } from "../../utils/formatDate";
 import toast from "react-hot-toast";
 
 const PAGE_LIMIT = 10;
+const REFUNDABLE_STATUSES = ["initiated", "processing"];
+const DEFAULT_FILTERS = {
+  search: "",
+  date: "",
+  movieId: "",
+  theater: "",
+  status: "",
+  refundStatus: "",
+};
+
+const getEligibleRefundAmount = (booking) => {
+  const eligibleAmount = Number(booking?.refundEligibleAmount || 0);
+  if (eligibleAmount > 0) {
+    return eligibleAmount;
+  }
+
+  const percentage = Number(booking?.refundPercentage || 0);
+  const totalAmount = Number(booking?.totalAmount || 0);
+  if (percentage > 0 && totalAmount > 0) {
+    return Number((totalAmount * (percentage / 100)).toFixed(2));
+  }
+
+  return totalAmount;
+};
+
+const getEligibleRefundLabel = (booking) => {
+  const amount = getEligibleRefundAmount(booking);
+  const percentage = Number(booking?.refundPercentage || 0);
+
+  if (amount <= 0) {
+    return null;
+  }
+
+  return `Eligible Refund: Rs. ${amount.toFixed(2)}${
+    percentage > 0 ? ` (${percentage}% of fare)` : ""
+  }`;
+};
 
 const ManageBookings = () => {
   const [bookings, setBookings] = useState([]);
@@ -22,15 +59,8 @@ const ManageBookings = () => {
     hasMore: false,
     total: 0,
   });
-  const [filters, setFilters] = useState({
-    search: "",
-    date: "",
-    movieId: "",
-    theater: "",
-    status: "",
-    paymentStatus: "",
-    refundStatus: "",
-  });
+  const [filters, setFilters] = useState(DEFAULT_FILTERS);
+  const [appliedFilters, setAppliedFilters] = useState(DEFAULT_FILTERS);
   const [refundForm, setRefundForm] = useState({
     approvalNote: "",
     refundedAmount: "",
@@ -104,33 +134,23 @@ const ManageBookings = () => {
   useEffect(() => {
     fetchBookings(
       {
-        date: filters.date,
-        movieId: filters.movieId,
-        theater: filters.theater,
-        status: filters.status,
-        paymentStatus: filters.paymentStatus,
-        refundStatus: filters.refundStatus,
+        date: appliedFilters.date,
+        movieId: appliedFilters.movieId,
+        theater: appliedFilters.theater,
+        status: appliedFilters.status,
+        refundStatus: appliedFilters.refundStatus,
+        search: appliedFilters.search,
       },
       true,
       1,
     );
   }, [
     fetchBookings,
-    filters.date,
-    filters.movieId,
-    filters.theater,
-    filters.status,
-    filters.paymentStatus,
-    filters.refundStatus,
+    appliedFilters,
   ]);
 
   const statusOptions = useMemo(
     () => ["", "confirmed", "pending", "cancelled", "expired"],
-    [],
-  );
-
-  const paymentStatusOptions = useMemo(
-    () => ["", "pending", "completed", "failed", "refunded"],
     [],
   );
 
@@ -145,31 +165,29 @@ const ManageBookings = () => {
 
   const handleLoadMore = () => {
     if (!loadingMore && pagination.hasMore) {
-      fetchBookings(filters, false, pagination.page + 1);
+      fetchBookings(appliedFilters, false, pagination.page + 1);
     }
   };
 
   const applySearch = () => {
-    fetchBookings(filters, true, 1);
+    setAppliedFilters({ ...filters });
   };
 
   const resetFilters = () => {
-    setFilters({
-      search: "",
-      date: "",
-      movieId: "",
-      theater: "",
-      status: "",
-      paymentStatus: "",
-      refundStatus: "",
-    });
+    setFilters(DEFAULT_FILTERS);
+    setAppliedFilters(DEFAULT_FILTERS);
   };
 
   const openRefundModal = (booking) => {
+    const suggestedAmount =
+      REFUNDABLE_STATUSES.includes(booking?.refundStatus || "") && getEligibleRefundAmount(booking) > 0
+        ? getEligibleRefundAmount(booking)
+        : booking?.totalAmount || "";
+
     setSelectedBooking(booking);
     setRefundForm({
       approvalNote: "",
-      refundedAmount: booking?.totalAmount || "",
+      refundedAmount: suggestedAmount,
     });
     setShowRefundModal(true);
   };
@@ -196,7 +214,7 @@ const ManageBookings = () => {
         toast.success(response.message || "Refund initiated");
         setShowRefundModal(false);
         setSelectedBooking(null);
-        fetchBookings(filters, true, 1);
+        fetchBookings(appliedFilters, true, 1);
       }
     } catch (error) {
       console.error("Error initiating refund:", error);
@@ -230,7 +248,7 @@ const ManageBookings = () => {
         toast.success(response.message || "Refund declined");
         setShowRefundModal(false);
         setSelectedBooking(null);
-        fetchBookings(filters, true, 1);
+        fetchBookings(appliedFilters, true, 1);
       }
     } catch (error) {
       console.error("Error declining refund:", error);
@@ -321,21 +339,6 @@ const ManageBookings = () => {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-300 mb-2">Payment Status</label>
-              <select
-                value={filters.paymentStatus}
-                onChange={(e) => setFilters((prev) => ({ ...prev, paymentStatus: e.target.value }))}
-                className="input-field"
-              >
-                {paymentStatusOptions.map((option) => (
-                  <option key={option || "all-payment"} value={option}>
-                    {option || "All"}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div>
               <label className="block text-sm font-medium text-gray-300 mb-2">Refund Status</label>
               <select
                 value={filters.refundStatus}
@@ -413,7 +416,8 @@ const ManageBookings = () => {
                           </span>
                         </td>
                         <td className="py-3 px-4 text-sm">
-                          <span className={`inline-block px-2 py-1 rounded text-xs font-semibold uppercase ${
+                          <div className="space-y-1">
+                            <span className={`inline-block px-2 py-1 rounded text-xs font-semibold uppercase ${
                             booking.refundStatus === "initiated" || booking.refundStatus === "processing"
                               ? "bg-amber-500/20 text-amber-400"
                               : booking.refundStatus === "refunded"
@@ -422,8 +426,14 @@ const ManageBookings = () => {
                                   ? "bg-red-500/20 text-red-500"
                                   : "bg-gray-700/40 text-gray-300"
                           }`}>
-                            {booking.refundStatus || "none"}
-                          </span>
+                              {booking.refundStatus || "none"}
+                            </span>
+                            {REFUNDABLE_STATUSES.includes(booking.refundStatus || "") && getEligibleRefundLabel(booking) && (
+                              <p className="text-xs text-emerald-300">
+                                {getEligibleRefundLabel(booking)}
+                              </p>
+                            )}
+                          </div>
                         </td>
                         <td className="py-3 px-4 text-sm">
                           <div className="flex gap-2">
@@ -492,6 +502,20 @@ const ManageBookings = () => {
                         </div>
                       </div>
                     )}
+
+                    {getEligibleRefundLabel(selectedBooking) && (
+                      <div>
+                        <label className="block text-sm font-medium text-gray-300 mb-2">Suggested Refund Based on Time Left</label>
+                        <div className="bg-emerald-500/10 border border-emerald-500/20 rounded-lg p-3 text-sm text-emerald-200">
+                          <p>{getEligibleRefundLabel(selectedBooking)}</p>
+                          {selectedBooking?.refundHoursBeforeShow > 0 && (
+                            <p className="mt-1 text-xs text-emerald-100/80">
+                              Cancellation happened with {Number(selectedBooking.refundHoursBeforeShow).toFixed(1)} hours left before the show.
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                    )}
                   </>
                 ) : (
                   <div>
@@ -532,6 +556,23 @@ const ManageBookings = () => {
                     className="input-field"
                     placeholder="Enter refunded amount"
                   />
+                  {REFUNDABLE_STATUSES.includes(selectedBooking?.refundStatus || "") && getEligibleRefundLabel(selectedBooking) && (
+                    <div className="mt-2 flex items-center justify-between gap-3 text-xs">
+                      <p className="text-emerald-300">{getEligibleRefundLabel(selectedBooking)}</p>
+                      <button
+                        type="button"
+                        className="text-primary hover:text-primary-light transition"
+                        onClick={() =>
+                          setRefundForm((prev) => ({
+                            ...prev,
+                            refundedAmount: getEligibleRefundAmount(selectedBooking),
+                          }))
+                        }
+                      >
+                        Use eligible refund
+                      </button>
+                    </div>
+                  )}
                 </div>
 
                 <div className="pt-2 flex gap-3 justify-end">

@@ -13,7 +13,7 @@ const CancellationReasons = [
   "Other",
 ];
 
-const CancellationModal = ({ isOpen, onClose, onConfirm, isLoading }) => {
+const CancellationModal = ({ isOpen, onClose, onConfirm, isLoading, booking, refundPreview }) => {
   const [selectedReason, setSelectedReason] = useState("");
   const [additionalNote, setAdditionalNote] = useState("");
   const { theme } = useTheme();
@@ -42,7 +42,7 @@ const CancellationModal = ({ isOpen, onClose, onConfirm, isLoading }) => {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          className="fixed inset-0 z-50 flex items-center justify-center p-4"
+          className="absolute inset-0 z-10 flex items-center justify-center p-4"
           style={{ backgroundColor: isDark ? "rgba(0, 0, 0, 0.6)" : "rgba(0, 0, 0, 0.4)" }}
           onClick={handleClose}
         >
@@ -50,7 +50,7 @@ const CancellationModal = ({ isOpen, onClose, onConfirm, isLoading }) => {
             initial={{ scale: 0.95, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             exit={{ scale: 0.95, opacity: 0 }}
-            className={`rounded-2xl max-w-md w-full p-6 shadow-xl border ${
+            className={`rounded-2xl max-w-md w-full p-6 shadow-xl mt-[20%] border ${
               isDark
                 ? "bg-dark-card border-gray-700"
                 : "bg-white border-gray-200"
@@ -78,9 +78,31 @@ const CancellationModal = ({ isOpen, onClose, onConfirm, isLoading }) => {
             </div>
 
             {/* Warning message */}
-            <p className={`text-sm mb-6 ${isDark ? "text-gray-300" : "text-gray-600"}`}>
-              Please tell us why you're cancelling so we can improve our service. You will receive a refund within 2-3 working days.
-            </p>
+            <div className="mb-6 space-y-3">
+              <p className={`text-sm ${isDark ? "text-gray-300" : "text-gray-600"}`}>
+                Please tell us why you're cancelling so we can improve our service. Refunds reflect in 2-3 working days after processing.
+              </p>
+
+              {booking && refundPreview && (
+                <div
+                  className={`rounded-xl border px-4 py-3 text-sm ${
+                    isDark
+                      ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-100"
+                      : "border-emerald-200 bg-emerald-50 text-emerald-800"
+                  }`}
+                >
+                  <p className="font-semibold">
+                    Refund Preview: {refundPreview.percentage}% refund
+                  </p>
+                  <p className="mt-1">
+                    You will receive approximately Rs. {refundPreview.amount.toFixed(2)} for this ticket.
+                  </p>
+                  <p className="mt-1 text-xs opacity-80">
+                    {refundPreview.windowLabel} • {refundPreview.hoursBeforeShow.toFixed(1)} hours left before showtime
+                  </p>
+                </div>
+              )}
+            </div>
 
             {/* Reason selection */}
             <div className="mb-4">

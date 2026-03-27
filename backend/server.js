@@ -58,7 +58,7 @@ app.get('/api/health', (req, res) => {
 app.get('/', (req, res) => {
   res.status(200).json({
     success: true,
-    message: 'CineBook API Server',
+    message: 'ShowTimeX API Server',
     version: '1.0.0',
     endpoints: {
       auth: '/api/auth',
@@ -98,7 +98,7 @@ const PORT = process.env.PORT || 5000;
 
 app.listen(PORT, () => {
   console.log('\n╔════════════════════════════════════════╗');
-  console.log('║   🎬 CINEBOOK API SERVER RUNNING 🎬    ║');
+  console.log('║   🎬 SHOWTIMEX API SERVER RUNNING 🎬    ║');
   console.log('╚════════════════════════════════════════╝');
   console.log(`🚀 Server: http://localhost:${PORT}`);
   console.log(`📝 Environment: ${process.env.NODE_ENV || 'development'}`);

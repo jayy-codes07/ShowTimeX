@@ -16,6 +16,40 @@ const {
 } = require("../utils/seatLocks");
 
 const DEFAULT_LOCK_MINUTES = parseInt(process.env.SEAT_LOCK_MINUTES || "10", 10);
+const REFUND_PERCENTAGE_HIGH = 90;
+const REFUND_PERCENTAGE_STANDARD = 70;
+const REFUND_PERCENTAGE_LAST_MINUTE = 50;
+
+const roundCurrency = (value) => Number((Number(value) || 0).toFixed(2));
+
+const getCancellationRefundPolicy = (show, totalAmount) => {
+  if (!show) {
+    return null;
+  }
+
+  const showDateTime =
+    typeof show.getShowDateTime === "function" ? show.getShowDateTime() : new Date(show.date);
+  const msUntilShow = showDateTime.getTime() - Date.now();
+
+  if (!Number.isFinite(msUntilShow) || msUntilShow <= 0) {
+    return null;
+  }
+
+  const hoursBeforeShow = msUntilShow / (1000 * 60 * 60);
+  let percentage = REFUND_PERCENTAGE_LAST_MINUTE;
+
+  if (hoursBeforeShow > 24) {
+    percentage = REFUND_PERCENTAGE_HIGH;
+  } else if (hoursBeforeShow >= 12) {
+    percentage = REFUND_PERCENTAGE_STANDARD;
+  }
+
+  return {
+    percentage,
+    hoursBeforeShow: roundCurrency(hoursBeforeShow),
+    eligibleAmount: roundCurrency((Number(totalAmount) || 0) * (percentage / 100)),
+  };
+};
 
 const getDayRange = (dateString) => {
   const start = new Date(dateString);
@@ -515,12 +549,23 @@ const cancelBooking = async (req, res) => {
     // Remove seats from show
     await removeSeatsFromShow(booking.show?._id || booking.show, booking.seats || [], booking.user);
 
+    let refundDetails = null;
     if (booking.paymentStatus === "completed" && booking.refundStatus === "none") {
+      refundDetails =
+        getCancellationRefundPolicy(booking.show, booking.totalAmount) || {
+          percentage: REFUND_PERCENTAGE_LAST_MINUTE,
+          hoursBeforeShow: null,
+          eligibleAmount: roundCurrency((Number(booking.totalAmount) || 0) * (REFUND_PERCENTAGE_LAST_MINUTE / 100)),
+        };
+
       booking.refundStatus = "initiated";
       booking.refundRequestedBy = "user";
       booking.refundReason = req.body.reason || "User requested cancellation";
       booking.refundNote = req.body.additionalNote || "";
       booking.refundInitiatedAt = new Date();
+      booking.refundPercentage = refundDetails?.percentage || 0;
+      booking.refundEligibleAmount = refundDetails?.eligibleAmount || 0;
+      booking.refundHoursBeforeShow = refundDetails?.hoursBeforeShow ?? null;
       await booking.save();
     }
 
@@ -528,8 +573,11 @@ const cancelBooking = async (req, res) => {
       success: true,
       message:
         booking.paymentStatus === "completed"
-          ? "Booking cancelled. Refund process has started and will reflect in 2-3 working days."
+          ? `Booking cancelled. ${refundDetails?.percentage || REFUND_PERCENTAGE_LAST_MINUTE}% refund of ₹${(
+              refundDetails?.eligibleAmount || 0
+            ).toFixed(2)} has been initiated and will reflect in 2-3 working days.`
           : "Booking cancelled successfully",
+      refund: refundDetails,
     });
   } catch (error) {
     console.error("Cancel Booking Error:", error);
@@ -706,9 +754,14 @@ const initiateBookingRefund = async (req, res) => {
     }
 
     const parsedRefundedAmount = Number(refundedAmount);
-    const finalRefundAmount = Number.isFinite(parsedRefundedAmount) && parsedRefundedAmount > 0
-      ? parsedRefundedAmount
-      : booking.totalAmount;
+    const defaultRefundAmount =
+      booking.refundStatus === "initiated" && booking.refundEligibleAmount > 0
+        ? booking.refundEligibleAmount
+        : booking.totalAmount;
+    const finalRefundAmount =
+      Number.isFinite(parsedRefundedAmount) && parsedRefundedAmount > 0
+        ? parsedRefundedAmount
+        : defaultRefundAmount;
 
     // Validate refund amount doesn't exceed total amount
     const maxRefundAmount = booking.totalAmount - (booking.refundedAmount || 0);
@@ -727,6 +780,12 @@ const initiateBookingRefund = async (req, res) => {
       booking.refundApprovedAt = new Date();
       booking.refundApprovalNote = (approvalNote || "").trim();
       booking.refundedAmount = (booking.refundedAmount || 0) + finalRefundAmount;
+      booking.refundEligibleAmount = booking.refundEligibleAmount || finalRefundAmount;
+      booking.refundPercentage =
+        booking.refundPercentage ||
+        (booking.totalAmount > 0
+          ? roundCurrency((finalRefundAmount / booking.totalAmount) * 100)
+          : 0);
       booking.refundFinalStatus = "refunded";
       booking.refundCompletedAt = new Date();
       await booking.save();
@@ -762,6 +821,9 @@ const initiateBookingRefund = async (req, res) => {
       booking.refundApprovedAt = new Date();
       booking.refundApprovalNote = approvalNote.trim();
       booking.refundInitiatedAt = new Date();
+      booking.refundPercentage =
+        booking.totalAmount > 0 ? roundCurrency((finalRefundAmount / booking.totalAmount) * 100) : 0;
+      booking.refundEligibleAmount = finalRefundAmount;
       booking.refundedAmount = finalRefundAmount;
       booking.refundFinalStatus = "refunded";
       booking.refundCompletedAt = new Date();

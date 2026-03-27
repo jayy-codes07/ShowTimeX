@@ -10,223 +10,253 @@ import {
 import { formatDate, formatTime } from "../../utils/formatDate";
 import logo from "./../../assets/images/Showtime_logo.png";
 
-// Define the Dark Theme Styles
-const styles = StyleSheet.create({
-  page: {
-    backgroundColor: "#111111",
-    padding: 30,
-    fontFamily: "Helvetica",
+const paletteByTheme = {
+  dark: {
+    pageBg: "#111111",
+    cardBg: "#1a1a1a",
+    border: "#374151",
+    headerBg: "#166534",
+    passRowBg: "#111827",
+    passText: "#e5e7eb",
+    admitText: "#86efac",
+    strongText: "#ffffff",
+    mutedText: "#9ca3af",
+    seatBg: "#111827",
+    seatBorder: "#4b5563",
+    priceBg: "rgba(31, 41, 55, 0.6)",
+    totalText: "#22c55e",
+    footerBg: "#151515",
+    fallbackId: "#e5e7eb",
   },
-  card: {
-    backgroundColor: "#1a1a1a",
-    borderRadius: 14,
-    overflow: "hidden",
-    borderWidth: 2,
-    borderColor: "#374151",
-    borderStyle: "dashed",
+  light: {
+    pageBg: "#eef7f0",
+    cardBg: "#ffffff",
+    border: "#bdd2c3",
+    headerBg: "#166534",
+    passRowBg: "#eaf4ed",
+    passText: "#1f3d2c",
+    admitText: "#166534",
+    strongText: "#123222",
+    mutedText: "#3f5f4b",
+    seatBg: "#f3f7f4",
+    seatBorder: "#c7d7cc",
+    priceBg: "#f5f8f6",
+    totalText: "#166534",
+    footerBg: "#f8fbf9",
+    fallbackId: "#1f3d2c",
   },
+};
 
-  // --- HEADER ---
-  header: {
-    backgroundColor: "#166534",
-    padding: 18,
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-  },
-  headerLabel: {
-    color: "rgba(255, 255, 255, 0.9)",
-    fontSize: 10,
-    marginBottom: 4,
-    textTransform: "uppercase",
-  },
-  bookingId: {
-    color: "#ffffff",
-    fontSize: 18,
-    fontFamily: "Courier-Bold", // Monospace font for ID
-    letterSpacing: 1,
-  },
-  logo: {
-    width: 100,
-    height: 40,
-    objectFit: "contain",
-  },
-  passRow: {
-    backgroundColor: "#111827",
-    paddingVertical: 10,
-    paddingHorizontal: 20,
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-  },
-  passTag: {
-    fontSize: 10,
-    letterSpacing: 2,
-    color: "#e5e7eb",
-    textTransform: "uppercase",
-    fontFamily: "Helvetica-Bold",
-  },
-  admitTag: {
-    fontSize: 10,
-    letterSpacing: 1.5,
-    color: "#86efac",
-    textTransform: "uppercase",
-    fontFamily: "Helvetica-Bold",
-  },
+const getStyles = (palette) =>
+  StyleSheet.create({
+    page: {
+      backgroundColor: palette.pageBg,
+      padding: 30,
+      fontFamily: "Helvetica",
+    },
+    card: {
+      backgroundColor: palette.cardBg,
+      borderRadius: 14,
+      overflow: "hidden",
+      borderWidth: 2,
+      borderColor: palette.border,
+      borderStyle: "dashed",
+    },
+    header: {
+      backgroundColor: palette.headerBg,
+      padding: 18,
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "center",
+    },
+    headerLabel: {
+      color: "rgba(255, 255, 255, 0.9)",
+      fontSize: 10,
+      marginBottom: 4,
+      textTransform: "uppercase",
+    },
+    bookingId: {
+      color: "#ffffff",
+      fontSize: 18,
+      fontFamily: "Courier-Bold",
+      letterSpacing: 1,
+    },
+    logo: {
+      width: 100,
+      height: 40,
+      objectFit: "contain",
+    },
+    passRow: {
+      backgroundColor: palette.passRowBg,
+      paddingVertical: 10,
+      paddingHorizontal: 20,
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "center",
+    },
+    passTag: {
+      fontSize: 10,
+      letterSpacing: 2,
+      color: palette.passText,
+      textTransform: "uppercase",
+      fontFamily: "Helvetica-Bold",
+    },
+    admitTag: {
+      fontSize: 10,
+      letterSpacing: 1.5,
+      color: palette.admitText,
+      textTransform: "uppercase",
+      fontFamily: "Helvetica-Bold",
+    },
+    section: {
+      padding: 20,
+      borderBottomWidth: 1,
+      borderBottomColor: palette.border,
+    },
+    movieTitle: {
+      fontSize: 24,
+      color: palette.strongText,
+      fontFamily: "Helvetica-Bold",
+      textAlign: "center",
+      marginBottom: 20,
+    },
+    infoGrid: {
+      flexDirection: "row",
+      flexWrap: "wrap",
+    },
+    infoCol: {
+      width: "50%",
+      marginBottom: 15,
+    },
+    infoColFull: {
+      width: "100%",
+      marginBottom: 10,
+    },
+    label: {
+      fontSize: 9,
+      color: palette.mutedText,
+      textTransform: "uppercase",
+      marginBottom: 4,
+      letterSpacing: 0.5,
+    },
+    value: {
+      fontSize: 12,
+      color: palette.strongText,
+      fontFamily: "Helvetica-Bold",
+    },
+    subValue: {
+      fontSize: 10,
+      color: palette.mutedText,
+      marginTop: 2,
+    },
+    seatsSection: {
+      padding: 20,
+      alignItems: "center",
+    },
+    seatGrid: {
+      flexDirection: "row",
+      flexWrap: "wrap",
+      justifyContent: "center",
+      marginBottom: 20,
+    },
+    seatBadge: {
+      backgroundColor: palette.seatBg,
+      borderWidth: 1,
+      borderColor: palette.seatBorder,
+      borderRadius: 4,
+      paddingVertical: 6,
+      paddingHorizontal: 10,
+      margin: 2,
+      minWidth: 40,
+    },
+    seatText: {
+      color: palette.strongText,
+      fontSize: 10,
+      fontFamily: "Courier-Bold",
+      textAlign: "center",
+    },
+    priceBox: {
+      backgroundColor: palette.priceBg,
+      borderRadius: 8,
+      padding: 15,
+      width: "80%",
+      alignSelf: "center",
+      borderWidth: 1,
+      borderColor: palette.border,
+    },
+    priceRow: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      marginBottom: 6,
+    },
+    priceLabel: {
+      fontSize: 10,
+      color: palette.mutedText,
+    },
+    priceValue: {
+      fontSize: 10,
+      color: palette.mutedText,
+    },
+    divider: {
+      borderTopWidth: 1,
+      borderTopColor: palette.border,
+      marginVertical: 6,
+    },
+    totalLabel: {
+      fontSize: 12,
+      color: palette.strongText,
+      fontFamily: "Helvetica-Bold",
+    },
+    totalValue: {
+      fontSize: 14,
+      color: palette.totalText,
+      fontFamily: "Helvetica-Bold",
+    },
+    footer: {
+      backgroundColor: palette.footerBg,
+      padding: 20,
+      alignItems: "center",
+      borderTopWidth: 1,
+      borderTopColor: palette.border,
+    },
+    qrContainer: {
+      backgroundColor: "#ffffff",
+      padding: 8,
+      borderRadius: 8,
+      marginBottom: 8,
+    },
+    qrImage: {
+      width: 100,
+      height: 100,
+    },
+    qrFallback: {
+      fontSize: 8,
+      color: palette.mutedText,
+      marginTop: 6,
+    },
+    qrFallbackId: {
+      fontSize: 9,
+      color: palette.fallbackId,
+      marginTop: 2,
+      fontFamily: "Courier-Bold",
+    },
+    footerText: {
+      color: palette.mutedText,
+      fontSize: 9,
+      textTransform: "uppercase",
+      letterSpacing: 1.5,
+    },
+    perforation: {
+      borderTopWidth: 1,
+      borderTopColor: palette.border,
+      borderStyle: "dashed",
+    },
+  });
 
-  // --- MOVIE INFO ---
-  section: {
-    padding: 20,
-    borderBottomWidth: 1,
-    borderBottomColor: "#374151",
-  },
-  movieTitle: {
-    fontSize: 24,
-    color: "#ffffff",
-    fontFamily: "Helvetica-Bold",
-    textAlign: "center",
-    marginBottom: 20,
-  },
-  infoGrid: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-  },
-  infoCol: {
-    width: "50%",
-    marginBottom: 15,
-  },
-  infoColFull: {
-    width: "100%",
-    marginBottom: 10,
-  },
-  label: {
-    fontSize: 9,
-    color: "#9ca3af",
-    textTransform: "uppercase",
-    marginBottom: 4,
-    letterSpacing: 0.5,
-  },
-  value: {
-    fontSize: 12,
-    color: "#ffffff",
-    fontFamily: "Helvetica-Bold",
-  },
-  subValue: {
-    fontSize: 10,
-    color: "#9ca3af",
-    marginTop: 2,
-  },
+const TicketDocument = ({ booking, logoSrc, theme = "dark" }) => {
+  const safeTheme = theme === "light" ? "light" : "dark";
+  const styles = getStyles(paletteByTheme[safeTheme]);
 
-  // --- SEATS ---
-  seatsSection: {
-    padding: 20,
-    alignItems: "center",
-  },
-  seatGrid: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    justifyContent: "center",
-    marginBottom: 20,
-  },
-  seatBadge: {
-    backgroundColor: "#111827",
-    borderWidth: 1,
-    borderColor: "#4b5563",
-    borderRadius: 4,
-    paddingVertical: 6,
-    paddingHorizontal: 10,
-    margin: 2,
-    minWidth: 40,
-  },
-  seatText: {
-    color: "#ffffff",
-    fontSize: 10,
-    fontFamily: "Courier-Bold",
-    textAlign: "center",
-  },
-
-  // --- PRICE BOX ---
-  priceBox: {
-    backgroundColor: "rgba(31, 41, 55, 0.6)",
-    borderRadius: 8,
-    padding: 15,
-    width: "80%", // Limit width like 'max-w-sm'
-    alignSelf: "center",
-    borderWidth: 1,
-    borderColor: "#374151",
-  },
-  priceRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    marginBottom: 6,
-  },
-  priceLabel: {
-    fontSize: 10,
-    color: "#9ca3af",
-  },
-  priceValue: {
-    fontSize: 10,
-    color: "#9ca3af",
-  },
-  divider: {
-    borderTopWidth: 1,
-    borderTopColor: "#374151",
-    marginVertical: 6,
-  },
-  totalLabel: {
-    fontSize: 12,
-    color: "#ffffff",
-    fontFamily: "Helvetica-Bold",
-  },
-  totalValue: {
-    fontSize: 14,
-    color: "#22c55e",
-    fontFamily: "Helvetica-Bold",
-  },
-
-  // --- FOOTER (QR) ---
-  footer: {
-    backgroundColor: "#151515",
-    padding: 20,
-    alignItems: "center",
-    borderTopWidth: 1,
-    borderTopColor: "#374151",
-  },
-  qrContainer: {
-    backgroundColor: "#ffffff",
-    padding: 8,
-    borderRadius: 8,
-    marginBottom: 8,
-  },
-  qrImage: {
-    width: 100,
-    height: 100,
-  },
-  qrFallback: {
-    fontSize: 8,
-    color: "#9ca3af",
-    marginTop: 6,
-  },
-  qrFallbackId: {
-    fontSize: 9,
-    color: "#e5e7eb",
-    marginTop: 2,
-    fontFamily: "Courier-Bold",
-  },
-  footerText: {
-    color: "#9ca3af",
-    fontSize: 9,
-    textTransform: "uppercase",
-    letterSpacing: 1.5,
-  },
-  perforation: {
-    borderTopWidth: 1,
-    borderTopColor: "#374151",
-    borderStyle: "dashed",
-  },
-});
-
-const TicketDocument = ({ booking, logoSrc }) => {
   return (
     <Document>
       <Page size="A4" style={styles.page}>

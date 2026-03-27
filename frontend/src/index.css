@@ -37,6 +37,10 @@
     --app-seat-booked-text: rgba(255, 255, 255, 0.35);
     --app-seat-locked: rgba(245, 158, 11, 0.24);
     --app-seat-locked-text: #fde6b2;
+    --app-scrollbar-track: #13231c;
+    --app-scrollbar-thumb: #22c55e;
+    --app-scrollbar-thumb-hover: #4ade80;
+    --app-scrollbar-thumb-border: rgba(167, 243, 208, 0.18);
     --site-logo-image: url('./assets/images/Showtime_logo.png');
     --site-logo-filter: hue-rotate(104deg) saturate(1.2) brightness(1.04);
 
@@ -105,6 +109,10 @@
   --app-seat-booked-text: rgba(15, 42, 28, 0.45);
   --app-seat-locked: rgba(21, 128, 61, 0.28);
   --app-seat-locked-text: #14532d;
+  --app-scrollbar-track: rgba(214, 236, 220, 0.96);
+  --app-scrollbar-thumb: #166534;
+  --app-scrollbar-thumb-hover: #15803d;
+  --app-scrollbar-thumb-border: rgba(22, 101, 52, 0.18);
   --site-logo-filter: hue-rotate(96deg) saturate(1.08) brightness(0.9);
 
   /* Chart Colors - Light Theme (bright green for visibility on light background) */
@@ -522,26 +530,9 @@
     );
 }
 
-html.theme-light,
-body.theme-light {
-  scrollbar-color: #b0895a #f7f1d7;
-}
-
-html.theme-light::-webkit-scrollbar-track,
-body.theme-light::-webkit-scrollbar-track {
-  background: #f7f1d7;
-}
-
-html.theme-light::-webkit-scrollbar-thumb,
-body.theme-light::-webkit-scrollbar-thumb {
-  background: linear-gradient(180deg, #bc8a52 0%, #9c6b35 100%);
-  border-radius: 999px;
-  border: 1px solid #ead9b8;
-}
-
-html.theme-light::-webkit-scrollbar-thumb:hover,
-body.theme-light::-webkit-scrollbar-thumb:hover {
-  background: linear-gradient(180deg, #c89a66 0%, #ab7740 100%);
+html,
+body {
+  scrollbar-color: var(--app-scrollbar-thumb) var(--app-scrollbar-track);
 }
 
 @layer components {
@@ -940,16 +931,17 @@ body.theme-light::-webkit-scrollbar-thumb:hover {
 }
 
 ::-webkit-scrollbar-track {
-  background: #1F1F1F;
+  background: var(--app-scrollbar-track);
 }
 
 ::-webkit-scrollbar-thumb {
-  background: var(--app-accent);
-  border-radius: 4px;
+  background: linear-gradient(180deg, var(--app-scrollbar-thumb) 0%, var(--app-accent-strong) 100%);
+  border-radius: 999px;
+  border: 1px solid var(--app-scrollbar-thumb-border);
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--app-accent-strong);
+  background: linear-gradient(180deg, var(--app-scrollbar-thumb-hover) 0%, var(--app-scrollbar-thumb) 100%);
 }
 
 /* Loading animation */
