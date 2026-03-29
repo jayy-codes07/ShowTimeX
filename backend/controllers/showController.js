@@ -149,11 +149,8 @@ const getShowsByMovie = async (req, res) => {
       // 🟢 FIX 3: Changed 'showDate' to 'date' and 'showTime' to 'time' to match your DB schema
       .sort({ date: 1, time: 1 });
 
-    // Do not return expired shows, even when querying the current day.
-    const upcomingShows = shows.filter((show) => !show.isPast());
-
     const userId = req.user?._id;
-    const formattedShows = upcomingShows.map((show) => formatShowForClient(show, userId));
+    const formattedShows = shows.map((show) => formatShowForClient(show, userId));
 
     res.status(200).json({
       success: true,

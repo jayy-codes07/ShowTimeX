@@ -14,9 +14,8 @@ const ShowtimeList = ({ shows, movie, selectedDate }) => {
   const { isAuthenticated } = useAuth();
 
   const getShowDateTime = (show) => {
-    if (!show?.date) return null;
-
-    const dt = new Date(show.date);
+    const dt = selectedDate ? new Date(selectedDate) : (show?.date ? new Date(show.date) : null);
+    if (!dt) return null;
     const timeValue = (show.time || '').toString().trim();
     const twelveHourMatch = timeValue.match(/^(\d{1,2}):(\d{2})\s*(AM|PM)$/i);
 

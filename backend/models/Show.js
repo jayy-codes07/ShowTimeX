@@ -1,5 +1,7 @@
 const mongoose = require("mongoose");
 
+const SHOW_TIMEZONE_OFFSET_MINUTES = parseInt(process.env.SHOW_TIMEZONE_OFFSET_MINUTES || "330", 10);
+
 const showSchema = new mongoose.Schema(
   {
     movie: {
@@ -90,6 +92,10 @@ showSchema.methods.getShowDateTime = function () {
     return baseDate;
   }
 
+  const year = baseDate.getUTCFullYear();
+  const month = baseDate.getUTCMonth();
+  const day = baseDate.getUTCDate();
+
   const timeStr = this.time.trim();
   const match12 = timeStr.match(/^(\d{1,2}):(\d{2})\s*(AM|PM)$/i);
   if (match12) {
@@ -98,16 +104,16 @@ showSchema.methods.getShowDateTime = function () {
     const meridiem = match12[3].toUpperCase();
     if (hours === 12) hours = 0;
     if (meridiem === "PM") hours += 12;
-    baseDate.setHours(hours, minutes, 0, 0);
-    return baseDate;
+    const utcMs = Date.UTC(year, month, day, hours, minutes, 0, 0) - SHOW_TIMEZONE_OFFSET_MINUTES * 60 * 1000;
+    return new Date(utcMs);
   }
 
   const match24 = timeStr.match(/^(\d{1,2}):(\d{2})$/);
   if (match24) {
     const hours = parseInt(match24[1], 10);
     const minutes = parseInt(match24[2], 10);
-    baseDate.setHours(hours, minutes, 0, 0);
-    return baseDate;
+    const utcMs = Date.UTC(year, month, day, hours, minutes, 0, 0) - SHOW_TIMEZONE_OFFSET_MINUTES * 60 * 1000;
+    return new Date(utcMs);
   }
 
   return baseDate;
