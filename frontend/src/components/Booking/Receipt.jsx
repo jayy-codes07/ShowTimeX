@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Download, CheckCircle, Calendar, Clock, MapPin, Home } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { formatDate, formatTime } from '../../utils/formatDate';
+import { formatDateUTC, formatTime } from '../../utils/formatDate';
 import Button from '../UI/Button';
 import toast from 'react-hot-toast';
 import logo from './../../assets/images/Showtime_logo.png'
@@ -130,7 +130,7 @@ const Receipt = ({ booking }) => {
               <Calendar className="w-5 h-5 text-primary mt-1" />
               <div>
                 <p className={`text-xs uppercase tracking-wider ${isDark ? 'text-gray-500' : 'text-gray-600'}`}>Date</p>
-                <p className={`font-semibold ${isDark ? 'text-white' : 'text-[var(--app-text-strong)]'}`}>{formatDate(booking.show?.date)}</p>
+                <p className={`font-semibold ${isDark ? 'text-white' : 'text-[var(--app-text-strong)]'}`}>{formatDateUTC(booking.show?.date)}</p>
               </div>
             </div>
 

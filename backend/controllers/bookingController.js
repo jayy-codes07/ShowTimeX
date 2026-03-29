@@ -16,11 +16,22 @@ const {
 } = require("../utils/seatLocks");
 
 const DEFAULT_LOCK_MINUTES = parseInt(process.env.SEAT_LOCK_MINUTES || "10", 10);
+const MIN_BOOKING_LEAD_MINUTES = parseInt(process.env.MIN_BOOKING_LEAD_MINUTES || "60", 10);
+const MIN_BOOKING_LEAD_MS = MIN_BOOKING_LEAD_MINUTES * 60 * 1000;
 const REFUND_PERCENTAGE_HIGH = 90;
 const REFUND_PERCENTAGE_STANDARD = 70;
 const REFUND_PERCENTAGE_LAST_MINUTE = 50;
 
 const roundCurrency = (value) => Number((Number(value) || 0).toFixed(2));
+
+const getShowDateTime = (show) =>
+  typeof show?.getShowDateTime === "function" ? show.getShowDateTime() : new Date(show?.date);
+
+const isBookingClosedForShow = (show) => {
+  const showDateTime = getShowDateTime(show);
+  const msUntilShow = showDateTime.getTime() - Date.now();
+  return !Number.isFinite(msUntilShow) || msUntilShow <= MIN_BOOKING_LEAD_MS;
+};
 
 const getCancellationRefundPolicy = (show, totalAmount) => {
   if (!show) {
@@ -139,6 +150,20 @@ const createRazorpayOrder = async (req, res) => {
         .json({ success: false, message: "Booking not found" });
     }
 
+    const bookingShow = await Show.findById(booking.show);
+    if (!bookingShow) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Show not found" });
+    }
+
+    if (isBookingClosedForShow(bookingShow)) {
+      return res.status(400).json({
+        success: false,
+        message: `Bookings close ${MIN_BOOKING_LEAD_MINUTES} minutes before showtime`,
+      });
+    }
+
     // Validate payment amount
     if (!booking.totalAmount || booking.totalAmount <= 0 || typeof booking.totalAmount !== 'number') {
       return res.status(400).json({
@@ -199,11 +224,11 @@ const createBooking = async (req, res) => {
       });
     }
 
-    // Check if show is in the past
-    if (show.isPast()) {
+    // Block booking once the lead-time cutoff window is reached.
+    if (isBookingClosedForShow(show)) {
       return res.status(400).json({
         success: false,
-        message: "Cannot book tickets for past shows",
+        message: `Bookings close ${MIN_BOOKING_LEAD_MINUTES} minutes before showtime`,
       });
     }
 
@@ -344,6 +369,13 @@ const verifyPayment = async (req, res) => {
       return res
         .status(404)
         .json({ success: false, message: "Booking not found" });
+    }
+
+    if (isBookingClosedForShow(booking.show)) {
+      return res.status(400).json({
+        success: false,
+        message: `Bookings close ${MIN_BOOKING_LEAD_MINUTES} minutes before showtime`,
+      });
     }
 
     // ✅ Idempotency check: If already confirmed, return success (for webhook retries)

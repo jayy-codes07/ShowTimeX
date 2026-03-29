@@ -10,8 +10,18 @@ const {
 } = require("../utils/seatLocks");
 
 const DEFAULT_LOCK_MINUTES = parseInt(process.env.SEAT_LOCK_MINUTES || "10", 10);
+const MIN_BOOKING_LEAD_MINUTES = parseInt(process.env.MIN_BOOKING_LEAD_MINUTES || "60", 10);
+const MIN_BOOKING_LEAD_MS = MIN_BOOKING_LEAD_MINUTES * 60 * 1000;
 const MAX_LOCK_MINUTES = 30;
 const MAX_LOCK_SEATS = 10;
+
+const isBookingClosedForShow = (show) => {
+  const showDateTime = typeof show?.getShowDateTime === "function"
+    ? show.getShowDateTime()
+    : new Date(show?.date);
+  const msUntilShow = showDateTime.getTime() - Date.now();
+  return !Number.isFinite(msUntilShow) || msUntilShow <= MIN_BOOKING_LEAD_MS;
+};
 
 const formatShowForClient = (show, userId) => {
   const showObj = show.toObject ? show.toObject() : { ...show };
@@ -139,8 +149,11 @@ const getShowsByMovie = async (req, res) => {
       // 🟢 FIX 3: Changed 'showDate' to 'date' and 'showTime' to 'time' to match your DB schema
       .sort({ date: 1, time: 1 });
 
+    // Do not return expired shows, even when querying the current day.
+    const upcomingShows = shows.filter((show) => !show.isPast());
+
     const userId = req.user?._id;
-    const formattedShows = shows.map((show) => formatShowForClient(show, userId));
+    const formattedShows = upcomingShows.map((show) => formatShowForClient(show, userId));
 
     res.status(200).json({
       success: true,
@@ -311,6 +324,13 @@ const lockSeats = async (req, res) => {
     const show = await Show.findById(req.params.id);
     if (!show) {
       return res.status(404).json({ success: false, message: "Show not found" });
+    }
+
+    if (isBookingClosedForShow(show)) {
+      return res.status(400).json({
+        success: false,
+        message: `Bookings close ${MIN_BOOKING_LEAD_MINUTES} minutes before showtime`,
+      });
     }
 
     if (!show.bookedSeats) {

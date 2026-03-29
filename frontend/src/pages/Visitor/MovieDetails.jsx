@@ -292,7 +292,7 @@ const MovieDetails = () => {
           {showsLoading ? (
             <Loader message="Loading showtimes..." />
           ) : (
-            <ShowtimeList shows={shows} movie={movie} />
+            <ShowtimeList shows={shows} movie={movie} selectedDate={selectedDate} />
           )}
         </motion.section>
       </div>

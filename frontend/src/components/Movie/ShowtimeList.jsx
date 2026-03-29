@@ -6,10 +6,40 @@ import { useBooking } from '../../context/BookingContext';
 import { useAuth } from '../../context/AuthContext';
 import toast from 'react-hot-toast';
 
-const ShowtimeList = ({ shows, movie }) => {
+const BOOKING_CUTOFF_MS = 60 * 60 * 1000;
+
+const ShowtimeList = ({ shows, movie, selectedDate }) => {
   const navigate = useNavigate();
   const { setMovieAndShow } = useBooking();
   const { isAuthenticated } = useAuth();
+
+  const getShowDateTime = (show) => {
+    if (!show?.date) return null;
+
+    const dt = new Date(show.date);
+    const timeValue = (show.time || '').toString().trim();
+    const twelveHourMatch = timeValue.match(/^(\d{1,2}):(\d{2})\s*(AM|PM)$/i);
+
+    if (twelveHourMatch) {
+      let hours = parseInt(twelveHourMatch[1], 10);
+      const minutes = parseInt(twelveHourMatch[2], 10);
+      const meridiem = twelveHourMatch[3].toUpperCase();
+      if (hours === 12) hours = 0;
+      if (meridiem === 'PM') hours += 12;
+      dt.setHours(hours, minutes, 0, 0);
+      return dt;
+    }
+
+    const twentyFourHourMatch = timeValue.match(/^(\d{1,2}):(\d{2})$/);
+    if (twentyFourHourMatch) {
+      const hours = parseInt(twentyFourHourMatch[1], 10);
+      const minutes = parseInt(twentyFourHourMatch[2], 10);
+      dt.setHours(hours, minutes, 0, 0);
+      return dt;
+    }
+
+    return dt;
+  };
 
   const handleShowSelect = (show) => {
     if (!isAuthenticated) {
@@ -18,7 +48,10 @@ const ShowtimeList = ({ shows, movie }) => {
       return;
     }
 
-    setMovieAndShow(movie, show);
+    setMovieAndShow(movie, {
+      ...show,
+      selectedDate: selectedDate ? new Date(selectedDate) : null,
+    });
     navigate('/payment');
   };
 
@@ -97,14 +130,18 @@ const ShowtimeList = ({ shows, movie }) => {
               );
               const isAlmostFull = availableSeats > 0 && availableSeats < 45;
               const isFull = availableSeats <= 0;
+              const showDateTime = getShowDateTime(show);
+              const msUntilShow = showDateTime ? showDateTime.getTime() - Date.now() : null;
+              const isBookingClosed = msUntilShow === null || msUntilShow <= BOOKING_CUTOFF_MS;
+              const isDisabled = isFull || isBookingClosed;
 
               return (
                 <button
                   key={show._id}
-                  onClick={() => !isFull && handleShowSelect(show)}
-                  disabled={isFull}
+                  onClick={() => !isDisabled && handleShowSelect(show)}
+                  disabled={isDisabled}
                   className={`relative p-4 rounded-lg border-2 transition-all duration-200 ${
-                    isFull
+                    isDisabled
                       ? 'border-gray-700 bg-gray-800/50 cursor-not-allowed opacity-50'
                       : isAlmostFull
                       ? 'border-orange-500 bg-orange-500/10 hover:bg-orange-500/20 hover:scale-[1.02] active:scale-[0.98]'
@@ -124,13 +161,15 @@ const ShowtimeList = ({ shows, movie }) => {
                         {show.format || '2D'}
                       </div>
                       <div className={`font-semibold ${
-                        isFull
+                        isBookingClosed
+                          ? 'text-red-400'
+                          : isFull
                           ? 'text-gray-500'
                           : isAlmostFull
                           ? 'text-orange-400'
                           : 'text-green-400'
                       }`}>
-                        {isFull ? 'Full' : `${availableSeats} seats`}
+                        {isBookingClosed ? 'Closed' : isFull ? 'Full' : `${availableSeats} seats`}
                       </div>
                       <div className="money-value font-bold">
                         ₹{show.price}

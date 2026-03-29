@@ -9,6 +9,16 @@ export const formatDate = (date) => {
 };
 
 /**
+ * Format date using UTC calendar day to avoid timezone day-shift for date-only values
+ */
+export const formatDateUTC = (date) => {
+  const d = new Date(date);
+  const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
+  return `${d.getUTCDate()} ${months[d.getUTCMonth()]} ${d.getUTCFullYear()}`;
+};
+
+/**
  * Format date to full format (e.g., "25 January 2024, 06:30 PM")
  */
 export const formatDateFull = (date) => {
@@ -167,6 +177,7 @@ export const formatDateForAPI = (date) => {
 
 export default {
   formatDate,
+  formatDateUTC,
   formatDateFull,
   formatTime,
   getDayOfWeek,

@@ -7,7 +7,7 @@ import {
   StyleSheet,
   Image,
 } from "@react-pdf/renderer";
-import { formatDate, formatTime } from "../../utils/formatDate";
+import { formatDateUTC, formatTime } from "../../utils/formatDate";
 import logo from "./../../assets/images/Showtime_logo.png";
 
 const paletteByTheme = {
@@ -282,7 +282,7 @@ const TicketDocument = ({ booking, logoSrc, theme = "dark" }) => {
               <View style={styles.infoCol}>
                 <Text style={styles.label}>Date</Text>
                 <Text style={styles.value}>
-                  {formatDate(booking.show?.date)}
+                  {formatDateUTC(booking.show?.date)}
                 </Text>
               </View>
               <View style={styles.infoCol}>

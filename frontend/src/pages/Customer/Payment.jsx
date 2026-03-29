@@ -153,6 +153,7 @@ const Payment = () => {
   }
 
   const summary = getBookingSummary();
+  const displayShowDate = bookingData.show.selectedDate || bookingData.show.date;
 
   return (
     <div className="min-h-screen bg-dark py-8">
@@ -204,7 +205,7 @@ const Payment = () => {
               <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3 sm:gap-4 text-sm">
                 <div className="flex items-center space-x-2 text-gray-400">
                   <Calendar className="w-4 h-4 text-primary" />
-                  <span>{formatDate(bookingData.show.date)}</span>
+                  <span>{formatDate(displayShowDate)}</span>
                 </div>
                 <div className="flex items-center space-x-2 text-gray-400">
                   <Clock className="w-4 h-4 text-primary" />
