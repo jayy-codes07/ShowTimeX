@@ -6,6 +6,9 @@ import { IMAGE_PLACEHOLDER } from '../../utils/constants';
 
 const MovieCard = ({ movie }) => {
   const navigate = useNavigate();
+  const movieLanguages = movie.languages && movie.languages.length > 0 ? movie.languages : ['N/A'];
+  const visibleLanguages = movieLanguages.slice(0, 2);
+  const extraLanguageCount = Math.max(movieLanguages.length - visibleLanguages.length, 0);
 
   const handleClick = () => {
     navigate(`/movie/${movie._id}`);
@@ -71,14 +74,19 @@ const MovieCard = ({ movie }) => {
         </h3>
         
         <div className="flex flex-wrap gap-1.5 mb-3">
-          {movie.genres?.slice(0, 2).map((genre, index) => (
+          {visibleLanguages.map((language, index) => (
             <span
               key={index}
               className="text-[10px] font-bold uppercase tracking-wider bg-gray-800 text-gray-300 px-2 py-0.5 rounded-md border border-gray-700/50"
             >
-              {genre}
+              {language}
             </span>
           ))}
+          {extraLanguageCount > 0 && (
+            <span className="text-[10px] font-bold uppercase tracking-wider bg-gray-800 text-gray-300 px-2 py-0.5 rounded-md border border-gray-700/50">
+              +{extraLanguageCount}
+            </span>
+          )}
         </div>
 
         <div className="mt-auto flex items-center justify-between text-xs text-gray-400 font-medium pt-3 border-t border-gray-800/60 w-full">

@@ -19,6 +19,7 @@ const AllMovies = () => {
   });
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedGenre, setSelectedGenre] = useState('All');
+  const [selectedLanguage, setSelectedLanguage] = useState('All');
 
   useEffect(() => {
     fetchAllMovies();
@@ -87,6 +88,16 @@ const AllMovies = () => {
     return ['All', ...Array.from(genresInMovies).sort()];
   }, [movies]);
 
+  const availableLanguages = useMemo(() => {
+    const languagesInMovies = new Set();
+
+    movies.forEach((movie) => {
+      movie.languages?.forEach((language) => languagesInMovies.add(language));
+    });
+
+    return ['All', ...Array.from(languagesInMovies).sort()];
+  }, [movies]);
+
   const filteredMovies = useMemo(() => {
     return movies.filter((movie) => {
       const matchesSearch = movie.title
@@ -96,9 +107,12 @@ const AllMovies = () => {
       const matchesGenre =
         selectedGenre === 'All' || movie.genres?.includes(selectedGenre);
 
-      return matchesSearch && matchesGenre;
+      const matchesLanguage =
+        selectedLanguage === 'All' || movie.languages?.includes(selectedLanguage);
+
+      return matchesSearch && matchesGenre && matchesLanguage;
     });
-  }, [movies, searchTerm, selectedGenre]);
+  }, [movies, searchTerm, selectedGenre, selectedLanguage]);
 
   if (loading) return <Loader fullScreen message="Fetching all movies..." />;
 
@@ -143,25 +157,54 @@ const AllMovies = () => {
             </p>
           </div>
 
-          <div className="flex flex-wrap gap-2">
-            {availableGenres.map((genre) => {
-              const isActive = selectedGenre === genre;
+          <div className="space-y-4">
+            <div>
+              <p className="mb-2 text-sm font-medium text-gray-300">Genre</p>
+              <div className="flex flex-wrap gap-2">
+                {availableGenres.map((genre) => {
+                  const isActive = selectedGenre === genre;
 
-              return (
-                <button
-                  key={genre}
-                  type="button"
-                  onClick={() => setSelectedGenre(genre)}
-                  className={`whitespace-nowrap rounded-full border px-4 py-2 text-sm font-medium transition ${
-                    isActive
-                      ? 'border-primary bg-primary text-white'
-                      : 'border-gray-700 bg-dark-lighter text-gray-300 hover:border-primary hover:text-white'
-                  }`}
-                >
-                  {genre}
-                </button>
-              );
-            })}
+                  return (
+                    <button
+                      key={genre}
+                      type="button"
+                      onClick={() => setSelectedGenre(genre)}
+                      className={`whitespace-nowrap rounded-full border px-4 py-2 text-sm font-medium transition ${
+                        isActive
+                          ? 'border-primary bg-primary text-white'
+                          : 'border-gray-700 bg-dark-lighter text-gray-300 hover:border-primary hover:text-white'
+                      }`}
+                    >
+                      {genre}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            <div>
+              <p className="mb-2 text-sm font-medium text-gray-300">Language</p>
+              <div className="flex flex-wrap gap-2">
+                {availableLanguages.map((language) => {
+                  const isActive = selectedLanguage === language;
+
+                  return (
+                    <button
+                      key={language}
+                      type="button"
+                      onClick={() => setSelectedLanguage(language)}
+                      className={`whitespace-nowrap rounded-full border px-4 py-2 text-sm font-medium transition ${
+                        isActive
+                          ? 'border-primary bg-primary text-white'
+                          : 'border-gray-700 bg-dark-lighter text-gray-300 hover:border-primary hover:text-white'
+                      }`}
+                    >
+                      {language}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
           </div>
         </motion.div>
 
@@ -196,6 +239,7 @@ const AllMovies = () => {
               No movies found
               {searchTerm ? ` for "${searchTerm}"` : ''}
               {selectedGenre !== 'All' ? ` in ${selectedGenre}` : ''}
+              {selectedLanguage !== 'All' ? ` (${selectedLanguage})` : ''}
             </p>
           </div>
         )}
