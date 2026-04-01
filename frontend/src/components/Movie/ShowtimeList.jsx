@@ -39,6 +39,7 @@ const ShowtimeList = ({ shows, movie, selectedDate }) => {
 
     return dt;
   };
+  // here this is show time past shows 
 
   const handleShowSelect = (show) => {
     if (!isAuthenticated) {
