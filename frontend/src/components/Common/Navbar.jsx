@@ -11,6 +11,7 @@ import {
   X,
   Sun,
   Moon,
+  Clapperboard,
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { useTheme } from '../../context/ThemeContext';
@@ -88,7 +89,8 @@ const Navbar = () => {
                 )}
 
                 <Link to="/movies" className={navLinkClass}>
-                  Movies
+                 <Clapperboard className="w-5 h-5" />
+                  <span>Movies</span>
                 </Link>
 
                 <Link
