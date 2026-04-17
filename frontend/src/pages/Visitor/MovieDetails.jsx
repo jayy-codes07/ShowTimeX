@@ -5,18 +5,23 @@ import { Star, Clock, Calendar, Globe, Film as FilmIcon } from 'lucide-react';
 import ShowtimeList from '../../components/Movie/ShowtimeList';
 import Loader from '../../components/UI/Loader';
 import { movieService } from '../../services/movieService';
-import { formatDuration, formatDate, getNextDays } from '../../utils/formatDate';
+import { formatDuration, getNextDays } from '../../utils/formatDate';
 import { IMAGE_PLACEHOLDER } from '../../utils/constants';
+import { useTheme } from '../../context/ThemeContext';
 import toast from 'react-hot-toast';
 
 const MovieDetails = () => {
   const { id } = useParams();
   const location = useLocation();
+  const { theme } = useTheme();
   const [movie, setMovie] = useState(null);
   const [shows, setShows] = useState([]);
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [loading, setLoading] = useState(true);
   const [showsLoading, setShowsLoading] = useState(false);
+
+  const titleTextClass = theme === 'light' ? 'text-black/90' : 'text-white';
+  const strongTextClass = theme === 'light' ? 'text-black/90' : 'text-white';
 
   const dates = getNextDays(7);
 
@@ -141,33 +146,33 @@ const MovieDetails = () => {
               transition={{ delay: 0.2 }}
               className="flex-grow text-center md:text-left"
             >
-              <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-white mb-4">
+              <h1 className={`text-3xl sm:text-4xl md:text-5xl font-bold mb-4 ${titleTextClass}`}>
                 {movie.title}
               </h1>
 
               <div className="flex flex-wrap items-center gap-4 mb-4">
                 {movie.rating && (
-                  <div className="flex items-center space-x-1 bg-yellow-500/20 px-3 py-1 rounded-lg">
-                    <Star className="w-5 h-5 text-yellow-400 fill-yellow-400" />
-                    <span className="text-white font-bold">{movie.rating}/10</span>
+                  <div className="flex items-center space-x-1 bg-yellow-500/40 px-3 py-1 rounded-lg">
+                    <Star className="w-5 h-5 text-yellow-700 fill-yellow-700" />
+                    <span className={`${strongTextClass} font-bold`}>{movie.rating}/10</span>
                   </div>
                 )}
 
                 {movie.certificate && (
                   <div className="bg-primary px-3 py-1 rounded-lg">
-                    <span className="text-white font-bold">{movie.certificate}</span>
+                    <span className={`${strongTextClass} font-bold`}>{movie.certificate}</span>
                   </div>
                 )}
 
                 {movie.duration && (
-                  <div className="flex items-center space-x-2 text-gray-300">
+                  <div className={`flex items-center space-x-2 ${strongTextClass}`}>
                     <Clock className="w-5 h-5" />
                     <span>{formatDuration(movie.duration)}</span>
                   </div>
                 )}
 
                 {movie.releaseDate && (
-                  <div className="flex items-center space-x-2 text-gray-300">
+                  <div className={`flex items-center space-x-2 ${strongTextClass}`}>
                     <Calendar className="w-5 h-5" />
                     <span>{new Date(movie.releaseDate).getFullYear()}</span>
                   </div>
@@ -186,14 +191,14 @@ const MovieDetails = () => {
               </div>
 
               {movie.languages && (
-                <div className="mb-4 flex items-center justify-center md:justify-start space-x-2 text-gray-400">
+                <div className={`mb-4 flex items-center justify-center md:justify-start space-x-2 ${strongTextClass}`}>
                   <Globe className="w-5 h-5" />
                   <span>{movie.languages.join(', ')}</span>
                 </div>
               )}
 
               {movie.description && (
-                <p className="max-w-3xl md:flex [display:none] text-gray-300 line-clamp-4 md:line-clamp-3">
+                <p className={`max-w-3xl md:flex [display:none]  line-clamp-4 md:line-clamp-3 ${titleTextClass}`}>
                   {movie.description}
                 </p>
               )}
@@ -211,7 +216,7 @@ const MovieDetails = () => {
             animate={{ opacity: 1, y: 0 }}
             className="mb-8"
           >
-            <h2 className="text-2xl font-bold text-white mb-4">Synopsis</h2>
+            <h2 className={`text-2xl font-bold mb-4 ${titleTextClass}`}>Synopsis</h2>
             <p className="text-gray-400 leading-relaxed">{movie.description}</p>
           </motion.section>
         )}
@@ -224,18 +229,18 @@ const MovieDetails = () => {
             transition={{ delay: 0.1 }}
             className="mb-8"
           >
-            <h2 className="text-2xl font-bold text-white mb-4">Cast & Crew</h2>
+            <h2 className={`text-2xl font-bold mb-4 ${titleTextClass}`}>Cast & Crew</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {movie.director && (
                 <div>
                   <p className="text-gray-500 text-sm">Director</p>
-                  <p className="text-white">{movie.director}</p>
+                  <p className={strongTextClass}>{movie.director}</p>
                 </div>
               )}
               {movie.cast && movie.cast.length > 0 && (
                 <div>
                   <p className="text-gray-500 text-sm">Cast</p>
-                  <p className="text-white">{movie.cast.join(', ')}</p>
+                  <p className={strongTextClass}>{movie.cast.join(', ')}</p>
                 </div>
               )}
             </div>
@@ -250,7 +255,7 @@ const MovieDetails = () => {
           transition={{ delay: 0.2 }}
           className="scroll-mt-24 sm:scroll-mt-28"
         >
-          <h2 className="text-2xl font-bold text-white mb-6">Select Date & Time</h2>
+          <h2 className={`text-2xl font-bold mb-6 ${titleTextClass}`}>Select Date & Time</h2>
 
           {/* Date Selector */}
           <div className="mb-6 flex gap-3 overflow-x-auto pb-4 scrollbar-hide -mx-4 px-4 sm:mx-0 sm:px-0">
@@ -276,7 +281,7 @@ const MovieDetails = () => {
                     <p className={`text-sm ${isSelected ? 'text-primary' : 'text-gray-500'}`}>
                       {dayName}
                     </p>
-                    <p className={`text-2xl font-bold ${isSelected ? 'text-white' : 'text-gray-400'}`}>
+                    <p className={`text-2xl font-bold ${isSelected ? strongTextClass : 'text-gray-400'}`}>
                       {dayNumber}
                     </p>
                     <p className={`text-xs ${isSelected ? 'text-primary' : 'text-gray-500'}`}>
@@ -290,7 +295,7 @@ const MovieDetails = () => {
 
           {/* Shows List */}
           {showsLoading ? (
-            <Loader message="Loading showtimes..." />
+            <Loader />
           ) : (
             <ShowtimeList shows={shows} movie={movie} selectedDate={selectedDate} />
           )}

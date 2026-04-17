@@ -1,7 +1,7 @@
 import React from "react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Film, ArrowLeft } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 
 const NotFound = () => {
   return (
@@ -15,8 +15,10 @@ const NotFound = () => {
         {/* Big 404 */}
         <h1 className="text-8xl font-extrabold text-red-500 mb-2">404</h1>
 
-        {/* Icon */}
-        <Film className="w-16 h-16 text-primary mx-auto mb-4" />
+        {/* Brand Logo */}
+        <div className="mb-4 flex items-center justify-center">
+          <span className="site-brand-logo site-brand-logo-header" role="img" aria-label="ShowTimeX logo" />
+        </div>
 
         {/* Message */}
         <h2 className="text-2xl font-bold text-white mb-3">
@@ -30,7 +32,7 @@ const NotFound = () => {
         {/* Go Home Button */}
         <Link
           to="/"
-          className="inline-block bg-red-600 hover:bg-red-700 text-white font-semibold px-8 py-3 rounded-lg transition-colors duration-200"
+          className="btn-primary inline-block"
         >
           <span className="inline-flex items-center gap-2">
             <ArrowLeft className="w-5 h-5" />

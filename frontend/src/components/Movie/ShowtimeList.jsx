@@ -144,7 +144,7 @@ const ShowtimeList = ({ shows, movie, selectedDate }) => {
                       ? 'border-gray-700 bg-gray-800/50 cursor-not-allowed opacity-50'
                       : isAlmostFull
                       ? 'border-orange-500 bg-orange-500/10 hover:bg-orange-500/20 hover:scale-[1.02] active:scale-[0.98]'
-                      : 'border-gray-700 bg-dark-lighter hover:border-gray-700 hover:bg-gray-700 hover:scale-[1.02] active:scale-[0.98]'
+                      : 'border-gray-700 bg-dark-lighter hover:border-primary hover:bg-primary/40 hover:scale-[1.02] active:scale-[0.98]'
                   }`}
                 >
                   <div className="text-center">
@@ -166,7 +166,7 @@ const ShowtimeList = ({ shows, movie, selectedDate }) => {
                           ? 'text-gray-500'
                           : isAlmostFull
                           ? 'text-orange-400'
-                          : 'text-green-400'
+                          : 'text-primary'
                       }`}>
                         {isBookingClosed ? 'Closed' : isFull ? 'Full' : `${availableSeats} seats`}
                       </div>

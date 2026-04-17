@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Mail, Lock, User, Phone, Film } from 'lucide-react';
+import { Mail, Lock, User, Phone } from 'lucide-react';
 import Input from '../../components/UI/Input';
 import Button from '../../components/UI/Button';
 import { useAuth } from '../../context/AuthContext';
@@ -72,7 +72,7 @@ const Register = () => {
         {/* Logo */}
         <div className="text-center mb-8">
           <div className="flex justify-center mb-4">
-            <Film className="w-16 h-16 text-primary" />
+            <span className="site-brand-logo site-brand-logo-auth" role="img" aria-label="ShowTimeX logo" />
           </div>
           <h2 className="text-3xl font-bold text-white">Create Account</h2>
           <p className="text-gray-400 mt-2">Join us to start booking movies</p>

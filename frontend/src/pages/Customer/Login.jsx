@@ -7,7 +7,6 @@ import Button from '../../components/UI/Button';
 import { useAuth } from '../../context/AuthContext';
 import { validateForm } from '../../utils/validators';
 import toast from 'react-hot-toast';
-import logo from '../../assets/images/Showtime_logo.png';
 
 const Login = () => {
   const navigate = useNavigate();
@@ -74,7 +73,7 @@ const Login = () => {
         {/* Logo */}
         <div className="text-center mb-8">
           <div className="flex justify-center mb-4">
-            <img src={logo} className="h-14 w-auto" alt="ShowTimeX" />
+            <span className="site-brand-logo site-brand-logo-auth" role="img" aria-label="ShowTimeX logo" />
           </div>
           <h2 className="text-3xl font-bold text-white">Welcome Back</h2>
           <p className="text-gray-400 mt-2">Login to book your favorite movies</p>

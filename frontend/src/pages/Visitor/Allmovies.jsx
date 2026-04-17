@@ -130,7 +130,7 @@ const AllMovies = () => {
           
           {/* Search Bar - Styled like your Figma header */}
           <div className="relative w-full lg:w-96">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5 z-20" />
             <input 
               type="text" 
               placeholder="Search movies..." 
@@ -171,8 +171,8 @@ const AllMovies = () => {
                       onClick={() => setSelectedGenre(genre)}
                       className={`whitespace-nowrap rounded-full border px-4 py-2 text-sm font-medium transition ${
                         isActive
-                          ? 'border-primary bg-primary text-white'
-                          : 'border-gray-700 bg-dark-lighter text-gray-300 hover:border-primary hover:text-white'
+                          ? 'border-primary bg-primary/20 light:text-primary'
+                          : 'border-gray-700 bg-dark-lighter hover:border-primary hover:bg-primary/10 hover:text-primary '
                       }`}
                     >
                       {genre}
@@ -195,8 +195,8 @@ const AllMovies = () => {
                       onClick={() => setSelectedLanguage(language)}
                       className={`whitespace-nowrap rounded-full border px-4 py-2 text-sm font-medium transition ${
                         isActive
-                          ? 'border-primary bg-primary text-white'
-                          : 'border-gray-700 bg-dark-lighter text-gray-300 hover:border-primary hover:text-white'
+                          ? 'border-primary bg-primary/20 text-white light:text-primary'
+                          : 'border-gray-700 bg-dark-lighter hover:border-primary hover:bg-primary/10 hover:text-primary '
                       }`}
                     >
                       {language}

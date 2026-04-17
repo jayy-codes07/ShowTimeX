@@ -180,7 +180,7 @@ const Payment = () => {
         {/* Back Button */}
         <button
           onClick={() => navigate(-1)}
-          className="mb-6 flex items-center space-x-2 text-sm sm:text-base text-gray-400 hover:text-white transition"
+          className="mb-6 flex items-center space-x-2 text-sm sm:text-base text-gray-400 hover:text-gray-800 transition"
         >
           <ArrowLeft className="w-5 h-5" />
           <span>Back to Movie</span>

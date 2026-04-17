@@ -995,6 +995,11 @@ body {
   height: 120px;
 }
 
+.site-brand-logo-auth {
+  width: 200px;
+  height: 56px;
+}
+
 @media (min-width: 640px) {
   .site-brand-logo-header {
     width: 178px;
@@ -1009,5 +1014,10 @@ body {
   .site-brand-logo-loader {
     width: 460px;
     height: 130px;
+  }
+
+  .site-brand-logo-auth {
+    width: 228px;
+    height: 64px;
   }
 }

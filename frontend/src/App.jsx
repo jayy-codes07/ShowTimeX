@@ -34,6 +34,7 @@ const ManageBookings = lazy(() => import("./pages/Admin/ManageBookings"));
 const Reports = lazy(() => import("./pages/Admin/Reports"));
 const UsersPage = lazy(() => import("./pages/Admin/Users"));
 const AllMovies = lazy(() => import("./pages/Visitor/Allmovies"));
+const SupportDocument = lazy(() => import("./pages/Visitor/SupportDocument"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
 function AppLayout() {
@@ -77,6 +78,11 @@ function AppLayout() {
                       <Route path="/register" element={<PageTransition><Register /></PageTransition>} />
                       <Route path="/forgot-password" element={<PageTransition><ForgotPassword /></PageTransition>} />
                       <Route path="/movies" element={<PageTransition><AllMovies /></PageTransition>} />
+                      <Route path="/support/:docKey" element={<PageTransition><SupportDocument /></PageTransition>} />
+                      <Route path="/terms" element={<PageTransition><SupportDocument defaultDocKey="terms-of-service" /></PageTransition>} />
+                      <Route path="/privacy" element={<PageTransition><SupportDocument defaultDocKey="privacy-policy" /></PageTransition>} />
+                      <Route path="/refund-policy" element={<PageTransition><SupportDocument defaultDocKey="refund-policy" /></PageTransition>} />
+                      <Route path="/help-center" element={<PageTransition><SupportDocument defaultDocKey="help-center" /></PageTransition>} />
 
                       {/* Customer Protected Routes */}
                       <Route
@@ -183,6 +189,11 @@ function AppLayout() {
                     <Route path="/register" element={<PageTransition><Register /></PageTransition>} />
                     <Route path="/forgot-password" element={<PageTransition><ForgotPassword /></PageTransition>} />
                     <Route path="/movies" element={<PageTransition><AllMovies /></PageTransition>} />
+                    <Route path="/support/:docKey" element={<PageTransition><SupportDocument /></PageTransition>} />
+                    <Route path="/terms" element={<PageTransition><SupportDocument defaultDocKey="terms-of-service" /></PageTransition>} />
+                    <Route path="/privacy" element={<PageTransition><SupportDocument defaultDocKey="privacy-policy" /></PageTransition>} />
+                    <Route path="/refund-policy" element={<PageTransition><SupportDocument defaultDocKey="refund-policy" /></PageTransition>} />
+                    <Route path="/help-center" element={<PageTransition><SupportDocument defaultDocKey="help-center" /></PageTransition>} />
 
                     {/* Customer Protected Routes */}
                     <Route

@@ -63,24 +63,24 @@ const Footer = () => {
             <h3 className="mb-4 font-semibold text-white">Support</h3>
             <ul className="space-y-2">
               <li>
-                <a href="#" className="site-footer-link">
+                <Link to="/support/help-center" className="site-footer-link">
                   Help Center
-                </a>
+                </Link>
               </li>
               <li>
-                <a href="#" className="site-footer-link">
+                <Link to="/support/terms-of-service" className="site-footer-link">
                   Terms of Service
-                </a>
+                </Link>
               </li>
               <li>
-                <a href="#" className="site-footer-link">
+                <Link to="/support/privacy-policy" className="site-footer-link">
                   Privacy Policy
-                </a>
+                </Link>
               </li>
               <li>
-                <a href="#" className="site-footer-link">
+                <Link to="/support/refund-policy" className="site-footer-link">
                   Refund Policy
-                </a>
+                </Link>
               </li>
             </ul>
           </div>

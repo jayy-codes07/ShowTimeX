@@ -41,7 +41,7 @@ const MovieCard = ({ movie }) => {
         {/* Certificate Badge */}
         {movie.certificate && (
           <div
-            className="absolute top-3 left-3 z-20 px-2.5 py-1 rounded-full text-white text-[10px] font-extrabold uppercase tracking-wide shadow-lg border border-white/20 leading-none flex items-center justify-center"
+            className="absolute top-3 left-3 z-20 px-2.5 py-1 rounded-full text-black text-[10px] font-extrabold uppercase tracking-wide shadow-lg border border-white/20 leading-none flex items-center justify-center"
             style={{ backgroundColor: 'var(--app-accent)' }}
           >
             {movie.certificate}
