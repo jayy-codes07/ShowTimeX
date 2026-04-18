@@ -508,13 +508,13 @@ const ManageMovies = () => {
 
                 {/* Auto-fetch button */}
                 <div className="flex justify-start">
-                  <button
+                  {/* <button
                     type="button"
                     onClick={fetchTMDBImages}
                     className="flex w-full sm:w-auto items-center justify-center gap-2 rounded-lg bg-yellow-500/20 px-4 py-2 text-sm font-medium text-yellow-400 transition hover:bg-yellow-500/30"
                   >
                      Auto-fetch HD Images from TMDB
-                  </button>
+                  </button> */}
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

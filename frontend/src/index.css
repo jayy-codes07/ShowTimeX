@@ -42,7 +42,7 @@
     --app-scrollbar-thumb-hover: #4ade80;
     --app-scrollbar-thumb-border: rgba(167, 243, 208, 0.18);
     --site-logo-image: url('./assets/images/Showtime_logo.png');
-    --site-logo-filter: hue-rotate(104deg) saturate(1.2) brightness(1.04);
+    --site-logo-filter: none;
 
     /* Chart Colors - Dark Theme (based on accent color #22c55e) */
     --chart-gradient-start: #22c55e;
@@ -113,7 +113,8 @@
   --app-scrollbar-thumb: #166534;
   --app-scrollbar-thumb-hover: #15803d;
   --app-scrollbar-thumb-border: rgba(22, 101, 52, 0.18);
-  --site-logo-filter: hue-rotate(96deg) saturate(1.08) brightness(0.9);
+  --site-logo-image: url('./assets/images/Showtime_logo.png');
+  --site-logo-filter: none;
 
   /* Chart Colors - Light Theme (bright green for visibility on light background) */
   --chart-gradient-start: #059669;
