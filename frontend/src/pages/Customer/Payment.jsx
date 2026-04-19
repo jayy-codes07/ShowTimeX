@@ -233,7 +233,7 @@ const Payment = () => {
               <div
                 className={`w-8 h-8 rounded-full flex items-center justify-center ${step >= 1 ? "bg-current" : "bg-gray-700"}`}
               >
-                <span class="text-white "> 1</span>
+                <span className="text-white "> 1</span>
               </div>
               <span>Select Seats</span>
             </div>
@@ -244,7 +244,7 @@ const Payment = () => {
               <div
                 className={`w-8 h-8 rounded-full flex items-center justify-center ${step >= 2 ? "bg-primary" : "bg-gray-700"}`}
               >
-                <span class="text-white "> 2 </span>
+                <span className="text-white "> 2 </span>
               </div>
               <span>Checkout</span>
             </div>

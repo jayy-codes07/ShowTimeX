@@ -174,7 +174,7 @@ const createRazorpayOrder = async (req, res) => {
 
     // 3. Create the order
     const order = await razorpay.orders.create({
-      amount: booking.totalAmount * 100,
+      amount: Math.round(booking.totalAmount * 100),
       currency: "INR",
       receipt: booking.bookingId,
     });
