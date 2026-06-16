@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useLocation, useParams } from 'react-router-dom';
-// import { motion } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { Star, Clock, Calendar, Globe, Film as FilmIcon } from 'lucide-react';
 import ShowtimeList from '../../components/Movie/ShowtimeList';
 import Loader from '../../components/UI/Loader';

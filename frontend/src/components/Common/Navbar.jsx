@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import {  AnimatePresence } from 'framer-motion';
+import React, { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   Search,
   User,
@@ -12,16 +12,16 @@ import {
   Sun,
   Moon,
   Clapperboard,
-} from 'lucide-react';
-import { useAuth } from '../../context/AuthContext';
-import { useTheme } from '../../context/ThemeContext';
+} from "lucide-react";
+import { useAuth } from "../../context/AuthContext";
+import { useTheme } from "../../context/ThemeContext";
 
 const Navbar = () => {
   const navigate = useNavigate();
   const { user, isAuthenticated, logout } = useAuth();
   const { theme, toggleTheme } = useTheme();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [searchQuery, setSearchQuery] = useState('');
+  const [searchQuery, setSearchQuery] = useState("");
 
   const closeMenu = () => setIsMenuOpen(false);
 
@@ -32,28 +32,35 @@ const Navbar = () => {
     }
 
     navigate(`/search?q=${encodeURIComponent(searchQuery.trim())}`);
-    setSearchQuery('');
+    setSearchQuery("");
     closeMenu();
   };
 
   const handleLogout = () => {
     logout();
     closeMenu();
-    navigate('/');
+    navigate("/");
   };
 
-  const navLinkClass = 'site-nav-link';
-  const mobileLinkClass = 'site-mobile-link';
+  const navLinkClass = "site-nav-link";
+  const mobileLinkClass = "site-mobile-link";
 
   return (
     <nav className="site-header fixed inset-x-0 top-0 z-50">
       <div className="container-custom">
         <div className="flex h-16 sm:h-20 items-center justify-between gap-3">
           <Link to="/" className="shrink-0" onClick={closeMenu}>
-            <span className="site-brand-logo site-brand-logo-header" role="img" aria-label="ShowTimeX logo" />
+            <span
+              className="site-brand-logo site-brand-logo-header"
+              role="img"
+              aria-label="ShowTimeX logo"
+            />
           </Link>
 
-          <form onSubmit={handleSearch} className="hidden lg:flex flex-1 max-w-lg mx-4 xl:mx-8">
+          <form
+            onSubmit={handleSearch}
+            className="hidden lg:flex flex-1 max-w-lg mx-4 xl:mx-8"
+          >
             <div className="relative w-full">
               <input
                 type="text"
@@ -71,32 +78,34 @@ const Navbar = () => {
               onClick={toggleTheme}
               className="site-icon-button"
               aria-label="Toggle theme"
-              title={theme === 'dark' ? 'Switch to light theme' : 'Switch to dark theme'}
+              title={
+                theme === "dark"
+                  ? "Switch to light theme"
+                  : "Switch to dark theme"
+              }
             >
-              {theme === 'dark' ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
+              {theme === "dark" ? (
+                <Sun className="w-5 h-5" />
+              ) : (
+                <Moon className="w-5 h-5" />
+              )}
             </button>
 
             {isAuthenticated ? (
               <>
-                {user?.role === 'admin' && (
-                  <Link
-                    to="/admin/dashboard"
-                    className={navLinkClass}
-                  >
+                {user?.role === "admin" && (
+                  <Link to="/admin/dashboard" className={navLinkClass}>
                     <LayoutDashboard className="w-5 h-5" />
                     <span>Dashboard</span>
                   </Link>
                 )}
 
                 <Link to="/movies" className={navLinkClass}>
-                 <Clapperboard className="w-5 h-5" />
+                  <Clapperboard className="w-5 h-5" />
                   <span>Movies</span>
                 </Link>
 
-                <Link
-                  to="/my-tickets"
-                  className={navLinkClass}
-                >
+                <Link to="/my-tickets" className={navLinkClass}>
                   <Ticket className="w-5 h-5" />
                   <span>My Tickets</span>
                 </Link>
@@ -104,7 +113,7 @@ const Navbar = () => {
                 <div className="relative group">
                   <button className={`${navLinkClass} max-w-[14rem]`}>
                     <User className="w-5 h-5 shrink-0" />
-                    <span className="truncate">{user?.name || 'User'}</span>
+                    <span className="truncate">{user?.name || "User"}</span>
                   </button>
 
                   <div className="site-dropdown-panel absolute right-0 mt-2 w-52 rounded-2xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all">
@@ -132,10 +141,7 @@ const Navbar = () => {
                 <Link to="/login" className={navLinkClass}>
                   Login
                 </Link>
-                <Link
-                  to="/register"
-                  className="btn-primary"
-                >
+                <Link to="/register" className="btn-primary">
                   Sign Up
                 </Link>
               </>
@@ -147,7 +153,11 @@ const Navbar = () => {
             className="site-icon-button lg:hidden shrink-0"
             aria-label="Toggle navigation menu"
           >
-            {isMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+            {isMenuOpen ? (
+              <X className="w-6 h-6" />
+            ) : (
+              <Menu className="w-6 h-6" />
+            )}
           </button>
         </div>
 
@@ -155,7 +165,7 @@ const Navbar = () => {
           {isMenuOpen && (
             <motion.div
               initial={{ opacity: 0, height: 0 }}
-              animate={{ opacity: 1, height: 'auto' }}
+              animate={{ opacity: 1, height: "auto" }}
               exit={{ opacity: 0, height: 0 }}
               className="site-mobile-panel lg:hidden"
             >
@@ -166,7 +176,11 @@ const Navbar = () => {
                     className="site-icon-button flex w-full items-center justify-between px-3 py-2"
                   >
                     <span>Theme</span>
-                    {theme === 'dark' ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
+                    {theme === "dark" ? (
+                      <Sun className="w-5 h-5" />
+                    ) : (
+                      <Moon className="w-5 h-5" />
+                    )}
                   </button>
                 </div>
 
@@ -183,13 +197,17 @@ const Navbar = () => {
                   </div>
                 </form>
 
-                <Link to="/movies" className={mobileLinkClass} onClick={closeMenu}>
+                <Link
+                  to="/movies"
+                  className={mobileLinkClass}
+                  onClick={closeMenu}
+                >
                   Movies
                 </Link>
 
                 {isAuthenticated ? (
                   <>
-                    {user?.role === 'admin' && (
+                    {user?.role === "admin" && (
                       <Link
                         to="/admin/dashboard"
                         className={mobileLinkClass}
@@ -198,19 +216,34 @@ const Navbar = () => {
                         Dashboard
                       </Link>
                     )}
-                    <Link to="/my-tickets" className={mobileLinkClass} onClick={closeMenu}>
+                    <Link
+                      to="/my-tickets"
+                      className={mobileLinkClass}
+                      onClick={closeMenu}
+                    >
                       My Tickets
                     </Link>
-                    <Link to="/profile" className={mobileLinkClass} onClick={closeMenu}>
+                    <Link
+                      to="/profile"
+                      className={mobileLinkClass}
+                      onClick={closeMenu}
+                    >
                       Profile
                     </Link>
-                    <button onClick={handleLogout} className={`${mobileLinkClass} w-full text-left`}>
+                    <button
+                      onClick={handleLogout}
+                      className={`${mobileLinkClass} w-full text-left`}
+                    >
                       Logout
                     </button>
                   </>
                 ) : (
                   <>
-                    <Link to="/login" className={mobileLinkClass} onClick={closeMenu}>
+                    <Link
+                      to="/login"
+                      className={mobileLinkClass}
+                      onClick={closeMenu}
+                    >
                       Login
                     </Link>
                     <Link
