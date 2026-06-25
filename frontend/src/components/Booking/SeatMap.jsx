@@ -4,7 +4,7 @@ import { SEAT_CONFIG, API_ENDPOINTS } from '../../utils/constants';
 import { useBooking } from '../../context/BookingContext';
 import { apiRequest } from '../../services/api';
 import toast from 'react-hot-toast';
-import SeatButton from './SeatButton';
+import SeatButton from './Seatbutton';
 import { createSeatStore } from './useSeatSelection';
 
 const DEBOUNCE_MS = 400;
