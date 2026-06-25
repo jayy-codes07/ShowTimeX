@@ -279,7 +279,11 @@ const Payment = () => {
                       . Complete checkout before the timer ends.
                     </div>
                   )}
-                <SeatMap
+
+                  {
+                    
+                  }
+                <SeatMap 
                   bookedSeats={bookingData.show.bookedSeats}
                   lockedSeats={bookingData.show.lockedSeats}
                   myLockedSeats={bookingData.show.myLockedSeats}

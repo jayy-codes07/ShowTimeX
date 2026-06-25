@@ -7,8 +7,16 @@
   .theme-dark {
     --app-bg: #0f1814;
     --app-bg-image:
-      radial-gradient(1100px 620px at -8% -16%, rgba(34, 197, 94, 0.12), transparent 58%),
-      radial-gradient(880px 540px at 106% -8%, rgba(20, 83, 45, 0.26), transparent 52%),
+      radial-gradient(
+        1100px 620px at -8% -16%,
+        rgba(34, 197, 94, 0.12),
+        transparent 58%
+      ),
+      radial-gradient(
+        880px 540px at 106% -8%,
+        rgba(20, 83, 45, 0.26),
+        transparent 52%
+      ),
       linear-gradient(180deg, #0f1814 0%, #0b120f 100%);
     --app-surface-card: rgba(19, 35, 28, 0.86);
     --app-surface-soft: rgba(32, 56, 45, 0.44);
@@ -27,8 +35,16 @@
     --app-overlay-surface: rgba(15, 24, 20, 0.8);
     --app-shadow-card: 0 18px 40px rgba(2, 10, 7, 0.42);
     --app-shadow-soft: 0 10px 26px rgba(2, 10, 7, 0.26);
-    --app-chrome: linear-gradient(180deg, rgba(18, 33, 26, 0.94) 0%, rgba(12, 22, 18, 0.9) 100%);
-    --app-footer: linear-gradient(180deg, rgba(17, 31, 25, 0.92) 0%, rgba(10, 18, 14, 0.96) 100%);
+    --app-chrome: linear-gradient(
+      180deg,
+      rgba(18, 33, 26, 0.94) 0%,
+      rgba(12, 22, 18, 0.9) 100%
+    );
+    --app-footer: linear-gradient(
+      180deg,
+      rgba(17, 31, 25, 0.92) 0%,
+      rgba(10, 18, 14, 0.96) 100%
+    );
     --app-seat-available: rgba(255, 255, 255, 0.16);
     --app-seat-available-text: #ecfdf3;
     --app-seat-selected: #22c55e;
@@ -41,17 +57,17 @@
     --app-scrollbar-thumb: #22c55e;
     --app-scrollbar-thumb-hover: #4ade80;
     --app-scrollbar-thumb-border: rgba(167, 243, 208, 0.18);
-    --site-logo-image: url('./assets/images/Showtime_logo.png');
+    --site-logo-image: url("./assets/images/Showtime_logo.png");
     --site-logo-filter: none;
 
     /* Chart Colors - Dark Theme (based on accent color #22c55e) */
     --chart-gradient-start: #22c55e;
     --chart-gradient-end: #4ade80;
     --chart-grid: rgba(255, 255, 255, 0.08);
-    --chart-axis: #9CA3AF;
+    --chart-axis: #9ca3af;
     --chart-tooltip-bg: #111827;
     --chart-tooltip-border: #374151;
-    --chart-tooltip-text: #F9FAFB;
+    --chart-tooltip-text: #f9fafb;
     --chart-tooltip-accent: #86efac;
     --chart-cursor: rgba(255, 255, 255, 0.06);
     --chart-shadow: 0 16px 34px rgba(0, 0, 0, 0.3);
@@ -68,7 +84,7 @@
     color: var(--app-text-strong);
     @apply font-sans antialiased;
   }
-  
+
   html {
     scroll-behavior: smooth;
     background-color: var(--app-bg);
@@ -79,8 +95,16 @@
 .theme-light {
   --app-bg: #eef6ee;
   --app-bg-image:
-    radial-gradient(1000px 560px at 10% -10%, rgba(22, 101, 52, 0.12), transparent 60%),
-    radial-gradient(820px 500px at 100% -4%, rgba(74, 222, 128, 0.16), transparent 54%),
+    radial-gradient(
+      1000px 560px at 10% -10%,
+      rgba(22, 101, 52, 0.12),
+      transparent 60%
+    ),
+    radial-gradient(
+      820px 500px at 100% -4%,
+      rgba(74, 222, 128, 0.16),
+      transparent 54%
+    ),
     linear-gradient(180deg, #eef6ee 0%, #e5f0e6 100%);
   --app-surface-card: rgba(245, 252, 247, 0.92);
   --app-surface-soft: rgba(230, 245, 234, 0.78);
@@ -99,8 +123,16 @@
   --app-overlay-surface: rgba(238, 246, 238, 0.84);
   --app-shadow-card: 0 14px 34px rgba(18, 64, 39, 0.14);
   --app-shadow-soft: 0 8px 22px rgba(18, 64, 39, 0.1);
-  --app-chrome: linear-gradient(180deg, rgba(242, 250, 244, 0.94) 0%, rgba(231, 245, 235, 0.88) 100%);
-  --app-footer: linear-gradient(180deg, rgba(236, 247, 239, 0.92) 0%, rgba(227, 242, 232, 0.96) 100%);
+  --app-chrome: linear-gradient(
+    180deg,
+    rgba(242, 250, 244, 0.94) 0%,
+    rgba(231, 245, 235, 0.88) 100%
+  );
+  --app-footer: linear-gradient(
+    180deg,
+    rgba(236, 247, 239, 0.92) 0%,
+    rgba(227, 242, 232, 0.96) 100%
+  );
   --app-seat-available: rgba(22, 101, 52, 0.38);
   --app-seat-available-text: #0f2a1c;
   --app-seat-selected: #166534;
@@ -113,7 +145,7 @@
   --app-scrollbar-thumb: #166534;
   --app-scrollbar-thumb-hover: #15803d;
   --app-scrollbar-thumb-border: rgba(22, 101, 52, 0.18);
-  --site-logo-image: url('./assets/images/Showtime_logo.png');
+  --site-logo-image: url("./assets/images/Showtime_logo.png");
   --site-logo-filter: none;
 
   /* Chart Colors - Light Theme (bright green for visibility on light background) */
@@ -143,8 +175,16 @@
 .theme-dark.admin-route {
   --app-bg: #0f1814;
   --app-bg-image:
-    radial-gradient(1100px 620px at -8% -16%, rgba(34, 197, 94, 0.12), transparent 58%),
-    radial-gradient(880px 540px at 106% -8%, rgba(20, 83, 45, 0.26), transparent 52%),
+    radial-gradient(
+      1100px 620px at -8% -16%,
+      rgba(34, 197, 94, 0.12),
+      transparent 58%
+    ),
+    radial-gradient(
+      880px 540px at 106% -8%,
+      rgba(20, 83, 45, 0.26),
+      transparent 52%
+    ),
     linear-gradient(180deg, #0f1814 0%, #0b120f 100%);
   --app-surface-card: rgba(19, 35, 28, 0.86);
   --app-surface-soft: rgba(32, 56, 45, 0.44);
@@ -163,16 +203,32 @@
   --app-overlay-surface: rgba(15, 24, 20, 0.8);
   --app-shadow-card: 0 18px 40px rgba(2, 10, 7, 0.42);
   --app-shadow-soft: 0 10px 26px rgba(2, 10, 7, 0.26);
-  --app-chrome: linear-gradient(180deg, rgba(18, 33, 26, 0.94) 0%, rgba(12, 22, 18, 0.9) 100%);
-  --app-footer: linear-gradient(180deg, rgba(17, 31, 25, 0.92) 0%, rgba(10, 18, 14, 0.96) 100%);
+  --app-chrome: linear-gradient(
+    180deg,
+    rgba(18, 33, 26, 0.94) 0%,
+    rgba(12, 22, 18, 0.9) 100%
+  );
+  --app-footer: linear-gradient(
+    180deg,
+    rgba(17, 31, 25, 0.92) 0%,
+    rgba(10, 18, 14, 0.96) 100%
+  );
 }
 
 .admin-route.theme-light,
 .theme-light.admin-route {
   --app-bg: #eef6ee;
   --app-bg-image:
-    radial-gradient(1000px 560px at 10% -10%, rgba(22, 101, 52, 0.12), transparent 60%),
-    radial-gradient(820px 500px at 100% -4%, rgba(74, 222, 128, 0.16), transparent 54%),
+    radial-gradient(
+      1000px 560px at 10% -10%,
+      rgba(22, 101, 52, 0.12),
+      transparent 60%
+    ),
+    radial-gradient(
+      820px 500px at 100% -4%,
+      rgba(74, 222, 128, 0.16),
+      transparent 54%
+    ),
     linear-gradient(180deg, #eef6ee 0%, #e5f0e6 100%);
   --app-surface-card: rgba(245, 252, 247, 0.92);
   --app-surface-soft: rgba(230, 245, 234, 0.78);
@@ -191,8 +247,16 @@
   --app-overlay-surface: rgba(238, 246, 238, 0.84);
   --app-shadow-card: 0 14px 34px rgba(18, 64, 39, 0.14);
   --app-shadow-soft: 0 8px 22px rgba(18, 64, 39, 0.1);
-  --app-chrome: linear-gradient(180deg, rgba(242, 250, 244, 0.94) 0%, rgba(231, 245, 235, 0.88) 100%);
-  --app-footer: linear-gradient(180deg, rgba(236, 247, 239, 0.92) 0%, rgba(227, 242, 232, 0.96) 100%);
+  --app-chrome: linear-gradient(
+    180deg,
+    rgba(242, 250, 244, 0.94) 0%,
+    rgba(231, 245, 235, 0.88) 100%
+  );
+  --app-footer: linear-gradient(
+    180deg,
+    rgba(236, 247, 239, 0.92) 0%,
+    rgba(227, 242, 232, 0.96) 100%
+  );
 }
 
 .bg-dark {
@@ -375,7 +439,8 @@
 .theme-light .via-dark\/60,
 .theme-light .via-dark\/50,
 .theme-light .via-dark\/10 {
-  --tw-gradient-stops: var(--tw-gradient-from),
+  --tw-gradient-stops:
+    var(--tw-gradient-from),
     rgba(247, 241, 215, 0.78) var(--tw-gradient-via-position),
     var(--tw-gradient-to);
 }
@@ -540,11 +605,15 @@ body {
   .container-custom {
     @apply max-w-7xl mx-auto px-4 sm:px-6 lg:px-8;
   }
-  
+
   .btn-primary {
     @apply inline-flex items-center justify-center gap-2 rounded-xl px-6 py-2.5 font-semibold transition-transform transition-colors duration-200 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50;
     color: #fff9f5;
-    background-image: linear-gradient(135deg, var(--app-accent) 0%, var(--app-accent-strong) 100%);
+    background-image: linear-gradient(
+      135deg,
+      var(--app-accent) 0%,
+      var(--app-accent-strong) 100%
+    );
     box-shadow: 0 14px 28px rgba(0, 0, 0, 0.22);
   }
 
@@ -552,7 +621,7 @@ body {
     transform: translateY(-1px);
     filter: saturate(1.04);
   }
-  
+
   .btn-secondary {
     @apply inline-flex items-center justify-center gap-2 rounded-xl px-6 py-2.5 font-semibold transition-transform transition-colors duration-200 active:scale-[0.98];
     background-color: var(--app-surface-soft);
@@ -565,7 +634,7 @@ body {
     background-color: var(--app-surface-strong);
     transform: translateY(-1px);
   }
-  
+
   .input-field {
     @apply w-full rounded-xl px-4 py-3 transition-all duration-300 focus:outline-none;
     background-color: var(--app-surface-card);
@@ -581,9 +650,11 @@ body {
 
   .input-field:focus {
     border-color: var(--app-border-strong);
-    box-shadow: 0 0 0 3px var(--app-accent-ring), var(--app-shadow-soft);
+    box-shadow:
+      0 0 0 3px var(--app-accent-ring),
+      var(--app-shadow-soft);
   }
-  
+
   .card {
     @apply rounded-2xl p-6 transition-all duration-300;
     background-color: var(--app-surface-card);
@@ -594,7 +665,7 @@ body {
   .card:hover {
     transform: translateY(-2px);
   }
-  
+
   .movie-card {
     @apply relative cursor-pointer overflow-hidden rounded-2xl transform transition-all duration-300;
     box-shadow: var(--app-shadow-soft);
@@ -629,7 +700,9 @@ body {
 
   .site-search-input:focus {
     border-color: var(--app-border-strong);
-    box-shadow: 0 0 0 3px var(--app-accent-ring), var(--app-shadow-soft);
+    box-shadow:
+      0 0 0 3px var(--app-accent-ring),
+      var(--app-shadow-soft);
   }
 
   .site-icon-button {
@@ -734,7 +807,11 @@ body {
 
   .site-btn-danger {
     @apply px-6 py-2.5 text-sm font-semibold transition-colors duration-200;
-    background-image: linear-gradient(135deg, var(--app-accent) 0%, var(--app-accent-strong) 100%);
+    background-image: linear-gradient(
+      135deg,
+      var(--app-accent) 0%,
+      var(--app-accent-strong) 100%
+    );
     color: var(--app-text-strong);
   }
 
@@ -757,7 +834,9 @@ body {
   }
 
   .admin-table-row {
-    transition: background-color 0.25s ease, box-shadow 0.25s ease;
+    transition:
+      background-color 0.25s ease,
+      box-shadow 0.25s ease;
   }
 
   .admin-table-row:hover {
@@ -772,8 +851,16 @@ body {
     @apply relative flex items-start gap-4 overflow-hidden rounded-2xl p-5 transition-all duration-300;
     border: 1px solid var(--app-border);
     background:
-      radial-gradient(circle at top right, var(--app-accent-soft), transparent 34%),
-      linear-gradient(180deg, var(--app-surface-card) 0%, var(--app-surface-soft) 100%);
+      radial-gradient(
+        circle at top right,
+        var(--app-accent-soft),
+        transparent 34%
+      ),
+      linear-gradient(
+        180deg,
+        var(--app-surface-card) 0%,
+        var(--app-surface-soft) 100%
+      );
     box-shadow: var(--app-shadow-card);
     color: var(--app-text-strong);
   }
@@ -782,8 +869,16 @@ body {
     transform: translateY(-4px);
     border-color: var(--app-border-strong);
     background:
-      radial-gradient(circle at top right, var(--app-accent-soft-strong), transparent 38%),
-      linear-gradient(180deg, var(--app-surface-strong) 0%, var(--app-surface-card) 100%);
+      radial-gradient(
+        circle at top right,
+        var(--app-accent-soft-strong),
+        transparent 38%
+      ),
+      linear-gradient(
+        180deg,
+        var(--app-surface-strong) 0%,
+        var(--app-surface-card) 100%
+      );
     box-shadow: 0 22px 40px rgba(0, 0, 0, 0.16);
   }
 
@@ -796,16 +891,32 @@ body {
   .dashboard-quick-action-light {
     border-color: rgba(188, 108, 37, 0.24) !important;
     background:
-      radial-gradient(circle at top right, rgba(188, 108, 37, 0.1), transparent 34%),
-      linear-gradient(180deg, rgba(255, 250, 232, 0.98) 0%, rgba(255, 245, 216, 0.94) 100%) !important;
+      radial-gradient(
+        circle at top right,
+        rgba(188, 108, 37, 0.1),
+        transparent 34%
+      ),
+      linear-gradient(
+        180deg,
+        rgba(255, 250, 232, 0.98) 0%,
+        rgba(255, 245, 216, 0.94) 100%
+      ) !important;
     box-shadow: 0 18px 30px rgba(40, 54, 24, 0.1) !important;
   }
 
   .dashboard-quick-action-light:hover {
     border-color: rgba(188, 108, 37, 0.4) !important;
     background:
-      radial-gradient(circle at top right, rgba(188, 108, 37, 0.15), transparent 38%),
-      linear-gradient(180deg, rgba(255, 248, 225, 1) 0%, rgba(250, 241, 208, 0.98) 100%) !important;
+      radial-gradient(
+        circle at top right,
+        rgba(188, 108, 37, 0.15),
+        transparent 38%
+      ),
+      linear-gradient(
+        180deg,
+        rgba(255, 248, 225, 1) 0%,
+        rgba(250, 241, 208, 0.98) 100%
+      ) !important;
     box-shadow: 0 22px 34px rgba(40, 54, 24, 0.14) !important;
   }
 
@@ -818,15 +929,31 @@ body {
   .dashboard-quick-action-dark {
     border-color: rgba(255, 255, 255, 0.09) !important;
     background:
-      radial-gradient(circle at top right, var(--app-accent-soft), transparent 34%),
-      linear-gradient(180deg, rgba(21, 21, 27, 0.92) 0%, rgba(15, 15, 20, 0.9) 100%) !important;
+      radial-gradient(
+        circle at top right,
+        var(--app-accent-soft),
+        transparent 34%
+      ),
+      linear-gradient(
+        180deg,
+        rgba(21, 21, 27, 0.92) 0%,
+        rgba(15, 15, 20, 0.9) 100%
+      ) !important;
   }
 
   .dashboard-quick-action-dark:hover {
     border-color: rgba(255, 255, 255, 0.16) !important;
     background:
-      radial-gradient(circle at top right, var(--app-accent-soft-strong), transparent 38%),
-      linear-gradient(180deg, rgba(28, 28, 35, 0.96) 0%, rgba(18, 18, 24, 0.94) 100%) !important;
+      radial-gradient(
+        circle at top right,
+        var(--app-accent-soft-strong),
+        transparent 38%
+      ),
+      linear-gradient(
+        180deg,
+        rgba(28, 28, 35, 0.96) 0%,
+        rgba(18, 18, 24, 0.94) 100%
+      ) !important;
   }
 
   .movie-card-overlay {
@@ -877,23 +1004,23 @@ body {
     color: #fffdf6;
     text-shadow: 0 4px 18px rgba(0, 0, 0, 0.4);
   }
-  
+
   .seat {
     @apply w-8 h-8 sm:w-10 sm:h-10 rounded-t-lg cursor-pointer transition-transform transition-colors duration-150 flex items-center justify-center text-xs sm:text-sm;
   }
-  
+
   .seat-available {
     @apply bg-gray-600 hover:bg-gray-500;
   }
-  
+
   .seat-selected {
     @apply bg-primary hover:bg-primary-dark;
   }
-  
+
   .seat-booked {
     @apply bg-gray-800 cursor-not-allowed opacity-50;
   }
-  
+
   .seat-locked {
     @apply bg-amber-500/40 text-amber-100 cursor-not-allowed;
   }
@@ -903,23 +1030,27 @@ body {
   .text-shadow {
     text-shadow: 0 2px 4px rgba(0, 0, 0, 0.8);
   }
-  
+
   .bg-gradient-dark {
-    background: linear-gradient(to bottom, rgba(20, 20, 20, 0) 0%, rgba(20, 20, 20, 1) 100%);
+    background: linear-gradient(
+      to bottom,
+      rgba(20, 20, 20, 0) 0%,
+      rgba(20, 20, 20, 1) 100%
+    );
   }
 
   .hover-lift {
     @apply transition-transform duration-300 ease-out;
   }
-  
+
   .hover-lift:hover {
     transform: translateY(-2px);
   }
-  
+
   .active-press {
     @apply transition-transform duration-100 ease-out;
   }
-  
+
   .active-press:active {
     transform: scale(0.97);
   }
@@ -936,13 +1067,21 @@ body {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: linear-gradient(180deg, var(--app-scrollbar-thumb) 0%, var(--app-accent-strong) 100%);
+  background: linear-gradient(
+    180deg,
+    var(--app-scrollbar-thumb) 0%,
+    var(--app-accent-strong) 100%
+  );
   border-radius: 999px;
   border: 1px solid var(--app-scrollbar-thumb-border);
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: linear-gradient(180deg, var(--app-scrollbar-thumb-hover) 0%, var(--app-scrollbar-thumb) 100%);
+  background: linear-gradient(
+    180deg,
+    var(--app-scrollbar-thumb-hover) 0%,
+    var(--app-scrollbar-thumb) 100%
+  );
 }
 
 /* Loading animation */
@@ -965,7 +1104,12 @@ body {
 }
 
 .receipt-ticket-header {
-  background-image: linear-gradient(135deg, #14532d 0%, #166534 52%, #15803d 100%);
+  background-image: linear-gradient(
+    135deg,
+    #14532d 0%,
+    #166534 52%,
+    #15803d 100%
+  );
 }
 
 .receipt-logo-contrast {
@@ -1020,5 +1164,23 @@ body {
   .site-brand-logo-auth {
     width: 228px;
     height: 64px;
+  }
+}
+
+/* Pending state — driven by data-attribute, NOT a className swap.
+   This means React never touches it, so there's zero re-render risk. */
+.seat[data-pending="true"] {
+  opacity: 0.6;
+  cursor: wait !important;
+  pointer-events: none;
+  animation: seat-pulse 0.7s ease-in-out infinite alternate;
+}
+
+@keyframes seat-pulse {
+  from {
+    transform: scale(0.96);
+  }
+  to {
+    transform: scale(1.03);
   }
 }
