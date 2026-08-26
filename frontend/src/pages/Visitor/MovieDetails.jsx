@@ -20,8 +20,12 @@ const MovieDetails = () => {
   const [loading, setLoading] = useState(true);
   const [showsLoading, setShowsLoading] = useState(false);
 
-  const titleTextClass = theme === 'light' ? 'text-black/90' : 'text-white';
-  const strongTextClass = theme === 'light' ? 'text-black/90' : 'text-white';
+  // Hero text sits on the backdrop image, which is dark in both themes, so it
+  // must NOT flip with the theme. Body headings sit on the page and must.
+  const titleTextClass = 'text-content';
+  const strongTextClass = 'text-content';
+  const heroTextClass = 'text-content-media';
+  const heroMutedClass = 'text-content-media-secondary';
 
   const dates = getNextDays(7);
 
@@ -111,7 +115,7 @@ const MovieDetails = () => {
   return (
     <div className="min-h-screen bg-dark">
       {/* Hero Section with Backdrop */}
-      <div className="relative min-h-[34rem] md:min-h-[60vh] overflow-hidden">
+      <div data-on-media className="relative min-h-[34rem] md:min-h-[60vh] overflow-hidden">
         <div
           className="absolute inset-0 bg-cover bg-top"
           style={{
@@ -146,33 +150,33 @@ const MovieDetails = () => {
               transition={{ delay: 0.2 }}
               className="flex-grow text-center md:text-left"
             >
-              <h1 className={`text-3xl sm:text-4xl md:text-5xl font-bold mb-4 ${titleTextClass}`}>
+              <h1 className={`text-3xl sm:text-4xl md:text-5xl font-bold mb-4 ${heroTextClass}`}>
                 {movie.title}
               </h1>
 
               <div className="flex flex-wrap items-center gap-4 mb-4">
                 {movie.rating && (
-                  <div className="flex items-center space-x-1 bg-yellow-500/40 px-3 py-1 rounded-lg">
-                    <Star className="w-5 h-5 text-yellow-700 fill-yellow-700" />
-                    <span className={`${strongTextClass} font-bold`}>{movie.rating}/10</span>
+                  <div className="flex items-center space-x-1 rounded border border-white/25 bg-white/12 px-3 py-1 backdrop-blur-sm">
+                    <Star className="w-5 h-5 text-accent fill-accent" aria-hidden="true" />
+                    <span className={`${heroTextClass} font-bold`}>{movie.rating}/10</span>
                   </div>
                 )}
 
                 {movie.certificate && (
-                  <div className="bg-primary px-3 py-1 rounded-lg">
-                    <span className={`${strongTextClass} font-bold`}>{movie.certificate}</span>
+                  <div className="rounded border border-white/35 bg-white/15 px-3 py-1 backdrop-blur-sm">
+                    <span className="font-bold text-content-media">{movie.certificate}</span>
                   </div>
                 )}
 
                 {movie.duration && (
-                  <div className={`flex items-center space-x-2 ${strongTextClass}`}>
+                  <div className={`flex items-center space-x-2 ${heroTextClass}`}>
                     <Clock className="w-5 h-5" />
                     <span>{formatDuration(movie.duration)}</span>
                   </div>
                 )}
 
                 {movie.releaseDate && (
-                  <div className={`flex items-center space-x-2 ${strongTextClass}`}>
+                  <div className={`flex items-center space-x-2 ${heroTextClass}`}>
                     <Calendar className="w-5 h-5" />
                     <span>{new Date(movie.releaseDate).getFullYear()}</span>
                   </div>
@@ -183,7 +187,7 @@ const MovieDetails = () => {
                 {movie.genres?.map((genre, index) => (
                   <span
                     key={index}
-                    className="bg-dark-card px-3 py-1 rounded-lg text-gray-300 text-sm"
+                    className="rounded-lg bg-black/40 px-3 py-1 text-sm text-content-media-secondary backdrop-blur-sm"
                   >
                     {genre}
                   </span>
@@ -191,14 +195,14 @@ const MovieDetails = () => {
               </div>
 
               {movie.languages && (
-                <div className={`mb-4 flex items-center justify-center md:justify-start space-x-2 ${strongTextClass}`}>
+                <div className={`mb-4 flex items-center justify-center md:justify-start space-x-2 ${heroTextClass}`}>
                   <Globe className="w-5 h-5" />
                   <span>{movie.languages.join(', ')}</span>
                 </div>
               )}
 
               {movie.description && (
-                <p className={`max-w-3xl md:flex [display:none]  line-clamp-4 md:line-clamp-3 ${titleTextClass}`}>
+                <p className={`hidden max-w-3xl line-clamp-3 md:block ${heroMutedClass}`}>
                   {movie.description}
                 </p>
               )}

@@ -141,8 +141,10 @@ const Payment = () => {
         amount: orderRes.amount,
         currency: orderRes.currency,
         order_id: orderRes.id,
-        name: "Movie Booking",
-        description: "Ticket Payment",
+        name: "ShowTimeX",
+        description: `${bookingData.movie.title} · ${bookingData.show.theater} · ${bookingData.selectedSeats
+          .map((seat) => `${seat.row}${seat.number}`)
+          .join(", ")}`,
 
         handler: async function (response) {
           // 🔴 THIS IS THE “5️⃣ FRONTEND DATA YOU MUST SEND”
@@ -171,7 +173,10 @@ const Payment = () => {
         },
 
         theme: {
-          color: "#6366f1",
+          // match the app rather than Razorpay's default indigo
+          color: getComputedStyle(document.documentElement)
+            .getPropertyValue("--primary")
+            .trim() || "#1a1714",
         },
       };
 
@@ -268,9 +273,9 @@ const Payment = () => {
               className={`flex items-center space-x-2 ${step >= 1 ? "text-primary" : "text-gray-500"}`}
             >
               <div
-                className={`w-8 h-8 rounded-full flex items-center justify-center ${step >= 1 ? "bg-current" : "bg-gray-700"}`}
+                className={`w-8 h-8 rounded-full flex items-center justify-center ${step >= 1 ? "bg-brand text-content-on-primary" : "bg-surface-sunken text-content-muted"}`}
               >
-                <span className="text-white "> 1</span>
+                <span> 1</span>
               </div>
               <span>Select Seats</span>
             </div>
@@ -279,9 +284,9 @@ const Payment = () => {
               className={`flex items-center space-x-2 ${step >= 2 ? "text-primary" : "text-gray-500"}`}
             >
               <div
-                className={`w-8 h-8 rounded-full flex items-center justify-center ${step >= 2 ? "bg-primary" : "bg-gray-700"}`}
+                className={`w-8 h-8 rounded-full flex items-center justify-center ${step >= 2 ? "bg-brand text-content-on-primary" : "bg-surface-sunken text-content-muted"}`}
               >
-                <span className="text-white "> 2 </span>
+                <span> 2 </span>
               </div>
               <span>Checkout</span>
             </div>

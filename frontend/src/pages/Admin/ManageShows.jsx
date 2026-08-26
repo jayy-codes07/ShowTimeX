@@ -502,7 +502,7 @@ const ManageShows = () => {
                             onClick={() => toggleTimeSlot(time)}
                             className={`px-3 py-2 rounded text-sm ${
                               (formData.timeSlots || []).includes(time)
-                                ? "bg-primary text-white"
+                                ? "bg-brand text-content-on-primary"
                                 : "bg-dark-lighter text-gray-300"
                             }`}
                           >

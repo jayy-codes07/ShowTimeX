@@ -116,8 +116,8 @@ const Profile = () => {
           className="mb-8"
         >
           <div className="mb-2 flex flex-col items-center gap-4 text-center sm:flex-row sm:items-start sm:text-left">
-            <div className="w-16 h-16 bg-primary rounded-full flex items-center justify-center">
-              <User className="w-8 h-8 text-white" />
+            <div className="w-16 h-16 bg-brand rounded-full flex items-center justify-center">
+              <User className="w-8 h-8 text-content-on-primary" />
             </div>
             <div>
               <h1 className="text-3xl font-bold text-white">{user?.name}</h1>

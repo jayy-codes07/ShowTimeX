@@ -1,0 +1,553 @@
+/* ============================================================================
+   ShowTimeX — LEGACY SHIM  (temporary; delete once every page is migrated)
+   ----------------------------------------------------------------------------
+   Unmigrated pages still write the old vocabulary (--app-accent, .bg-dark-card,
+   .text-gray-400, .rounded-xl …). This file maps that vocabulary onto the
+   "Gallery" tokens so the whole product picks up the new look at once, with no
+   chance of a missed selector, while pages migrate one at a time.
+
+   Loaded after index.css (see main.jsx) so it wins on source order.
+
+   DO NOT add anything new here. New code consumes tokens.css directly.
+   When the last page has migrated, delete this file and its import — the app
+   must look identical afterwards. That is the test for "migration complete".
+   ========================================================================== */
+
+/* ---- typography -----------------------------------------------------------
+   Archivo is the UI voice. The serif is reserved for display sizes, where its
+   fine strokes read elegant rather than frail — so h1/h2 only, never h3 down. */
+body {
+  font-family: "Archivo", system-ui, sans-serif;
+  letter-spacing: -0.003em;
+}
+h1,
+h2 {
+  font-family: "Instrument Serif", Georgia, serif;
+  font-weight: 400 !important;
+  letter-spacing: -0.015em;
+  line-height: 1.12;
+}
+h3,
+h4,
+h5,
+h6 {
+  font-family: "Archivo", system-ui, sans-serif;
+  letter-spacing: -0.008em;
+}
+.money-value {
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---- shape ----------------------------------------------------------------
+   Highest-leverage rule here: unmigrated pages mix rounded-lg/xl/2xl freely.
+   Collapsing them onto the crisp scale changes the shape language of the whole
+   product in one place. Pills stay pills. */
+:root .rounded,
+:root .rounded-md,
+:root .rounded-lg {
+  border-radius: var(--r-control);
+}
+:root .rounded-xl,
+:root .rounded-2xl,
+:root .rounded-3xl {
+  border-radius: var(--r-card);
+}
+
+/* ---- old palette vars -> Gallery tokens ---------------------------------- */
+:root,
+:root.theme-light,
+:root.theme-light.admin-route {
+  --app-bg: var(--bg);
+  --app-bg-image: none;
+  --app-surface-card: var(--surface);
+  --app-surface-soft: var(--surface-hover);
+  --app-surface-strong: var(--surface-sunken);
+  --app-border: var(--border);
+  --app-border-strong: var(--border-strong);
+  --app-text-strong: var(--text);
+  --app-text-body: var(--text-secondary);
+  --app-text-muted: var(--muted);
+  --app-text-subtle: var(--muted);
+  --app-accent: var(--primary);
+  --app-accent-strong: var(--primary-hover);
+  --app-accent-soft: var(--primary-soft);
+  --app-accent-soft-strong: var(--primary-soft-strong);
+  --app-accent-ring: var(--focus);
+  --app-overlay-surface: var(--scrim);
+  --app-shadow-card: var(--shadow-e1);
+  --app-shadow-soft: var(--shadow-e1);
+  --app-chrome: var(--bg-elevated);
+  --app-footer: var(--bg-elevated);
+  --app-seat-available: var(--seat-available);
+  --app-seat-available-text: var(--seat-available-label);
+  --app-seat-selected: var(--seat-selected);
+  --app-seat-selected-text: var(--seat-selected-label);
+  --app-seat-booked: transparent;
+  --app-seat-booked-text: transparent;
+  --app-seat-locked: var(--seat-locked);
+  --app-seat-locked-text: var(--seat-locked-label);
+  --app-scrollbar-track: var(--surface-sunken);
+  --app-scrollbar-thumb: var(--border-strong);
+  --app-scrollbar-thumb-hover: var(--muted);
+  --app-scrollbar-thumb-border: transparent;
+  --chart-gradient-start: var(--accent);
+  --chart-gradient-end: var(--accent-hover);
+  --chart-grid: var(--border);
+  --chart-axis: var(--muted);
+  --chart-tooltip-bg: var(--bg-elevated);
+  --chart-tooltip-border: var(--border);
+  --chart-tooltip-text: var(--text);
+  --chart-tooltip-accent: var(--accent);
+  --chart-cursor: var(--primary-soft);
+  --chart-shadow: var(--shadow-e2);
+  --chart-color-1: #8a6a22;
+  --chart-color-2: #1f6b45;
+  --chart-color-3: #1b5c8a;
+  --chart-color-4: #a32a21;
+  --chart-color-5: #5c4b8a;
+}
+
+/* ---- destructive must never look like the primary action ----------------- */
+:root .bg-red-500,
+:root .bg-red-600,
+:root .bg-red-700 {
+  background-color: var(--error);
+}
+:root .bg-red-500\/10,
+:root .bg-red-500\/20,
+:root .bg-red-500\/30,
+:root .bg-red-500\/40 {
+  background-color: var(--error-soft);
+}
+:root .text-red-400,
+:root .text-red-500,
+:root .text-red-600,
+:root .text-red-700 {
+  color: var(--error);
+}
+:root .border-red-500,
+:root .border-red-500\/20,
+:root .border-red-500\/30,
+:root .border-red-500\/40 {
+  border-color: var(--error);
+}
+:root .ring-red-500,
+:root .focus\:ring-red-500:focus {
+  --tw-ring-color: var(--focus);
+}
+:root .hover\:bg-red-500\/30:hover,
+:root .hover\:bg-red-700:hover {
+  background-color: var(--error-soft);
+}
+:root .hover\:text-red-500:hover {
+  color: var(--error);
+}
+
+/* ---- seat map -------------------------------------------------------------
+   Shape carries the state, colour supports it. locked vs available measures
+   1.04:1, so the hatch is doing the real work. */
+:root .seat {
+  border-radius: 3px 3px 1px 1px;
+  border: 1.5px solid transparent;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+:root .seat-available {
+  background-color: var(--seat-available);
+  color: var(--seat-available-label);
+}
+:root .seat-selected {
+  background-color: var(--seat-selected);
+  color: var(--seat-selected-label);
+}
+:root .seat-locked {
+  background-color: var(--seat-locked);
+  color: var(--seat-locked-label);
+  background-image: repeating-linear-gradient(
+    45deg,
+    var(--seat-locked-hatch) 0 2px,
+    transparent 2px 6px
+  );
+}
+:root .seat-booked {
+  /* On the old dark theme a hollow seat read as "a void — taken". On paper it
+     read as an EMPTY WHITE BOX, i.e. the most available thing on screen: the
+     encoding inverted its own meaning. A struck-through seat cannot be
+     misread in either direction. */
+  background-color: var(--surface-sunken);
+  border-color: var(--seat-booked-border);
+  color: transparent;
+  opacity: 1;
+  background-image: linear-gradient(
+    to top right,
+    transparent calc(50% - 0.9px),
+    var(--seat-booked-border) calc(50% - 0.9px),
+    var(--seat-booked-border) calc(50% + 0.9px),
+    transparent calc(50% + 0.9px)
+  );
+}
+
+/* `.seat-pending` was referenced by the seat-map legend but never defined
+   anywhere, so the "Saving…" swatch rendered as nothing at all. */
+:root .seat-pending {
+  background-color: var(--seat-selected);
+  color: var(--seat-selected-label);
+  opacity: 0.5;
+}
+
+/* ---- legacy component classes -> Gallery -------------------------------- */
+:root .btn-primary {
+  background-image: none;
+  background-color: var(--primary);
+  color: var(--text-on-primary);
+  border: 1px solid var(--primary);
+  border-radius: var(--r-control);
+  box-shadow: none;
+  min-height: 44px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+}
+:root .btn-primary:hover {
+  background-color: var(--primary-hover);
+  border-color: var(--primary-hover);
+  transform: none;
+  filter: none;
+}
+:root .btn-secondary {
+  background-color: transparent;
+  color: var(--text);
+  border: 1px solid var(--border-control);
+  border-radius: var(--r-control);
+  box-shadow: none;
+  min-height: 44px;
+  font-weight: 600;
+}
+:root .btn-secondary:hover {
+  background-color: var(--surface-hover);
+  transform: none;
+}
+:root .site-btn-danger {
+  background-image: none;
+  background-color: transparent;
+  color: var(--error);
+  border: 1px solid var(--error);
+  border-radius: var(--r-control);
+}
+:root .site-btn-danger:hover {
+  background-color: var(--error-soft);
+  filter: none;
+}
+:root .site-btn-outline {
+  border-radius: var(--r-control);
+  color: var(--text);
+  border-color: var(--border-control);
+}
+:root .site-btn-outline:hover {
+  background-color: var(--surface-hover);
+  color: var(--text);
+}
+
+:root .input-field,
+:root .site-search-input {
+  background-color: var(--surface);
+  color: var(--text);
+  border: 1px solid var(--border-control);
+  border-radius: var(--r-control);
+  box-shadow: none;
+  backdrop-filter: none;
+  min-height: 44px;
+  font-size: 16px;
+}
+:root .input-field:focus,
+:root .site-search-input:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-soft);
+}
+
+:root .card,
+:root .bg-dark-card {
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-card);
+  box-shadow: none;
+  backdrop-filter: none;
+}
+:root .card:hover {
+  transform: none;
+  border-color: var(--border-strong);
+}
+:root .bg-dark-lighter {
+  background-color: var(--surface-sunken);
+  border: 1px solid var(--border);
+  backdrop-filter: none;
+}
+
+:root .site-header {
+  background: var(--bg-elevated);
+  border-bottom: 1px solid var(--border);
+  box-shadow: none;
+  backdrop-filter: none;
+}
+:root .site-footer {
+  background: var(--bg-elevated);
+  border-top: 1px solid var(--border);
+  backdrop-filter: none;
+}
+:root .site-mobile-panel,
+:root .site-dropdown-panel {
+  background-color: var(--bg-elevated);
+  border-radius: var(--r-card);
+  backdrop-filter: none;
+}
+:root .site-nav-link,
+:root .site-icon-button,
+:root .site-mobile-link {
+  border-radius: var(--r-control);
+}
+:root .site-nav-link:hover,
+:root .site-icon-button:hover,
+:root .site-social-link:hover {
+  transform: none;
+  background-color: var(--surface-hover);
+}
+:root .site-social-link {
+  border-radius: var(--r-pill);
+}
+
+/* artwork overlays stay dark — they sit on posters */
+:root .movie-card-overlay,
+:root .movie-details-hero-overlay {
+  background: linear-gradient(
+    to top,
+    var(--media-scrim) 0%,
+    rgba(16, 13, 8, 0.12) 55%,
+    rgba(16, 13, 8, 0) 100%
+  );
+}
+:root .movie-card-shell:hover .movie-card-title {
+  color: var(--accent);
+}
+:root .home-hero-title,
+:root .home-hero-contrast {
+  color: var(--on-media);
+  text-shadow: 0 2px 22px rgba(0, 0, 0, 0.5);
+}
+
+/* ticket / receipt */
+:root .receipt-card {
+  --ticket-cutout: var(--bg);
+}
+:root .receipt-ticket-header {
+  background-image: none;
+  background-color: var(--primary);
+}
+:root .receipt-logo-toned {
+  filter: none;
+}
+:root .receipt-logo-contrast {
+  filter: brightness(0) saturate(100%) invert(100%);
+}
+
+/* the wordmark PNG is a flat-colour bitmap — used as a mask so it inherits a
+   token instead of shipping a recoloured asset */
+:root .site-brand-logo {
+  background-image: none;
+  background-color: var(--text);
+  filter: none;
+  -webkit-mask-image: var(--site-logo-image);
+  mask-image: var(--site-logo-image);
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+  -webkit-mask-position: left center;
+  mask-position: left center;
+  -webkit-mask-size: contain;
+  mask-size: contain;
+}
+:root .site-brand-logo-loader {
+  width: min(300px, 72vw);
+  height: auto;
+  aspect-ratio: 420 / 120;
+}
+
+/* admin */
+:root .admin-table-head {
+  background-color: var(--surface-sunken);
+}
+:root .admin-table-row:hover {
+  background-color: var(--surface-hover) !important;
+}
+:root .dashboard-quick-action,
+:root .dashboard-quick-action-light,
+:root .dashboard-quick-action-dark {
+  border: 1px solid var(--border) !important;
+  border-radius: var(--r-card) !important;
+  background: var(--surface) !important;
+  box-shadow: none !important;
+  color: var(--text);
+}
+:root .dashboard-quick-action:hover,
+:root .dashboard-quick-action-light:hover,
+:root .dashboard-quick-action-dark:hover {
+  border-color: var(--border-strong) !important;
+  background: var(--surface-hover) !important;
+  box-shadow: none !important;
+  transform: none !important;
+}
+:root .dashboard-quick-action-icon,
+:root .dashboard-quick-action-icon-light {
+  background-color: var(--accent-soft) !important;
+  color: var(--accent) !important;
+  box-shadow: none !important;
+}
+
+/* ---- raw Tailwind palette classes -> tokens ----------------------------- */
+:root .text-gray-900,
+:root .text-gray-800,
+:root .text-gray-700,
+:root .text-black,
+:root .text-black\/90 {
+  color: var(--text);
+}
+:root .text-gray-600,
+:root .text-gray-200,
+:root .text-gray-200\/80 {
+  color: var(--text-secondary);
+}
+:root .placeholder-gray-500::placeholder {
+  color: var(--muted);
+}
+:root .bg-white,
+:root .bg-gray-50,
+:root .bg-gray-100 {
+  background-color: var(--surface);
+}
+:root .bg-gray-100\/20,
+:root .bg-gray-200\/60,
+:root .bg-gray-300\/60,
+:root .bg-gray-400,
+:root .bg-gray-600\/30,
+:root .bg-gray-700\/30,
+:root .bg-gray-700\/40,
+:root .bg-gray-700\/60,
+:root .bg-gray-800\/30,
+:root .bg-gray-800\/35,
+:root .bg-gray-800\/40,
+:root .bg-gray-800\/45,
+:root .bg-gray-800\/50,
+:root .bg-gray-800\/60,
+:root .bg-gray-800\/65,
+:root .bg-gray-800\/70,
+:root .bg-white\/10,
+:root .bg-white\/70,
+:root .bg-white\/75,
+:root .bg-white\/80 {
+  background-color: var(--surface-hover);
+}
+:root .border-gray-200,
+:root .border-gray-300,
+:root .border-gray-600,
+:root .border-gray-600\/60,
+:root .border-gray-700\/50,
+:root .border-gray-700\/60,
+:root .border-gray-700\/70,
+:root .border-gray-800\/50,
+:root .border-gray-800\/60,
+:root .border-white\/10,
+:root .border-white\/20,
+:root .border-white\/30 {
+  border-color: var(--border);
+}
+
+:root .text-amber-200,
+:root .text-amber-300,
+:root .text-amber-400,
+:root .text-amber-500,
+:root .text-amber-700,
+:root .text-amber-800,
+:root .text-yellow-400,
+:root .text-yellow-700,
+:root .text-orange-400 {
+  color: var(--warning);
+}
+:root .text-yellow-500,
+:root .fill-yellow-500,
+:root .fill-yellow-700 {
+  color: var(--accent);
+  fill: var(--accent);
+}
+:root .bg-orange-500,
+:root .bg-orange-600,
+:root .bg-yellow-500 {
+  background-color: var(--warning);
+}
+:root .bg-amber-50,
+:root .bg-amber-500\/10,
+:root .bg-amber-500\/20,
+:root .bg-orange-500\/10,
+:root .bg-orange-500\/20,
+:root .bg-yellow-500\/20,
+:root .bg-yellow-500\/30,
+:root .bg-yellow-500\/40 {
+  background-color: var(--warning-soft);
+}
+:root .border-amber-200,
+:root .border-amber-500\/30,
+:root .border-orange-500 {
+  border-color: var(--warning);
+}
+:root .bg-amber-500\/40 {
+  background-color: var(--seat-locked);
+}
+:root .text-amber-100 {
+  color: var(--seat-locked-label);
+}
+
+:root .text-rose-200,
+:root .text-rose-200\/80,
+:root .text-rose-300,
+:root .text-rose-600,
+:root .text-rose-700,
+:root .text-rose-800 {
+  color: var(--error);
+}
+:root .bg-rose-50,
+:root .bg-rose-500\/10 {
+  background-color: var(--error-soft);
+}
+:root .border-rose-200,
+:root .border-rose-500\/30 {
+  border-color: var(--error);
+}
+
+:root .text-blue-200,
+:root .text-blue-200\/80,
+:root .text-blue-300,
+:root .text-blue-500,
+:root .text-blue-600,
+:root .text-blue-700,
+:root .text-blue-800 {
+  color: var(--info);
+}
+:root .bg-blue-50,
+:root .bg-blue-500\/10,
+:root .bg-blue-500\/20,
+:root .bg-blue-500\/30,
+:root .bg-blue-600\/10 {
+  background-color: var(--info-soft);
+}
+:root .bg-blue-500,
+:root .bg-purple-500 {
+  background-color: var(--info);
+}
+:root .border-blue-200,
+:root .border-blue-500\/30 {
+  border-color: var(--info);
+}
+
+/* scrims over artwork stay dark regardless of the page ground */
+:root .bg-black\/25 { background-color: rgba(16, 13, 8, 0.25); }
+:root .bg-black\/40 { background-color: rgba(16, 13, 8, 0.4); }
+:root .bg-black\/55 { background-color: rgba(16, 13, 8, 0.55); }
+:root .bg-black\/60 { background-color: rgba(16, 13, 8, 0.6); }
+:root .bg-black\/70 { background-color: rgba(16, 13, 8, 0.7); }
+:root .bg-black\/80 { background-color: rgba(16, 13, 8, 0.8); }

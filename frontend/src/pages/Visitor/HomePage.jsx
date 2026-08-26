@@ -83,7 +83,8 @@ const HomePage = () => {
         <motion.section
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          className="relative w-full min-h-[72svh] md:min-h-[640px] overflow-hidden text-white"
+          data-on-media
+          className="relative w-full min-h-[72svh] md:min-h-[640px] overflow-hidden text-content"
         >
           <img
             src={
@@ -104,8 +105,8 @@ const HomePage = () => {
               transition={{ delay: 0.2 }}
               className="max-w-3xl pr-0 md:pr-16"
             >
-              <div className="inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-gray-200 backdrop-blur-sm">
-                <span className="rounded-sm bg-yellow-500 px-1.5 py-0.5 font-bold text-black">IMDb</span>
+              <div className="inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-content-media backdrop-blur-sm">
+                <span className="rounded-sm bg-accent px-1.5 py-0.5 font-bold text-[#16130f]">IMDb</span>
                 <span>{heroMovie?.rating ? `${heroMovie.rating} / 10` : '8.6 / 10'}</span>
               </div>
 
@@ -113,7 +114,7 @@ const HomePage = () => {
                 {heroMovie?.title}
               </h1>
 
-              <p className="mt-4 max-w-2xl text-sm sm:text-base leading-6 text-gray-200 line-clamp-5 sm:line-clamp-4">
+              <p className="mt-4 max-w-2xl text-sm sm:text-base leading-6 text-content-media-secondary line-clamp-5 sm:line-clamp-4">
                 {heroMovie?.description}
               </p>
 
@@ -145,16 +146,16 @@ const HomePage = () => {
             </motion.div>
           </div>
 
-          <div className="absolute bottom-5 left-4 right-4 z-10 flex items-center justify-center gap-3 text-xs font-bold text-[#9CA3AF] md:bottom-10 md:left-auto md:right-10 md:top-1/2 md:-translate-y-1/2 md:flex-col md:items-end">
+          <div className="absolute bottom-5 left-4 right-4 z-10 flex items-center justify-center gap-3 text-xs font-bold text-content-muted md:bottom-10 md:left-auto md:right-10 md:top-1/2 md:-translate-y-1/2 md:flex-col md:items-end">
             {featuredMovies.map((_, idx) => (
               <button
                 key={idx}
                 type="button"
                 onClick={() => handleHeroSelect(idx)}
-                className="flex items-center gap-2 rounded-full px-2 py-1 transition hover:text-white"
+                className="flex min-h-touch items-center gap-2 rounded-full px-2 py-1 transition-colors duration-base hover:text-content"
                 aria-label={`Show featured movie ${idx + 1}`}
               >
-                {currentIndex === idx && <div className="h-[3px] w-4 md:w-5 rounded-md bg-white" />}
+                {currentIndex === idx && <div className="h-[2px] w-4 md:w-5 bg-content" />}
                 <span className={currentIndex === idx ? 'home-hero-contrast text-[16px]' : ''}>
                   {idx + 1}
                 </span>

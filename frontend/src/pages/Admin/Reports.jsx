@@ -323,7 +323,7 @@ const Reports = () => {
       title: "Total Revenue",
       value: `₹${Math.round(reportData?.totalRevenue || 0).toLocaleString()}`,
       icon: DollarSign,
-      color: "bg-green-500",
+      color: "bg-success",
       // 🟢 DYNAMIC: Read the revenue change from the backend
       change: formatChange(reportData?.changes?.revenue),
       isPositive: (reportData?.changes?.revenue || 0) >= 0,
@@ -448,9 +448,9 @@ const Reports = () => {
                   <div
                     className={`w-12 h-12 ${card.color} rounded-lg flex items-center justify-center`}
                   >
-                    <Icon className="w-6 h-6 text-white" />
+                    <Icon className="w-6 h-6 text-content-on-primary" />
                   </div>
-                  <span className="text-green-500 text-sm font-semibold">
+                  <span className="text-success text-sm font-semibold">
                     {card.change}
                   </span>
                 </div>
@@ -503,11 +503,11 @@ const Reports = () => {
                         <span
                           className={`inline-flex items-center justify-center w-8 h-8 rounded-full font-bold ${
                             index === 0
-                              ? "bg-yellow-500 text-white"
+                              ? "bg-accent text-content-on-accent"
                               : index === 1
-                                ? "bg-gray-400 text-white"
+                                ? "bg-surface-sunken text-content border border-line-strong"
                                 : index === 2
-                                  ? "bg-orange-600 text-white"
+                                  ? "bg-warning text-content-on-primary"
                                   : "bg-dark-lighter text-gray-400"
                           }`}
                         >
@@ -612,7 +612,7 @@ const Reports = () => {
                           <span
                             className={`inline-block px-2 py-1 rounded text-xs font-semibold ${
                               transaction.status === "confirmed"
-                                ? "bg-green-500/20 text-green-500"
+                                ? "bg-success-soft text-success"
                                 : transaction.status === "cancelled"
                                   ? "bg-red-500/20 text-red-500"
                                   : "bg-yellow-500/20 text-yellow-500"

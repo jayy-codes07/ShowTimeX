@@ -1,0 +1,190 @@
+/* ============================================================================
+   ShowTimeX — Design Tokens
+   "GALLERY" — premium, light, single-theme.
+   ----------------------------------------------------------------------------
+   THE ONE SOURCE OF TRUTH FOR COLOUR, SHAPE, TYPE AND MOTION.
+
+   There is no dark theme. That is deliberate: one palette, executed properly,
+   beats two palettes each compromised to keep the other working.
+
+   The idea: a poster gallery. Warm paper ground, deep ink, fine hairlines,
+   generous air, and one restrained brass accent. Posters are the only
+   saturated thing on any screen — everything else gets out of their way.
+
+   Rules:
+   1. Components consume SEMANTIC tokens only. Never a raw hex in a component.
+   2. Never redefine a Tailwind utility name to mean something else.
+   3. Never branch on theme in JS. There is one theme.
+
+   Every ratio below was computed against the ground it sits on.
+   ========================================================================== */
+
+:root,
+:root.theme-light {
+  /* ---- ground ---------------------------------------------------------- */
+  --bg: #faf8f4; /* warm paper                       */
+  --bg-elevated: #ffffff;
+  --surface: #ffffff;
+  --surface-hover: #f4f1ea;
+  --surface-sunken: #f2eee6;
+
+  /* ---- rules ----------------------------------------------------------- */
+  --border: #e8e3d9; /* hairline: cards, dividers        */
+  --border-strong: #d5cec0; /* emphasis                         */
+  --border-control: #8c8478; /* input outline — 3.69:1 ✓ WCAG 1.4.11 */
+
+  /* ---- ink ------------------------------------------------------------- */
+  --text: #16130f; /* 17.46:1 ✓ */
+  --text-secondary: #4e4941; /*  8.41:1 ✓ */
+  --muted: #6e675d; /*  5.26:1 ✓ */
+  --text-on-primary: #faf8f4; /* 16.83:1 on ink ✓ */
+  --text-on-accent: #faf8f4; /*  4.75:1 on brass ✓ */
+
+  /* ---- brand ----------------------------------------------------------- */
+  /* Primary is ink, not a hue. Luxury retail convention: the action is the
+     darkest thing on the page, so it needs no colour to be obvious. */
+  --primary: #1a1714;
+  --primary-hover: #332e27;
+  --primary-soft: rgba(26, 23, 20, 0.06);
+  --primary-soft-strong: rgba(26, 23, 20, 0.11);
+
+  /* Brass carries highlights, ratings, active state, links. Used sparingly —
+     it only reads as precious if it is rare. */
+  --accent: #8a6a22; /* 4.75:1 on paper ✓ — safe as text */
+  --accent-hover: #6e5319;
+  --accent-soft: rgba(138, 106, 34, 0.1);
+  --primary-text: #8a6a22; /* links and icon accents */
+
+  /* ---- state ----------------------------------------------------------- */
+  --success: #1f6b45; /* 6.10:1 ✓ */
+  --warning: #8a5209; /* 6.01:1 ✓ */
+  --error: #a32a21; /* 6.80:1 ✓ */
+  --info: #1b5c8a; /* 6.72:1 ✓ */
+  --success-soft: rgba(31, 107, 69, 0.09);
+  --warning-soft: rgba(138, 82, 9, 0.09);
+  --error-soft: rgba(163, 42, 33, 0.08);
+  --info-soft: rgba(27, 92, 138, 0.08);
+
+  --focus: #8a6a22;
+
+  /* ---- elevation ------------------------------------------------------- */
+  /* Deliberately faint. On paper, separation comes from the hairline and from
+     whitespace — not from a drop shadow. Heavy shadows are what made the old
+     cards look cheap. */
+  --shadow-e1: 0 1px 2px rgba(32, 26, 16, 0.05);
+  --shadow-e2: 0 6px 18px rgba(32, 26, 16, 0.08);
+  --shadow-e3: 0 24px 56px rgba(32, 26, 16, 0.14);
+
+  --scrim: rgba(24, 20, 14, 0.42);
+
+  /* ---- the seat map ---------------------------------------------------- */
+  /* MEASURED. Fill alone cannot separate these states —
+        locked vs available = 1.04:1
+     — so each state also carries a distinct SHAPE:
+        available = solid · selected = solid ink
+        locked    = hatched · booked = hollow outline, no number             */
+  --seat-panel: #f2eee6;
+  --seat-available: #c5b89d; /* 1.69:1 vs panel ✓ reads as an object */
+  --seat-available-label: #3a352c; /* 6.21:1 ✓ */
+  --seat-selected: #1a1714; /* 12.14:1 vs available — unmistakable  */
+  --seat-selected-label: #faf8f4; /* 16.83:1 ✓ */
+  --seat-locked: #d2b46f; /* 1.73:1 vs panel, + diagonal hatch    */
+  --seat-locked-label: #54400a; /* 4.96:1 ✓ */
+  --seat-locked-hatch: rgba(84, 64, 10, 0.3);
+  --seat-booked-border: #83786a; /* 3.73:1 vs panel ✓ WCAG 1.4.11        */
+
+  /* Text over poster artwork. Posters are dark, so this is fixed white and
+     must never be swapped for --text. */
+  --on-media: #ffffff;
+  --on-media-secondary: rgba(255, 255, 255, 0.86);
+  --media-scrim: rgba(16, 13, 8, 0.55);
+
+  /* The wordmark bitmap, used as a mask (see legacy-shim.css). Lives here so
+     it never depends on a theme class being present. */
+  --site-logo-image: url("../assets/images/Showtime_logo.png");
+  --site-logo-filter: none;
+
+  /* ---- shape ----------------------------------------------------------- */
+  /* Near-square. Rounded corners read friendly; crisp corners read considered.
+     Only true pills (badges, avatars) are round. */
+  --r-control: 2px;
+  --r-card: 3px;
+  --r-poster: 2px;
+  --r-modal: 4px;
+  --r-pill: 999px;
+
+  /* ---- motion ---------------------------------------------------------- */
+  --dur-fast: 120ms; /* press, seat toggle       */
+  --dur-base: 220ms; /* hover, colour, focus     */
+  --dur-slow: 340ms; /* modal, page transition   */
+  --dur-exit: 200ms; /* ~60% of enter            */
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
+
+  /* ---- layering -------------------------------------------------------- */
+  --z-sticky: 20;
+  --z-header: 50;
+  --z-scrim: 100;
+  --z-modal: 110;
+  --z-toast: 200;
+}
+
+/* ============================================================================
+   ON-MEDIA SCOPE
+   ----------------------------------------------------------------------------
+   Anything sitting on top of poster artwork — the homepage hero, the movie
+   detail hero, a card's hover overlay — is on a DARK ground, while the page is
+   on paper. Chasing that element by element does not work: a descendant can
+   use any of ~40 legacy classes, and every one of them resolves to page ink.
+
+   So instead of restyling elements, this REDEFINES THE TOKENS inside the
+   container. Everything underneath — semantic classes, legacy classes, the
+   shim, component primitives — resolves to media-safe values automatically.
+
+   Usage:  <section data-on-media> … </section>
+   ========================================================================== */
+[data-on-media] {
+  --text: #ffffff;
+  --text-secondary: rgba(255, 255, 255, 0.88);
+  --muted: rgba(255, 255, 255, 0.74);
+
+  --border: rgba(255, 255, 255, 0.22);
+  --border-strong: rgba(255, 255, 255, 0.36);
+  --border-control: rgba(255, 255, 255, 0.48);
+
+  --surface: rgba(255, 255, 255, 0.12);
+  --surface-hover: rgba(255, 255, 255, 0.2);
+  --surface-sunken: rgba(255, 255, 255, 0.08);
+  --bg-elevated: rgba(255, 255, 255, 0.12);
+
+  /* the primary action inverts: paper fill, ink label */
+  --primary: #faf8f4;
+  --primary-hover: #ffffff;
+  --text-on-primary: #16130f;
+  --primary-soft: rgba(255, 255, 255, 0.16);
+  --primary-soft-strong: rgba(255, 255, 255, 0.24);
+
+  /* brass lifted so it still reads against artwork */
+  --accent: #e6c680;
+  --accent-hover: #f2d79a;
+  --primary-text: #e6c680;
+  --focus: #ffffff;
+
+  --shadow-e1: none;
+  --shadow-e2: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --dur-fast: 1ms;
+    --dur-base: 1ms;
+    --dur-slow: 1ms;
+    --dur-exit: 1ms;
+  }
+}
+
+/* The app is light. Tell the browser, so form controls, scrollbars and the
+   caret all match instead of rendering in the OS's dark styling. */
+:root {
+  color-scheme: light;
+}

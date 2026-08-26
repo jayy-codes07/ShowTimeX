@@ -1,81 +1,62 @@
+@import "./styles/tokens.css";
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 @layer base {
-  :root,
-  .theme-dark {
-    --app-bg: #0f1814;
-    --app-bg-image:
-      radial-gradient(
-        1100px 620px at -8% -16%,
-        rgba(34, 197, 94, 0.12),
-        transparent 58%
-      ),
-      radial-gradient(
-        880px 540px at 106% -8%,
-        rgba(20, 83, 45, 0.26),
-        transparent 52%
-      ),
-      linear-gradient(180deg, #0f1814 0%, #0b120f 100%);
-    --app-surface-card: rgba(19, 35, 28, 0.86);
-    --app-surface-soft: rgba(32, 56, 45, 0.44);
-    --app-surface-strong: rgba(46, 78, 64, 0.58);
-    --app-border: rgba(134, 239, 172, 0.14);
-    --app-border-strong: rgba(167, 243, 208, 0.26);
-    --app-text-strong: #ecfdf3;
-    --app-text-body: #d3f4e1;
-    --app-text-muted: #a7d6be;
-    --app-text-subtle: #7ab194;
-    --app-accent: #22c55e;
-    --app-accent-strong: #4ade80;
-    --app-accent-soft: rgba(34, 197, 94, 0.14);
-    --app-accent-soft-strong: rgba(34, 197, 94, 0.22);
-    --app-accent-ring: rgba(134, 239, 172, 0.32);
-    --app-overlay-surface: rgba(15, 24, 20, 0.8);
-    --app-shadow-card: 0 18px 40px rgba(2, 10, 7, 0.42);
-    --app-shadow-soft: 0 10px 26px rgba(2, 10, 7, 0.26);
-    --app-chrome: linear-gradient(
-      180deg,
-      rgba(18, 33, 26, 0.94) 0%,
-      rgba(12, 22, 18, 0.9) 100%
-    );
-    --app-footer: linear-gradient(
-      180deg,
-      rgba(17, 31, 25, 0.92) 0%,
-      rgba(10, 18, 14, 0.96) 100%
-    );
-    --app-seat-available: rgba(255, 255, 255, 0.16);
-    --app-seat-available-text: #ecfdf3;
-    --app-seat-selected: #22c55e;
-    --app-seat-selected-text: #ecfdf3;
-    --app-seat-booked: rgba(255, 255, 255, 0.08);
-    --app-seat-booked-text: rgba(255, 255, 255, 0.35);
-    --app-seat-locked: rgba(245, 158, 11, 0.24);
-    --app-seat-locked-text: #fde6b2;
-    --app-scrollbar-track: #13231c;
-    --app-scrollbar-thumb: #22c55e;
-    --app-scrollbar-thumb-hover: #4ade80;
-    --app-scrollbar-thumb-border: rgba(167, 243, 208, 0.18);
+  :root {
+    --app-bg: var(--bg);
+    --app-bg-image: none;
+    --app-surface-card: var(--surface);
+    --app-surface-soft: var(--surface-hover);
+    --app-surface-strong: var(--surface-sunken);
+    --app-border: var(--border);
+    --app-border-strong: var(--border-strong);
+    --app-text-strong: var(--text);
+    --app-text-body: var(--text-secondary);
+    --app-text-muted: var(--muted);
+    --app-text-subtle: var(--muted);
+    --app-accent: var(--primary);
+    --app-accent-strong: var(--primary-hover);
+    --app-accent-soft: var(--primary-soft);
+    --app-accent-soft-strong: var(--primary-soft-strong);
+    --app-accent-ring: var(--focus);
+    --app-overlay-surface: var(--scrim);
+    --app-shadow-card: var(--shadow-e1);
+    --app-shadow-soft: var(--shadow-e1);
+    --app-chrome: var(--bg-elevated);
+    --app-footer: var(--bg-elevated);
+    --app-seat-available: var(--seat-available);
+    --app-seat-available-text: var(--seat-available-label);
+    --app-seat-selected: var(--seat-selected);
+    --app-seat-selected-text: var(--seat-selected-label);
+    --app-seat-booked: transparent;
+    --app-seat-booked-text: transparent;
+    --app-seat-locked: var(--seat-locked);
+    --app-seat-locked-text: var(--seat-locked-label);
+    --app-scrollbar-track: var(--surface-sunken);
+    --app-scrollbar-thumb: var(--border-strong);
+    --app-scrollbar-thumb-hover: var(--muted);
+    --app-scrollbar-thumb-border: transparent;
     --site-logo-image: url("./assets/images/Showtime_logo.png");
     --site-logo-filter: none;
 
-    /* Chart Colors - Dark Theme (based on accent color #22c55e) */
-    --chart-gradient-start: #22c55e;
-    --chart-gradient-end: #4ade80;
-    --chart-grid: rgba(255, 255, 255, 0.08);
-    --chart-axis: #9ca3af;
-    --chart-tooltip-bg: #111827;
-    --chart-tooltip-border: #374151;
-    --chart-tooltip-text: #f9fafb;
-    --chart-tooltip-accent: #86efac;
-    --chart-cursor: rgba(255, 255, 255, 0.06);
-    --chart-shadow: 0 16px 34px rgba(0, 0, 0, 0.3);
-    --chart-color-1: #22c55e;
-    --chart-color-2: #4ade80;
-    --chart-color-3: #86efac;
-    --chart-color-4: #a7f3d0;
-    --chart-color-5: #bbf7d0;
+    /* Chart series — a categorical ramp, not tints of one hue */
+    --chart-gradient-start: var(--primary);
+    --chart-gradient-end: var(--primary-hover);
+    --chart-grid: var(--border);
+    --chart-axis: var(--muted);
+    --chart-tooltip-bg: var(--bg-elevated);
+    --chart-tooltip-border: var(--border);
+    --chart-tooltip-text: var(--text);
+    --chart-tooltip-accent: var(--primary-text);
+    --chart-cursor: var(--primary-soft);
+    --chart-shadow: var(--shadow-e2);
+    --chart-color-1: #8a6a22;
+    --chart-color-2: #1f6b45;
+    --chart-color-3: #1b5c8a;
+    --chart-color-4: #a32a21;
+    --chart-color-5: #5c4b8a;
   }
 
   body {
@@ -93,171 +74,65 @@
 
 /* Theme overrides */
 .theme-light {
-  --app-bg: #eef6ee;
-  --app-bg-image:
-    radial-gradient(
-      1000px 560px at 10% -10%,
-      rgba(22, 101, 52, 0.12),
-      transparent 60%
-    ),
-    radial-gradient(
-      820px 500px at 100% -4%,
-      rgba(74, 222, 128, 0.16),
-      transparent 54%
-    ),
-    linear-gradient(180deg, #eef6ee 0%, #e5f0e6 100%);
-  --app-surface-card: rgba(245, 252, 247, 0.92);
-  --app-surface-soft: rgba(230, 245, 234, 0.78);
-  --app-surface-strong: rgba(220, 240, 226, 0.92);
-  --app-border: rgba(22, 101, 52, 0.2);
-  --app-border-strong: rgba(22, 101, 52, 0.34);
-  --app-text-strong: #0f2a1c;
-  --app-text-body: #163726;
-  --app-text-muted: #2c5b44;
-  --app-text-subtle: #457a5f;
-  --app-accent: #166534;
-  --app-accent-strong: #15803d;
-  --app-accent-soft: rgba(22, 101, 52, 0.12);
-  --app-accent-soft-strong: rgba(22, 101, 52, 0.2);
-  --app-accent-ring: rgba(22, 101, 52, 0.24);
-  --app-overlay-surface: rgba(238, 246, 238, 0.84);
-  --app-shadow-card: 0 14px 34px rgba(18, 64, 39, 0.14);
-  --app-shadow-soft: 0 8px 22px rgba(18, 64, 39, 0.1);
-  --app-chrome: linear-gradient(
-    180deg,
-    rgba(242, 250, 244, 0.94) 0%,
-    rgba(231, 245, 235, 0.88) 100%
-  );
-  --app-footer: linear-gradient(
-    180deg,
-    rgba(236, 247, 239, 0.92) 0%,
-    rgba(227, 242, 232, 0.96) 100%
-  );
-  --app-seat-available: rgba(22, 101, 52, 0.38);
-  --app-seat-available-text: #0f2a1c;
-  --app-seat-selected: #166534;
-  --app-seat-selected-text: #eef6ee;
-  --app-seat-booked: rgba(40, 54, 24, 0.18);
-  --app-seat-booked-text: rgba(15, 42, 28, 0.45);
-  --app-seat-locked: rgba(21, 128, 61, 0.28);
-  --app-seat-locked-text: #14532d;
-  --app-scrollbar-track: rgba(214, 236, 220, 0.96);
-  --app-scrollbar-thumb: #166534;
-  --app-scrollbar-thumb-hover: #15803d;
-  --app-scrollbar-thumb-border: rgba(22, 101, 52, 0.18);
+  --app-bg: var(--bg);
+  --app-bg-image: none;
+  --app-surface-card: var(--surface);
+  --app-surface-soft: var(--surface-hover);
+  --app-surface-strong: var(--surface-sunken);
+  --app-border: var(--border);
+  --app-border-strong: var(--border-strong);
+  --app-text-strong: var(--text);
+  --app-text-body: var(--text-secondary);
+  --app-text-muted: var(--muted);
+  --app-text-subtle: var(--muted);
+  --app-accent: var(--primary);
+  --app-accent-strong: var(--primary-hover);
+  --app-accent-soft: var(--primary-soft);
+  --app-accent-soft-strong: var(--primary-soft-strong);
+  --app-accent-ring: var(--focus);
+  --app-overlay-surface: var(--scrim);
+  --app-shadow-card: var(--shadow-e1);
+  --app-shadow-soft: var(--shadow-e1);
+  --app-chrome: var(--bg-elevated);
+  --app-footer: var(--bg-elevated);
+  --app-seat-available: var(--seat-available);
+  --app-seat-available-text: var(--seat-available-label);
+  --app-seat-selected: var(--seat-selected);
+  --app-seat-selected-text: var(--seat-selected-label);
+  --app-seat-booked: transparent;
+  --app-seat-booked-text: transparent;
+  --app-seat-locked: var(--seat-locked);
+  --app-seat-locked-text: var(--seat-locked-label);
+  --app-scrollbar-track: var(--surface-sunken);
+  --app-scrollbar-thumb: var(--border-strong);
+  --app-scrollbar-thumb-hover: var(--muted);
+  --app-scrollbar-thumb-border: transparent;
   --site-logo-image: url("./assets/images/Showtime_logo.png");
   --site-logo-filter: none;
 
-  /* Chart Colors - Light Theme (bright green for visibility on light background) */
-  --chart-gradient-start: #059669;
-  --chart-gradient-end: #10b981;
-  --chart-grid: rgba(22, 101, 52, 0.12);
-  --chart-axis: #0f2a1c;
-  --chart-tooltip-bg: #ecfdf5;
-  --chart-tooltip-border: rgba(16, 185, 129, 0.3);
-  --chart-tooltip-text: #0f2a1c;
-  --chart-tooltip-accent: #059669;
-  --chart-cursor: rgba(16, 185, 129, 0.1);
-  --chart-shadow: 0 16px 34px rgba(5, 150, 105, 0.15);
-  --chart-color-1: #059669;
-  --chart-color-2: #10b981;
-  --chart-color-3: #34d399;
-  --chart-color-4: #6ee7b7;
-  --chart-color-5: #a7f3d0;
+  /* Chart series — light theme */
+  --chart-gradient-start: var(--primary);
+  --chart-gradient-end: var(--primary-hover);
+  --chart-grid: var(--border);
+  --chart-axis: var(--muted);
+  --chart-tooltip-bg: var(--bg-elevated);
+  --chart-tooltip-border: var(--border);
+  --chart-tooltip-text: var(--text);
+  --chart-tooltip-accent: var(--primary-text);
+  --chart-cursor: var(--primary-soft);
+  --chart-shadow: var(--shadow-e2);
+  --chart-color-1: #8a6a22;
+  --chart-color-2: #1f6b45;
+  --chart-color-3: #1b5c8a;
+  --chart-color-4: #a32a21;
+  --chart-color-5: #5c4b8a;
 
   color: var(--app-text-strong);
   background-color: var(--app-bg);
   background-image: var(--app-bg-image);
 }
 
-/* Admin route palette derived from the sidebar visual language */
-.admin-route.theme-dark,
-.theme-dark.admin-route {
-  --app-bg: #0f1814;
-  --app-bg-image:
-    radial-gradient(
-      1100px 620px at -8% -16%,
-      rgba(34, 197, 94, 0.12),
-      transparent 58%
-    ),
-    radial-gradient(
-      880px 540px at 106% -8%,
-      rgba(20, 83, 45, 0.26),
-      transparent 52%
-    ),
-    linear-gradient(180deg, #0f1814 0%, #0b120f 100%);
-  --app-surface-card: rgba(19, 35, 28, 0.86);
-  --app-surface-soft: rgba(32, 56, 45, 0.44);
-  --app-surface-strong: rgba(46, 78, 64, 0.58);
-  --app-border: rgba(134, 239, 172, 0.14);
-  --app-border-strong: rgba(167, 243, 208, 0.26);
-  --app-text-strong: #ecfdf3;
-  --app-text-body: #d3f4e1;
-  --app-text-muted: #a7d6be;
-  --app-text-subtle: #7ab194;
-  --app-accent: #22c55e;
-  --app-accent-strong: #4ade80;
-  --app-accent-soft: rgba(34, 197, 94, 0.14);
-  --app-accent-soft-strong: rgba(34, 197, 94, 0.22);
-  --app-accent-ring: rgba(134, 239, 172, 0.32);
-  --app-overlay-surface: rgba(15, 24, 20, 0.8);
-  --app-shadow-card: 0 18px 40px rgba(2, 10, 7, 0.42);
-  --app-shadow-soft: 0 10px 26px rgba(2, 10, 7, 0.26);
-  --app-chrome: linear-gradient(
-    180deg,
-    rgba(18, 33, 26, 0.94) 0%,
-    rgba(12, 22, 18, 0.9) 100%
-  );
-  --app-footer: linear-gradient(
-    180deg,
-    rgba(17, 31, 25, 0.92) 0%,
-    rgba(10, 18, 14, 0.96) 100%
-  );
-}
 
-.admin-route.theme-light,
-.theme-light.admin-route {
-  --app-bg: #eef6ee;
-  --app-bg-image:
-    radial-gradient(
-      1000px 560px at 10% -10%,
-      rgba(22, 101, 52, 0.12),
-      transparent 60%
-    ),
-    radial-gradient(
-      820px 500px at 100% -4%,
-      rgba(74, 222, 128, 0.16),
-      transparent 54%
-    ),
-    linear-gradient(180deg, #eef6ee 0%, #e5f0e6 100%);
-  --app-surface-card: rgba(245, 252, 247, 0.92);
-  --app-surface-soft: rgba(230, 245, 234, 0.78);
-  --app-surface-strong: rgba(220, 240, 226, 0.92);
-  --app-border: rgba(22, 101, 52, 0.2);
-  --app-border-strong: rgba(22, 101, 52, 0.34);
-  --app-text-strong: #0f2a1c;
-  --app-text-body: #163726;
-  --app-text-muted: #2c5b44;
-  --app-text-subtle: #457a5f;
-  --app-accent: #166534;
-  --app-accent-strong: #15803d;
-  --app-accent-soft: rgba(22, 101, 52, 0.12);
-  --app-accent-soft-strong: rgba(22, 101, 52, 0.2);
-  --app-accent-ring: rgba(22, 101, 52, 0.24);
-  --app-overlay-surface: rgba(238, 246, 238, 0.84);
-  --app-shadow-card: 0 14px 34px rgba(18, 64, 39, 0.14);
-  --app-shadow-soft: 0 8px 22px rgba(18, 64, 39, 0.1);
-  --app-chrome: linear-gradient(
-    180deg,
-    rgba(242, 250, 244, 0.94) 0%,
-    rgba(231, 245, 235, 0.88) 100%
-  );
-  --app-footer: linear-gradient(
-    180deg,
-    rgba(236, 247, 239, 0.92) 0%,
-    rgba(227, 242, 232, 0.96) 100%
-  );
-}
 
 .bg-dark {
   background-color: transparent;
@@ -430,44 +305,7 @@
   color: var(--app-seat-locked-text);
 }
 
-.theme-light .from-dark {
-  --tw-gradient-from: rgba(254, 250, 224, 0.98) var(--tw-gradient-from-position);
-  --tw-gradient-to: rgba(254, 250, 224, 0) var(--tw-gradient-to-position);
-  --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to);
-}
 
-.theme-light .via-dark\/60,
-.theme-light .via-dark\/50,
-.theme-light .via-dark\/10 {
-  --tw-gradient-stops:
-    var(--tw-gradient-from),
-    rgba(247, 241, 215, 0.78) var(--tw-gradient-via-position),
-    var(--tw-gradient-to);
-}
-
-.theme-light .to-transparent {
-  --tw-gradient-to: rgba(247, 241, 215, 0) var(--tw-gradient-to-position);
-}
-
-.theme-light .seat-available {
-  background-color: rgba(221, 161, 94, 0.55);
-  color: #283618;
-}
-
-.theme-light .seat-selected {
-  background-color: #bc6c25;
-  color: #fefae0;
-}
-
-.theme-light .seat-booked {
-  background-color: rgba(40, 54, 24, 0.18);
-  color: rgba(40, 54, 24, 0.55);
-}
-
-.theme-light .seat-locked {
-  background-color: rgba(96, 108, 56, 0.35);
-  color: #283618;
-}
 
 .receipt-card {
   --ticket-cutout: #141414;
@@ -564,37 +402,12 @@
 .theme-light .movie-card-overlay {
   background: linear-gradient(
     to top,
-    rgba(254, 250, 224, 0.7) 0%,
-    rgba(254, 250, 224, 0.3) 42%,
-    rgba(254, 250, 224, 0) 100%
+    rgba(15, 23, 42, 0.72) 0%,
+    rgba(15, 23, 42, 0.32) 42%,
+    rgba(15, 23, 42, 0) 100%
   );
 }
 
-/* Light theme: keep Book Now button orange on hover */
-.theme-light .bg-primary {
-  background-color: var(--app-accent);
-}
-
-.theme-light .hover\:bg-primary-dark:hover {
-  background-color: #a85b1e;
-}
-
-.theme-light .movie-details-hero-overlay {
-  background:
-    linear-gradient(
-      90deg,
-      rgba(254, 250, 224, 0.36) 0%,
-      rgba(254, 250, 224, 0.18) 34%,
-      rgba(254, 250, 224, 0.06) 64%,
-      rgba(254, 250, 224, 0) 100%
-    ),
-    linear-gradient(
-      to top,
-      rgba(254, 250, 224, 0.3) 0%,
-      rgba(254, 250, 224, 0.12) 42%,
-      rgba(254, 250, 224, 0) 100%
-    );
-}
 
 html,
 body {
@@ -844,7 +657,7 @@ body {
   }
 
   .theme-light .admin-table-row:hover {
-    background-color: rgba(188, 108, 37, 0.08) !important;
+    background-color: var(--surface-hover) !important;
   }
 
   .dashboard-quick-action {
@@ -889,11 +702,11 @@ body {
   }
 
   .dashboard-quick-action-light {
-    border-color: rgba(188, 108, 37, 0.24) !important;
+    border-color: var(--border) !important;
     background:
       radial-gradient(
         circle at top right,
-        rgba(188, 108, 37, 0.1),
+        var(--primary-soft),
         transparent 34%
       ),
       linear-gradient(
@@ -901,15 +714,15 @@ body {
         rgba(255, 250, 232, 0.98) 0%,
         rgba(255, 245, 216, 0.94) 100%
       ) !important;
-    box-shadow: 0 18px 30px rgba(40, 54, 24, 0.1) !important;
+    box-shadow: var(--shadow-e1) !important;
   }
 
   .dashboard-quick-action-light:hover {
-    border-color: rgba(188, 108, 37, 0.4) !important;
+    border-color: var(--border-strong) !important;
     background:
       radial-gradient(
         circle at top right,
-        rgba(188, 108, 37, 0.15),
+        var(--primary-soft-strong),
         transparent 38%
       ),
       linear-gradient(
@@ -917,12 +730,12 @@ body {
         rgba(255, 248, 225, 1) 0%,
         rgba(250, 241, 208, 0.98) 100%
       ) !important;
-    box-shadow: 0 22px 34px rgba(40, 54, 24, 0.14) !important;
+    box-shadow: var(--shadow-e2) !important;
   }
 
   .dashboard-quick-action-icon-light {
-    background-color: rgba(188, 108, 37, 0.12) !important;
-    color: #bc6c25 !important;
+    background-color: var(--primary-soft) !important;
+    color: var(--primary-text) !important;
     box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.42) !important;
   }
 
@@ -1106,9 +919,8 @@ body {
 .receipt-ticket-header {
   background-image: linear-gradient(
     135deg,
-    #14532d 0%,
-    #166534 52%,
-    #15803d 100%
+    var(--primary) 0%,
+    var(--primary-hover) 100%
   );
 }
 

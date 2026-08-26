@@ -184,7 +184,7 @@ const BookingForm = ({ onSubmit, loading }) => {
           {bookingData.selectedSeats.map((seat, index) => (
             <span
               key={index}
-              className="bg-primary px-3 py-1 rounded-lg text-white font-semibold"
+              className="bg-brand px-3 py-1 rounded-control text-content-on-primary font-semibold"
             >
               {seat.row}{seat.number}
             </span>

@@ -1,0 +1,243 @@
+/* ============================================================================
+   ShowTimeX — THE TICKET
+   ----------------------------------------------------------------------------
+   The receipt is the one page a customer screenshots, forwards and holds up at
+   a door. So it is not styled as a "card with a summary in it" — it is styled
+   as a physical admission stub: poster head, hairline detail bands, a punched
+   perforation, and a tear-off stub with the QR and a vertical ADMIT ONE rail.
+
+   Everything here consumes tokens.css. No hex values except the ink ground
+   behind poster artwork, which must stay dark whatever the page ground is.
+   ========================================================================== */
+
+/* ---- the ticket body ----------------------------------------------------- */
+.ticket {
+  position: relative;
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-card);
+  box-shadow: var(--shadow-e2);
+}
+
+/* Rows are separated by hairlines, not by gaps or nested cards. On paper,
+   structure comes from rules. */
+.ticket-row + .ticket-row,
+.ticket-grid + .ticket-row,
+.ticket-row + .ticket-grid {
+  border-top: 1px solid var(--border);
+}
+
+.ticket-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+.ticket-grid > * + * {
+  border-left: 1px solid var(--border);
+}
+.ticket-grid > *:nth-child(3) {
+  grid-column: 1 / -1;
+  border-left: 0;
+  border-top: 1px solid var(--border);
+}
+@media (min-width: 640px) {
+  .ticket-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+  .ticket-grid > *:nth-child(3) {
+    grid-column: auto;
+    border-left: 1px solid var(--border);
+    border-top: 0;
+  }
+}
+
+/* ---- poster head ---------------------------------------------------------
+   The poster is the only saturated thing on the page. It is also its own
+   backdrop: a blurred, darkened copy fills the band so any poster — bright
+   yellow or near-black — lands on a ground that white type survives. */
+.ticket-hero {
+  position: relative;
+  overflow: hidden;
+  background-color: #100d08;
+  border-radius: calc(var(--r-card) - 1px) calc(var(--r-card) - 1px) 0 0;
+}
+
+.ticket-hero-bg {
+  position: absolute;
+  inset: -14%;
+  background-size: cover;
+  background-position: center 32%;
+  filter: blur(22px) saturate(1.15) brightness(0.52);
+  transform: scale(1.08);
+}
+
+.ticket-hero-scrim {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+      to right,
+      rgba(16, 13, 8, 0.82) 0%,
+      rgba(16, 13, 8, 0.5) 62%,
+      rgba(16, 13, 8, 0.62) 100%
+    ),
+    linear-gradient(to top, rgba(16, 13, 8, 0.66) 0%, rgba(16, 13, 8, 0) 70%);
+}
+
+.ticket-poster {
+  width: 84px;
+  flex: 0 0 84px;
+  aspect-ratio: 2 / 3;
+  object-fit: cover;
+  border-radius: var(--r-poster);
+  box-shadow: 0 10px 26px rgba(0, 0, 0, 0.45);
+  background-color: rgba(255, 255, 255, 0.08);
+}
+@media (min-width: 640px) {
+  .ticket-poster {
+    width: 104px;
+    flex-basis: 104px;
+  }
+}
+
+/* ---- the small caps label used on every field ---------------------------- */
+.ticket-label {
+  font-size: 0.6875rem;
+  line-height: 1.4;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  font-weight: 700;
+  color: var(--muted);
+}
+
+.ticket-value {
+  font-size: 0.9375rem;
+  line-height: 1.4;
+  font-weight: 600;
+  color: var(--text);
+}
+
+/* ---- seats ---------------------------------------------------------------
+   Deliberately the same object as a selected seat on the seat map: same fill,
+   same clipped-corner silhouette. The ticket then reads as a receipt for the
+   thing the customer actually picked. */
+.ticket-seat {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 2.75rem;
+  padding: 0.4rem 0.6rem;
+  background-color: var(--seat-selected);
+  color: var(--seat-selected-label);
+  border-radius: 3px 3px 1px 1px;
+  font-size: 0.875rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---- the perforation -----------------------------------------------------
+   A dashed rule with a punched hole bitten out of each edge. The holes are
+   filled with the PAGE ground, not the card's, which is what sells the cut. */
+.ticket-perf {
+  position: relative;
+  height: 0;
+  border-top: 1px dashed var(--border-strong);
+  margin: 0 22px;
+}
+
+.ticket-perf::before,
+.ticket-perf::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  width: 22px;
+  height: 22px;
+  border-radius: var(--r-pill);
+  background-color: var(--bg);
+  border: 1px solid var(--border);
+  transform: translateY(-50%);
+}
+.ticket-perf::before {
+  left: -33px;
+}
+.ticket-perf::after {
+  right: -33px;
+}
+
+/* ---- the stub ------------------------------------------------------------ */
+.ticket-stub {
+  display: flex;
+  align-items: stretch;
+  background-color: var(--surface-sunken);
+  border-radius: 0 0 calc(var(--r-card) - 1px) calc(var(--r-card) - 1px);
+}
+
+.ticket-rail {
+  flex: 0 0 2.75rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-right: 1px solid var(--border);
+  background-color: var(--primary);
+  color: var(--text-on-primary);
+  border-radius: 0 0 0 calc(var(--r-card) - 1px);
+}
+
+.ticket-rail span {
+  writing-mode: vertical-rl;
+  transform: rotate(180deg);
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.34em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.ticket-qr {
+  width: 132px;
+  height: 132px;
+  padding: 8px;
+  background-color: #ffffff;
+  border: 1px solid var(--border);
+  border-radius: var(--r-control);
+}
+
+.ticket-code {
+  font-family: "Archivo", system-ui, sans-serif;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.06em;
+  font-weight: 700;
+  word-break: break-all;
+}
+
+/* ---- print ---------------------------------------------------------------
+   Ctrl-P on this page should produce the ticket and nothing else. */
+@media print {
+  .site-header,
+  .site-footer,
+  header[class*="site-"],
+  footer,
+  nav,
+  .ticket-actions,
+  .no-print {
+    display: none !important;
+  }
+
+  .receipt-page {
+    padding: 0 !important;
+    max-width: none !important;
+  }
+
+  .ticket {
+    box-shadow: none;
+    break-inside: avoid;
+  }
+
+  body,
+  .ticket,
+  .ticket-hero,
+  .ticket-rail,
+  .ticket-seat {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+}

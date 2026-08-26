@@ -295,28 +295,27 @@ function AppLayout() {
               position="top-right"
               toastOptions={{
                 duration: 4000,
-                // Default style for all toasts
+                // Every value below is a semantic token, so toasts follow the
+                // theme instead of staying dark in light mode.
                 style: {
-                  background: "#2A2A2A",
-                  color: "#fff",
-                  border: "1px solid #444",
+                  background: "var(--bg-elevated)",
+                  color: "var(--text)",
+                  border: "1px solid var(--border)",
+                  boxShadow: "var(--shadow-e2)",
+                  borderRadius: "12px",
                 },
                 success: {
-                  style: {
-                    border: "1px solid #22c55e", // Green border for success
-                  },
+                  style: { border: "1px solid var(--success)" },
                   iconTheme: {
-                    primary: "#22c55e", // Green icon
-                    secondary: "#fff",
+                    primary: "var(--success)",
+                    secondary: "var(--bg-elevated)",
                   },
                 },
                 error: {
-                  style: {
-                    border: "1px solid #ef4444", // Red border
-                  },
+                  style: { border: "1px solid var(--error)" },
                   iconTheme: {
-                    primary: "#ef4444", // Red icon
-                    secondary: "#fff",
+                    primary: "var(--error)",
+                    secondary: "var(--bg-elevated)",
                   },
                 },
               }}

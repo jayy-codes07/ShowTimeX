@@ -137,7 +137,7 @@ const Dashboard = () => {
       change: formatChange(stats?.changes?.revenue),
       isPositive: (stats?.changes?.revenue || 0) >= 0,
       icon: DollarSign,
-      color: "bg-green-500",
+      color: "bg-success",
       glowColor: "stat-glow-green",
     },
     {
@@ -204,11 +204,11 @@ const Dashboard = () => {
               >
                 <div className="mb-5 flex items-center justify-between">
                   <div className={`relative flex h-12 w-12 items-center justify-center rounded-xl ${stat.color} ${stat.glowColor}`}>
-                    <Icon className="h-6 w-6 text-white" />
+                    <Icon className="h-6 w-6 text-content-on-primary" />
                   </div>
                   <div
                     className={`flex items-center space-x-1 text-sm font-semibold px-2 py-1 rounded-full ${
-                      stat.isPositive ? "bg-green-500/10 text-green-500" : "bg-red-500/10 text-red-500"
+                      stat.isPositive ? "bg-success-soft text-success" : "bg-red-500/10 text-red-500"
                     }`}
                   >
                     <ChangeIcon className="h-4 w-4" />
@@ -426,10 +426,10 @@ const Dashboard = () => {
                         <span
                           className={`inline-block rounded-full px-3 py-1 text-xs font-bold tracking-wide uppercase ${
                             booking.status === "confirmed"
-                              ? "bg-green-500/10 text-green-500 border border-green-500/20 shadow-[0_0_10px_rgba(34,197,94,0.1)]"
+                              ? "border border-success bg-success-soft text-success shadow-e1"
                               : booking.status === "cancelled"
-                                ? "bg-red-500/10 text-red-500 border border-red-500/20 shadow-[0_0_10px_rgba(239,68,68,0.1)]"
-                                : "bg-yellow-500/10 text-yellow-500 border border-yellow-500/20 shadow-[0_0_10px_rgba(234,179,8,0.1)]"
+                                ? "border border-error bg-error-soft text-error shadow-e1"
+                                : "border border-warning bg-warning-soft text-warning shadow-e1"
                           }`}
                         >
                           {booking.status}

@@ -23,7 +23,7 @@ const AdminSidebar = () => {
   const { user } = useAuth();
 
   return (
-    <aside className="w-full lg:fixed lg:left-0 lg:top-20 lg:bottom-0 lg:w-72 lg:bg-[#06110c] lg:border-r lg:border-[#0f2a1f] lg:overflow-y-auto">
+    <aside className="w-full border-line bg-elevated lg:fixed lg:bottom-0 lg:left-0 lg:top-20 lg:w-72 lg:overflow-y-auto lg:border-r">
       <div className="h-full p-2 lg:flex lg:flex-col lg:py-4">
         
 
@@ -36,11 +36,14 @@ const AdminSidebar = () => {
                 key={link.to}
                 to={link.to}
                 className={({ isActive }) =>
-                  `flex items-center gap-2 rounded-xl px-3 py-2.5 text-sm font-medium transition ${
+                  [
+                    "flex min-h-touch items-center gap-2.5 rounded-control px-3 py-2.5 text-body-sm font-medium",
+                    "transition-colors duration-base ease-out",
+                    "focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-focusring",
                     isActive
-                      ? "bg-primary/20 text-[#f4fbf8]"
-                      : "text-[#b9cdc4] hover:bg-white/5 hover:text-[#f4fbf8]"
-                  }`
+                      ? "bg-brand-soft font-semibold text-brand-text"
+                      : "text-content-secondary hover:bg-surface-hover hover:text-content",
+                  ].join(" ")
                 }
               >
                 <Icon className="h-4 w-4" />
@@ -50,10 +53,14 @@ const AdminSidebar = () => {
           })}
         </nav>
 
-        <div className="mt-4 rounded-xl bg-white/5 px-3 py-3 lg:mt-auto">
-          <p className="text-xs text-[#89a59a]">Signed in as</p>
-          <p className="text-sm font-semibold text-[#f4fbf8] truncate">{user?.name || "Admin"}</p>
-          <p className="text-xs text-[#b9cdc4] truncate">{user?.email || "admin@showtimex.com"}</p>
+        <div className="mt-4 rounded-card border border-line bg-surface px-3 py-3 lg:mt-auto">
+          <p className="text-caption uppercase text-content-muted">Signed in as</p>
+          <p className="truncate text-body-sm font-semibold text-content">
+            {user?.name || "Admin"}
+          </p>
+          <p className="truncate text-body-sm text-content-secondary">
+            {user?.email || "admin@showtimex.com"}
+          </p>
         </div>
       </div>
     </aside>

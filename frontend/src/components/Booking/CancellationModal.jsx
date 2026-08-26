@@ -87,8 +87,8 @@ const CancellationModal = ({ isOpen, onClose, onConfirm, isLoading, booking, ref
                 <div
                   className={`rounded-xl border px-4 py-3 text-sm ${
                     isDark
-                      ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-100"
-                      : "border-emerald-200 bg-emerald-50 text-emerald-800"
+                      ? "border-success bg-success-soft text-success"
+                      : "border-success bg-success-soft text-success"
                   }`}
                 >
                   <p className="font-semibold">

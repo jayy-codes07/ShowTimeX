@@ -1,0 +1,406 @@
+/* ============================================================================
+   ShowTimeX — COMPONENT STYLES (global, direct CSS)
+   ----------------------------------------------------------------------------
+   WHY THIS FILE EXISTS
+
+   Component styling used to be long Tailwind utility strings inside JSX
+   (`bg-brand text-content-on-primary border border-transparent …`). That has
+   two problems in this codebase:
+
+     1. Those utilities only exist if Tailwind has recompiled the config. A
+        stale dev server silently drops them and the component renders naked —
+        which is exactly how the checkout button ended up with no fill.
+     2. Semantic utilities were fighting the legacy shim, so whether a rule
+        applied depended on which file loaded last.
+
+   Direct CSS on stable class names is immune to both. Every rule below reads
+   from tokens.css, so the design system is still the single source of truth —
+   the classes are just a stable surface for components to attach to.
+
+   Naming: `.stx-*` so nothing can collide with a Tailwind utility.
+   ========================================================================== */
+
+/* ==========================================================================
+   BUTTONS
+   ========================================================================== */
+.stx-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  min-height: 44px;
+  padding: 0.75rem 1.25rem;
+  border: 1px solid transparent;
+  border-radius: var(--r-control);
+  font-family: "Archivo", system-ui, sans-serif;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  line-height: 1;
+  cursor: pointer;
+  text-decoration: none;
+  transition:
+    background-color var(--dur-base) var(--ease-out),
+    border-color var(--dur-base) var(--ease-out),
+    color var(--dur-base) var(--ease-out);
+  touch-action: manipulation;
+}
+.stx-btn:active {
+  transform: scale(0.985);
+}
+.stx-btn:focus-visible {
+  outline: 3px solid var(--focus);
+  outline-offset: 2px;
+}
+.stx-btn[disabled],
+.stx-btn[aria-disabled="true"] {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.stx-btn--sm {
+  min-height: 44px;
+  padding: 0.5rem 0.875rem;
+  font-size: 0.875rem;
+}
+.stx-btn--lg {
+  min-height: 52px;
+  padding: 0.875rem 1.75rem;
+  font-size: 1rem;
+}
+.stx-btn--block {
+  width: 100%;
+}
+
+.stx-btn--primary {
+  background-color: var(--primary);
+  border-color: var(--primary);
+  color: var(--text-on-primary);
+}
+.stx-btn--primary:hover {
+  background-color: var(--primary-hover);
+  border-color: var(--primary-hover);
+}
+
+.stx-btn--secondary {
+  background-color: transparent;
+  border-color: var(--border-control);
+  color: var(--text);
+}
+.stx-btn--secondary:hover {
+  background-color: var(--surface-hover);
+  border-color: var(--text);
+}
+
+.stx-btn--outline {
+  background-color: transparent;
+  border-color: var(--border-control);
+  color: var(--text);
+}
+.stx-btn--outline:hover {
+  background-color: var(--surface-hover);
+}
+
+.stx-btn--ghost {
+  background-color: transparent;
+  border-color: transparent;
+  color: var(--accent);
+}
+.stx-btn--ghost:hover {
+  background-color: var(--accent-soft);
+}
+
+/* Destructive is outlined and red — a different colour AND a different shape
+   from primary, so the two can never be confused. */
+.stx-btn--danger {
+  background-color: transparent;
+  border-color: var(--error);
+  color: var(--error);
+}
+.stx-btn--danger:hover {
+  background-color: var(--error-soft);
+}
+
+.stx-btn__spinner {
+  width: 1.05em;
+  height: 1.05em;
+  flex-shrink: 0;
+  border: 2px solid currentColor;
+  border-right-color: transparent;
+  border-radius: 999px;
+  animation: stx-spin 0.7s linear infinite;
+}
+@keyframes stx-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .stx-btn__spinner {
+    animation-duration: 1.6s;
+  }
+  .stx-btn:active {
+    transform: none;
+  }
+}
+
+/* ==========================================================================
+   ANY DARK BRAND FILL SETS ITS OWN TEXT COLOUR
+   --------------------------------------------------------------------------
+   The primary token is ink, so legacy markup that writes `bg-primary` next to
+   `text-white` produced ink-on-ink — the invisible seat chip on checkout.
+   Making the fill own its foreground fixes every such pairing at once, and
+   beats `.text-white` on specificity.
+   ========================================================================== */
+:root .bg-primary,
+:root .bg-brand,
+:root .stx-on-primary {
+  color: var(--text-on-primary);
+}
+:root .bg-primary *,
+:root .bg-brand * {
+  color: inherit;
+}
+
+/* ==========================================================================
+   MOVIE CARD
+   ========================================================================== */
+.stx-card {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  width: 100%;
+  max-width: 17rem;
+  margin-inline: auto;
+  overflow: hidden;
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-card);
+  text-decoration: none;
+  color: inherit;
+  transition:
+    border-color var(--dur-base) var(--ease-out),
+    box-shadow var(--dur-base) var(--ease-out),
+    transform var(--dur-base) var(--ease-out);
+}
+.stx-card:hover {
+  border-color: var(--text);
+  box-shadow: var(--shadow-e2);
+  transform: translateY(-3px);
+}
+.stx-card:focus-visible {
+  outline: 3px solid var(--focus);
+  outline-offset: 2px;
+}
+
+.stx-card__poster {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 2 / 3;
+  overflow: hidden;
+  background-color: var(--surface-sunken);
+}
+.stx-card__poster img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+  transition: transform 0.7s var(--ease-out);
+}
+.stx-card:hover .stx-card__poster img {
+  transform: scale(1.06);
+}
+
+/* --- the hover affordance ---------------------------------------------- */
+/* Previously a near-invisible dark wash. Now: the poster dims, and a solid
+   paper pill rises into the middle. Unmistakable on any artwork. */
+.stx-card__veil {
+  position: absolute;
+  inset: 0;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(
+    to top,
+    rgba(10, 8, 4, 0.88) 0%,
+    rgba(10, 8, 4, 0.55) 60%,
+    rgba(10, 8, 4, 0.35) 100%
+  );
+  opacity: 0;
+  transition: opacity var(--dur-base) var(--ease-out);
+}
+.stx-card:hover .stx-card__veil,
+.stx-card:focus-visible .stx-card__veil {
+  opacity: 1;
+}
+.stx-card__cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.7rem 1.25rem;
+  background-color: #faf8f4;
+  color: #16130f;
+  border-radius: var(--r-control);
+  font-size: 0.875rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  transform: translateY(8px);
+  transition: transform var(--dur-base) var(--ease-out);
+}
+.stx-card:hover .stx-card__cta {
+  transform: translateY(0);
+}
+@media (prefers-reduced-motion: reduce) {
+  .stx-card:hover {
+    transform: none;
+  }
+  .stx-card:hover .stx-card__poster img {
+    transform: none;
+  }
+  .stx-card__cta {
+    transform: none;
+  }
+}
+
+/* --- badges on the poster ---------------------------------------------- */
+.stx-card__cert,
+.stx-card__rating {
+  position: absolute;
+  top: 0.75rem;
+  z-index: 20;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.25rem 0.55rem;
+  border-radius: var(--r-pill);
+  font-size: 0.6875rem;
+  font-weight: 700;
+  line-height: 1;
+}
+.stx-card__cert {
+  left: 0.75rem;
+  background-color: #faf8f4;
+  color: #16130f;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+.stx-card__rating {
+  right: 0.75rem;
+  background-color: rgba(10, 8, 4, 0.78);
+  color: #ffffff;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  font-variant-numeric: tabular-nums;
+}
+.stx-card__rating svg {
+  color: #e6c680;
+  fill: #e6c680;
+}
+
+/* --- card body --------------------------------------------------------- */
+.stx-card__body {
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
+  padding: 0.9rem 1rem 1rem;
+}
+.stx-card__title {
+  margin: 0 0 0.55rem;
+  font-family: "Archivo", system-ui, sans-serif;
+  font-size: 1rem;
+  font-weight: 700;
+  letter-spacing: -0.012em;
+  line-height: 1.3;
+  color: var(--text);
+  display: -webkit-box;
+  -webkit-line-clamp: 1;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  transition: color var(--dur-base) var(--ease-out);
+}
+.stx-card:hover .stx-card__title {
+  color: var(--accent);
+}
+.stx-card__tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  margin-bottom: 0.75rem;
+}
+.stx-tag {
+  padding: 0.15rem 0.45rem;
+  border: 1px solid var(--border);
+  border-radius: var(--r-control);
+  background-color: var(--surface-sunken);
+  color: var(--text-secondary);
+  font-size: 0.625rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  line-height: 1.5;
+}
+.stx-card__meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  margin-top: auto;
+  padding-top: 0.7rem;
+  border-top: 1px solid var(--border);
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+.stx-card__meta span {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+.stx-card__meta svg {
+  color: var(--accent);
+}
+
+/* ==========================================================================
+   HOVER / FOCUS FEEDBACK ON EVERYTHING ELSE
+   --------------------------------------------------------------------------
+   The old theme leaned on translucent washes that vanish on paper. On a light
+   ground, hover has to change the border or the fill by a visible step.
+   ========================================================================== */
+:root a,
+:root button {
+  touch-action: manipulation;
+}
+:root .site-nav-link:hover,
+:root .site-mobile-link:hover {
+  background-color: var(--surface-hover);
+  color: var(--text);
+}
+:root .site-footer-link {
+  position: relative;
+}
+:root .site-footer-link:hover {
+  color: var(--text);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  text-decoration-thickness: 1px;
+}
+:root .site-social-link:hover {
+  background-color: var(--text);
+  color: var(--bg);
+  border-color: var(--text);
+}
+:root .admin-table-row:hover {
+  background-color: var(--surface-hover) !important;
+}
+
+/* ==========================================================================
+   SEATS
+   ========================================================================== */
+.stx-seat-panel {
+  background-color: var(--seat-panel);
+  border: 1px solid var(--border);
+  border-radius: var(--r-card);
+}

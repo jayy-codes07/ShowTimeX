@@ -256,11 +256,11 @@ const MyTickets = () => {
         note: null,
         showAmount: true,
         containerClass: isDark
-          ? "bg-emerald-500/10 border-emerald-500/30"
-          : "bg-emerald-50 border-emerald-200",
-        iconClass: isDark ? "text-emerald-300" : "text-emerald-600",
-        titleClass: isDark ? "text-emerald-200" : "text-emerald-800",
-        textClass: isDark ? "text-emerald-200/80" : "text-emerald-700",
+          ? "bg-success-soft border-success"
+          : "bg-success-soft border-success",
+        iconClass: isDark ? "text-success" : "text-success",
+        titleClass: isDark ? "text-success" : "text-success",
+        textClass: isDark ? "text-success" : "text-success",
       };
     }
 
@@ -358,8 +358,8 @@ const MyTickets = () => {
     const statusConfig = {
       confirmed: {
         color: isDark
-          ? "bg-emerald-500/10 text-emerald-300 border border-emerald-500/30"
-          : "bg-emerald-50 text-emerald-700 border border-emerald-200",
+          ? "bg-success-soft text-success border border-success"
+          : "bg-success-soft text-success border border-success",
         icon: CheckCircle,
         text: "Confirmed",
       },
@@ -455,11 +455,11 @@ const MyTickets = () => {
                     {ticketStats.upcoming}
                   </p>
                 </div>
-                <div className="rounded-2xl border h-[90px] border-emerald-500/30 bg-emerald-500/10 p-3 text-center">
-                  <p className={`text-xs uppercase tracking-wider ${isDark ? "text-emerald-100" : "text-emerald-700"}`}>
+                <div className="rounded-2xl border h-[90px] border-success bg-success-soft p-3 text-center">
+                  <p className={`text-xs uppercase tracking-wider ${isDark ? "text-success" : "text-success"}`}>
                     Refunded
                   </p>
-                  <p className={`mt-1 text-lg font-bold ${isDark ? "text-white" : "text-emerald-800"}`}>
+                  <p className={`mt-1 text-lg font-bold ${isDark ? "text-white" : "text-success"}`}>
                     Rs. {ticketStats.refunded.toFixed(0)}
                   </p>
                 </div>

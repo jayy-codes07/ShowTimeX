@@ -1,11 +1,58 @@
 import React, { useState } from 'react';
-import { Download, CheckCircle, Calendar, Clock, MapPin, Home } from 'lucide-react';
+import { Download, Home, Printer, Check, Ticket as TicketIcon } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { formatDateUTC, formatTime } from '../../utils/formatDate';
+import {
+  formatDateUTC,
+  formatTime,
+  formatDateFull,
+  formatDuration,
+} from '../../utils/formatDate';
 import Button from '../UI/Button';
 import toast from 'react-hot-toast';
-import logo from './../../assets/images/Showtime_logo.png'
-import { useTheme } from '../../context/ThemeContext';
+import logo from './../../assets/images/Showtime_logo.png';
+
+/**
+ * Receipt — the ticket.
+ *
+ * Designed as a physical admission stub rather than a summary card: poster
+ * head, hairline detail bands, a punched perforation, and a tear-off stub
+ * carrying the QR and a vertical ADMIT ONE rail. Styling lives in
+ * src/styles/receipt.css; every colour resolves to a token.
+ *
+ * The PDF export (TicketDocument) is unchanged and still lazy-loaded.
+ */
+
+const WEEKDAYS = [
+  'Sunday',
+  'Monday',
+  'Tuesday',
+  'Wednesday',
+  'Thursday',
+  'Friday',
+  'Saturday',
+];
+
+// show.date is a date-only value, so read the weekday in UTC to match
+// formatDateUTC — otherwise a late show flips to the previous day.
+const weekdayUTC = (date) => {
+  if (!date) return '';
+  const d = new Date(date);
+  return Number.isNaN(d.getTime()) ? '' : WEEKDAYS[d.getUTCDay()];
+};
+
+const STATUS_TONE = {
+  confirmed: 'border-success bg-success-soft text-success',
+  pending: 'border-warning bg-warning-soft text-warning',
+  cancelled: 'border-error bg-error-soft text-error',
+  expired: 'border-line-strong bg-surface-hover text-content-muted',
+};
+
+const PAYMENT_LABEL = {
+  razorpay: 'Razorpay',
+  stripe: 'Stripe',
+  wallet: 'Wallet',
+  cash: 'Cash',
+};
 
 const createWhiteLogoDataUrl = (src) =>
   new Promise((resolve) => {
@@ -51,12 +98,19 @@ const createWhiteLogoDataUrl = (src) =>
     }
   });
 
+/** One labelled field in the show band. */
+const Field = ({ label, value, sub }) => (
+  <div className="px-5 py-4 sm:px-6">
+    <dt className="ticket-label">{label}</dt>
+    <dd className="ticket-value mt-1.5">{value || '—'}</dd>
+    {sub ? <p className="mt-0.5 text-body-sm text-content-muted">{sub}</p> : null}
+  </div>
+);
+
 const Receipt = ({ booking }) => {
   const navigate = useNavigate();
   const [qrError, setQrError] = useState(false);
   const [downloading, setDownloading] = useState(false);
-  const { theme } = useTheme();
-  const isDark = theme === 'dark';
 
   const handleDownload = async () => {
     const toastId = toast.loading('Generating ticket...');
@@ -68,7 +122,9 @@ const Receipt = ({ booking }) => {
         import('./TicketDocument'),
       ]);
       const whiteLogo = await createWhiteLogoDataUrl(logo);
-      const doc = <TicketDocument booking={booking} logoSrc={whiteLogo} theme={theme} />;
+      const doc = (
+        <TicketDocument booking={booking} logoSrc={whiteLogo} theme="light" />
+      );
       const blob = await pdf(doc).toBlob();
       const url = URL.createObjectURL(blob);
       const link = document.createElement('a');
@@ -91,149 +147,262 @@ const Receipt = ({ booking }) => {
 
   if (!booking) return null;
 
+  const seats = booking.seats || [];
+  const movie = booking.movie || {};
+  const show = booking.show || {};
+  const status = (booking.status || 'confirmed').toLowerCase();
+  const isCancelled = status === 'cancelled' || status === 'expired';
+  const bookingCode = booking.bookingId || '—';
+
+  const languages = (movie.languages || []).slice(0, 3).join(' · ');
+  const meta = [
+    movie.duration ? formatDuration(movie.duration) : null,
+    languages || null,
+    show.format || null,
+  ]
+    .filter(Boolean)
+    .join('  ·  ');
+
+  const fees = (booking.convenienceFee || 0) + (booking.tax || 0);
+  const paidWith = PAYMENT_LABEL[booking.paymentMethod] || booking.paymentMethod;
+
   return (
-    // 👇 ADDED 'pt-24' to push content down below the fixed Navbar
-    <div className="max-w-2xl mx-auto pt-24 pb-12 px-4">
-      {/* Success Message */}
-      <div className="text-center mb-8">
-        <div>
-         
-        </div>
-        <h2 className={`text-3xl font-bold mb-2 ${isDark ? 'text-white' : 'text-[var(--app-text-strong)]'}`}>Booking Confirmed!</h2>
-        <p className={isDark ? 'text-gray-400' : 'text-[var(--app-text-muted)]'}>Your tickets have been booked successfully</p>
-      </div>
+    <div className="receipt-page mx-auto w-full max-w-[44rem] px-4 pb-16 pt-8 sm:pt-12">
+      {/* Confirmation */}
+      <header className="mb-8 text-center sm:mb-10">
+        <span
+          className={`mx-auto mb-4 flex h-11 w-11 items-center justify-center rounded-full border ${
+            isCancelled
+              ? 'border-error bg-error-soft text-error'
+              : 'border-accent bg-accent-soft text-accent'
+          }`}
+          aria-hidden="true"
+        >
+          {isCancelled ? (
+            <TicketIcon className="h-5 w-5" />
+          ) : (
+            <Check className="h-5 w-5" strokeWidth={2.5} />
+          )}
+        </span>
+        <h1 className="font-display text-h1 text-content">
+          {isCancelled ? 'Booking cancelled' : 'Booking confirmed'}
+        </h1>
+        <p className="mx-auto mt-2 max-w-prose text-body text-content-secondary">
+          {isCancelled
+            ? 'This ticket is no longer valid for entry.'
+            : `Your ticket is ready. We also sent a copy to ${booking.email || booking.user?.email || 'your email'}.`}
+        </p>
+      </header>
 
-      {/* RECEIPT CARD */}
-      <div className="receipt-preview">
-        <div className="receipt-preview-inner">
-          <div className={`receipt-card rounded-xl overflow-hidden border-2 border-dashed relative z-10 shadow-2xl ${isDark ? 'bg-dark-card border-gray-700' : 'bg-white border-gray-300'}`}>
-            <div className="receipt-notch receipt-notch-left" />
-            <div className="receipt-notch receipt-notch-right" />
-            {/* Ticket Header */}
-            <div className="receipt-ticket-header p-6 text-white">
-              <div className="flex justify-between items-start">
-                <div>
-                  <p className="text-sm opacity-90 mb-1">Booking ID</p>
-                  <p className="text-2xl font-bold tracking-wider">{booking.bookingId || 'BK' + Date.now()}</p>
-                </div>
-               <img src={logo} alt="" className='h-12 bg-transparent receipt-logo-contrast' />
-                
-              </div>
-            </div>
+      {/* THE TICKET */}
+      <article className="ticket" aria-label="Cinema ticket">
+        {/* Poster head — dark ground, so tokens flip inside it */}
+        <div data-on-media className="ticket-hero">
+          <div
+            className="ticket-hero-bg"
+            style={
+              movie.poster ? { backgroundImage: `url(${movie.poster})` } : undefined
+            }
+            aria-hidden="true"
+          />
+          <div className="ticket-hero-scrim" aria-hidden="true" />
 
-        {/* Movie Details */}
-        <div className={`p-6 border-b ${isDark ? 'border-gray-700 bg-dark-card' : 'border-gray-300 bg-white'}`}>
-          <h3 className={`text-2xl font-bold mb-4 ${isDark ? 'text-white' : 'text-[var(--app-text-strong)]'}`}>{booking.movie?.title}</h3>
-          
-          <div className="grid grid-cols-2 gap-6">
-            <div className="flex items-start space-x-3">
-              <Calendar className="w-5 h-5 text-primary mt-1" />
-              <div>
-                <p className={`text-xs uppercase tracking-wider ${isDark ? 'text-gray-500' : 'text-gray-600'}`}>Date</p>
-                <p className={`font-semibold ${isDark ? 'text-white' : 'text-[var(--app-text-strong)]'}`}>{formatDateUTC(booking.show?.date)}</p>
-              </div>
-            </div>
+          <div className="relative flex items-start gap-4 p-5 sm:gap-6 sm:p-7">
+            {movie.poster ? (
+              <img
+                src={movie.poster}
+                alt=""
+                className="ticket-poster"
+                loading="lazy"
+              />
+            ) : null}
 
-            <div className="flex items-start space-x-3">
-              <Clock className="w-5 h-5 text-primary mt-1" />
-              <div>
-                <p className={`text-xs uppercase tracking-wider ${isDark ? 'text-gray-500' : 'text-gray-600'}`}>Time</p>
-                <p className={`font-semibold ${isDark ? 'text-white' : 'text-[var(--app-text-strong)]'}`}>{formatTime(booking.show?.time)}</p>
-              </div>
-            </div>
-
-            <div className="flex items-start space-x-3 col-span-2">
-              <MapPin className="w-5 h-5 text-primary mt-1" />
-              <div>
-                <p className={`text-xs uppercase tracking-wider ${isDark ? 'text-gray-500' : 'text-gray-600'}`}>Theater</p>
-                <p className={`font-semibold ${isDark ? 'text-white' : 'text-[var(--app-text-strong)]'}`}>{booking.show?.theater}</p>
-                <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-[var(--app-text-muted)]'}`}>{booking.show?.location}</p>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Seats & Payment */}
-        <div className={isDark ? 'p-6 bg-dark-card' : 'p-6 bg-white'}>
-          <div className="mb-6">
-            <p className={`text-xs uppercase tracking-wider mb-2 ${isDark ? 'text-gray-500' : 'text-gray-600'}`}>Selected Seats</p>
-            <div className="flex flex-wrap gap-2">
-              {booking.seats?.map((seat, index) => (
-                <span key={index} className={`px-3 py-1 rounded font-mono text-sm border ${isDark ? 'bg-gray-800 border-gray-600 text-white' : 'bg-gray-100 border-gray-300 text-gray-800'}`}>
-                  {seat.row}{seat.number}
+            <div className="min-w-0 flex-1">
+              <div className="mb-2 flex items-start justify-between gap-3">
+                <p className="ticket-label !text-content-media-secondary">
+                  Admit {seats.length || 1}
+                </p>
+                <span
+                  className={`shrink-0 rounded-full border px-2.5 py-1 text-[10px] font-extrabold uppercase leading-none tracking-wider ${
+                    STATUS_TONE[status] || STATUS_TONE.confirmed
+                  }`}
+                >
+                  {status}
                 </span>
-              ))}
-            </div>
-          </div>
+              </div>
 
-          <div className={`rounded-lg p-4 space-y-2 ${isDark ? 'bg-gray-800/50' : 'bg-gray-100'}`}>
-            <div className={`flex justify-between text-sm ${isDark ? 'text-gray-400' : 'text-gray-700'}`}>
-              <span>Tickets ({booking.seats?.length})</span>
-              <span>₹{booking.basePrice?.toFixed(2)}</span>
-            </div>
-            <div className={`flex justify-between text-sm ${isDark ? 'text-gray-400' : 'text-gray-700'}`}>
-              <span>Tax & Fees</span>
-              <span>₹{((booking.convenienceFee || 0) + (booking.tax || 0)).toFixed(2)}</span>
-            </div>
-            <div className={`border-t pt-2 mt-2 flex justify-between items-center ${isDark ? 'border-gray-700' : 'border-gray-300'}`}>
-              <span className={`font-bold ${isDark ? 'text-white' : 'text-[var(--app-text-strong)]'}`}>Total Paid</span>
-              <span className="money-value text-xl font-bold">₹{booking.totalAmount?.toFixed(2)}</span>
+              <h2 className="font-display text-[1.6rem] leading-[1.1] text-content-media sm:text-[2rem]">
+                {movie.title || 'Your movie'}
+              </h2>
+
+              {meta ? (
+                <p className="mt-2 text-body-sm text-content-media-secondary">
+                  {meta}
+                </p>
+              ) : null}
             </div>
           </div>
         </div>
 
-        {/* QR Code Footer */}
-        <div className="receipt-perf" />
-        <div className={`p-6 flex flex-col items-center justify-center ${isDark ? 'bg-dark-card' : 'bg-white'}`}>
-            <div className="bg-white p-2 rounded-lg mb-3">
-                 {!qrError ? (
-                   <img 
-                      src={`https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${booking.bookingId}`} 
-                      alt="Booking QR" 
-                      className="w-32 h-32"
-                      crossOrigin="anonymous"
-                      onError={() => setQrError(true)}
-                   />
-                 ) : (
-                   <div className="w-32 h-32 flex items-center justify-center text-center text-xs text-gray-800">
-                     QR unavailable
-                   </div>
-                 )}
-            </div>
-            <p className={`text-xs text-center uppercase tracking-widest ${isDark ? 'text-gray-500' : 'text-gray-600'}`}>
-                Scan at entrance
+        {/* Show */}
+        <dl className="ticket-grid">
+          <Field
+            label="Date"
+            value={formatDateUTC(show.date)}
+            sub={weekdayUTC(show.date)}
+          />
+          <Field label="Time" value={formatTime(show.time)} sub="Doors 20 min prior" />
+          <Field label="Screen" value={show.format || '2D'} />
+        </dl>
+
+        {/* Theatre */}
+        <div className="ticket-row px-5 py-4 sm:px-6">
+          <p className="ticket-label">Theatre</p>
+          <p className="ticket-value mt-1.5">{show.theater || '—'}</p>
+          {show.location ? (
+            <p className="mt-0.5 text-body-sm capitalize text-content-muted">
+              {show.location}
             </p>
-            {qrError && (
-              <p className={`mt-2 text-xs text-center ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
-                Manual code: {booking.bookingId}
-              </p>
-            )}
+          ) : null}
         </div>
+
+        {/* Seats + guest */}
+        <div className="ticket-row flex flex-col gap-5 px-5 py-4 sm:flex-row sm:items-start sm:justify-between sm:px-6">
+          <div>
+            <p className="ticket-label">
+              {seats.length > 1 ? 'Seats' : 'Seat'}
+            </p>
+            <div className="mt-2 flex flex-wrap gap-1.5">
+              {seats.length ? (
+                seats.map((seat, index) => (
+                  <span key={`${seat.row}${seat.number}-${index}`} className="ticket-seat">
+                    {seat.row}
+                    {seat.number}
+                  </span>
+                ))
+              ) : (
+                <span className="text-body-sm text-content-muted">—</span>
+              )}
+            </div>
+          </div>
+
+          <div className="sm:text-right">
+            <p className="ticket-label">Booked by</p>
+            <p className="ticket-value mt-1.5">{booking.user?.name || '—'}</p>
+            {booking.phone || booking.user?.phone ? (
+              <p className="mt-0.5 text-body-sm text-content-muted">
+                {booking.phone || booking.user?.phone}
+              </p>
+            ) : null}
           </div>
         </div>
+
+        {/* Money */}
+        <div className="ticket-row px-5 py-4 sm:px-6">
+          <div className="space-y-2">
+            <div className="flex items-baseline justify-between gap-4 text-body-sm text-content-secondary">
+              <span>Tickets ({seats.length || 0})</span>
+              <span className="money-value">
+                ₹{(booking.basePrice || 0).toFixed(2)}
+              </span>
+            </div>
+            <div className="flex items-baseline justify-between gap-4 text-body-sm text-content-secondary">
+              <span>Convenience fee &amp; GST</span>
+              <span className="money-value">₹{fees.toFixed(2)}</span>
+            </div>
+          </div>
+
+          <div className="mt-3 flex items-baseline justify-between gap-4 border-t border-line pt-3">
+            <span className="ticket-label !text-content">Total paid</span>
+            <span className="money-value font-display text-[1.75rem] leading-none text-content">
+              ₹{(booking.totalAmount || 0).toFixed(2)}
+            </span>
+          </div>
+
+          {paidWith ? (
+            <p className="mt-2 text-body-sm text-content-muted">
+              Paid with {paidWith}
+              {booking.paymentId ? ` · ${booking.paymentId}` : ''}
+            </p>
+          ) : null}
+        </div>
+
+        {/* Tear line */}
+        <div className="ticket-perf" aria-hidden="true" />
+
+        {/* Stub */}
+        <div className="ticket-stub">
+          <div className="ticket-rail" aria-hidden="true">
+            <span>Admit one</span>
+          </div>
+
+          <div className="flex flex-1 flex-col items-center gap-4 p-5 text-center sm:flex-row sm:items-center sm:gap-6 sm:p-6 sm:text-left">
+            {!qrError ? (
+              <img
+                src={`https://api.qrserver.com/v1/create-qr-code/?size=240x240&margin=0&data=${encodeURIComponent(
+                  bookingCode,
+                )}`}
+                alt={`QR code for booking ${bookingCode}`}
+                className="ticket-qr shrink-0"
+                crossOrigin="anonymous"
+                onError={() => setQrError(true)}
+              />
+            ) : (
+              <div className="ticket-qr flex shrink-0 items-center justify-center px-2 text-center text-[11px] font-semibold text-content-muted">
+                QR unavailable — show the code
+              </div>
+            )}
+
+            <div className="min-w-0">
+              <p className="ticket-label">Booking ID</p>
+              <p className="ticket-code mt-1.5 text-body text-content">{bookingCode}</p>
+              <p className="mt-2 text-body-sm text-content-secondary">
+                Scan at the entrance. Carry a photo ID.
+              </p>
+              {booking.bookingDate ? (
+                <p className="mt-1 text-body-sm text-content-muted">
+                  Booked {formatDateFull(booking.bookingDate)}
+                </p>
+              ) : null}
+            </div>
+          </div>
+        </div>
+      </article>
+
+      {/* Actions — not part of the ticket, and never printed */}
+      <div className="ticket-actions mt-8 flex flex-col gap-3 sm:flex-row sm:justify-center">
+        <Button
+          variant="primary"
+          onClick={handleDownload}
+          loading={downloading}
+          loadingText="Generating PDF..."
+          icon={<Download className="h-5 w-5" />}
+          className="w-full sm:w-auto"
+        >
+          Download ticket
+        </Button>
+        <Button
+          variant="secondary"
+          onClick={() => window.print()}
+          icon={<Printer className="h-5 w-5" />}
+          className="w-full sm:w-auto"
+        >
+          Print
+        </Button>
+        <Button
+          variant="ghost"
+          onClick={() => navigate('/')}
+          icon={<Home className="h-5 w-5" />}
+          className="w-full sm:w-auto"
+        >
+          Back to home
+        </Button>
       </div>
 
-      {/* Action Buttons (These will NOT appear in the PDF) */}
-      <div className="mt-8 flex flex-col sm:flex-row gap-4 justify-center">
-        <Button 
-            variant="primary" 
-            onClick={handleDownload} 
-            loading={downloading}
-            loadingText="Generating PDF..."
-            icon={<Download className="w-5 h-5" />}
-            className="w-full sm:w-auto"
-        >
-          Download Ticket
-        </Button>
-        <Button 
-            variant="secondary" 
-            onClick={() => navigate('/')}
-            icon={<Home className="w-5 h-5" />}
-            className="w-full sm:w-auto"
-        >
-          Back to Home
-        </Button>
-      </div>
+      <p className="mt-6 text-center text-body-sm text-content-muted">
+        Ticket is valid only for the show above. Cancellations follow the refund
+        policy.
+      </p>
     </div>
   );
 };

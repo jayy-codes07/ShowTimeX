@@ -10,42 +10,29 @@ import {
 import { formatDateUTC, formatTime } from "../../utils/formatDate";
 import logo from "./../../assets/images/Showtime_logo.png";
 
-const paletteByTheme = {
-  dark: {
-    pageBg: "#111111",
-    cardBg: "#1a1a1a",
-    border: "#374151",
-    headerBg: "#166534",
-    passRowBg: "#111827",
-    passText: "#e5e7eb",
-    admitText: "#86efac",
-    strongText: "#ffffff",
-    mutedText: "#9ca3af",
-    seatBg: "#111827",
-    seatBorder: "#4b5563",
-    priceBg: "rgba(31, 41, 55, 0.6)",
-    totalText: "#22c55e",
-    footerBg: "#151515",
-    fallbackId: "#e5e7eb",
-  },
-  light: {
-    pageBg: "#eef7f0",
-    cardBg: "#ffffff",
-    border: "#bdd2c3",
-    headerBg: "#166534",
-    passRowBg: "#eaf4ed",
-    passText: "#1f3d2c",
-    admitText: "#166534",
-    strongText: "#123222",
-    mutedText: "#3f5f4b",
-    seatBg: "#f3f7f4",
-    seatBorder: "#c7d7cc",
-    priceBg: "#f5f8f6",
-    totalText: "#166534",
-    footerBg: "#f8fbf9",
-    fallbackId: "#1f3d2c",
-  },
+// @react-pdf/renderer cannot read CSS custom properties, so these literals
+// mirror styles/tokens.css by hand. Keep them in step with that file.
+// One theme ("Gallery"), so both keys resolve to the same palette — the
+// `theme` prop is kept only so existing callers keep working.
+const GALLERY = {
+  pageBg: "#faf8f4", // --bg            warm paper
+  cardBg: "#ffffff", // --surface
+  border: "#e8e3d9", // --border        hairline
+  headerBg: "#1a1714", // --primary       ink bar, white wordmark on it
+  passRowBg: "#f2eee6", // --surface-sunken
+  passText: "#4e4941", // --text-secondary
+  admitText: "#8a6a22", // --accent        brass
+  strongText: "#16130f", // --text
+  mutedText: "#6e675d", // --muted
+  seatBg: "#f2eee6",
+  seatBorder: "#d5cec0", // --border-strong
+  priceBg: "#f4f1ea", // --surface-hover
+  totalText: "#8a6a22", // --accent
+  footerBg: "#f2eee6",
+  fallbackId: "#4e4941",
 };
+
+const paletteByTheme = { dark: GALLERY, light: GALLERY };
 
 const getStyles = (palette) =>
   StyleSheet.create({

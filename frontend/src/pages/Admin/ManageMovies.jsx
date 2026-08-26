@@ -243,7 +243,7 @@ const ManageMovies = () => {
     if (status === "ENDED") {
       return "bg-gray-600/30 text-gray-300";
     }
-    return "bg-green-500/20 text-green-500";
+    return "bg-success-soft text-success";
   };
 
   if (loading) {

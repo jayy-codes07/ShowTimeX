@@ -407,7 +407,7 @@ const ManageBookings = () => {
                         <td className="py-3 px-4 text-sm">
                           <span className={`inline-block px-2 py-1 rounded text-xs font-semibold uppercase ${
                             booking.status === "confirmed"
-                              ? "bg-green-500/20 text-green-500"
+                              ? "bg-success-soft text-success"
                               : booking.status === "cancelled"
                                 ? "bg-red-500/20 text-red-500"
                                 : "bg-yellow-500/20 text-yellow-500"
@@ -421,7 +421,7 @@ const ManageBookings = () => {
                             booking.refundStatus === "initiated" || booking.refundStatus === "processing"
                               ? "bg-amber-500/20 text-amber-400"
                               : booking.refundStatus === "refunded"
-                                ? "bg-green-500/20 text-green-500"
+                                ? "bg-success-soft text-success"
                                 : booking.refundStatus === "failed"
                                   ? "bg-red-500/20 text-red-500"
                                   : "bg-gray-700/40 text-gray-300"
@@ -429,7 +429,7 @@ const ManageBookings = () => {
                               {booking.refundStatus || "none"}
                             </span>
                             {REFUNDABLE_STATUSES.includes(booking.refundStatus || "") && getEligibleRefundLabel(booking) && (
-                              <p className="text-xs text-emerald-300">
+                              <p className="text-xs text-success">
                                 {getEligibleRefundLabel(booking)}
                               </p>
                             )}
@@ -506,10 +506,10 @@ const ManageBookings = () => {
                     {getEligibleRefundLabel(selectedBooking) && (
                       <div>
                         <label className="block text-sm font-medium text-gray-300 mb-2">Suggested Refund Based on Time Left</label>
-                        <div className="bg-emerald-500/10 border border-emerald-500/20 rounded-lg p-3 text-sm text-emerald-200">
+                        <div className="bg-success-soft border border-success rounded-lg p-3 text-sm text-success">
                           <p>{getEligibleRefundLabel(selectedBooking)}</p>
                           {selectedBooking?.refundHoursBeforeShow > 0 && (
-                            <p className="mt-1 text-xs text-emerald-100/80">
+                            <p className="mt-1 text-xs text-success">
                               Cancellation happened with {Number(selectedBooking.refundHoursBeforeShow).toFixed(1)} hours left before the show.
                             </p>
                           )}
@@ -558,7 +558,7 @@ const ManageBookings = () => {
                   />
                   {REFUNDABLE_STATUSES.includes(selectedBooking?.refundStatus || "") && getEligibleRefundLabel(selectedBooking) && (
                     <div className="mt-2 flex items-center justify-between gap-3 text-xs">
-                      <p className="text-emerald-300">{getEligibleRefundLabel(selectedBooking)}</p>
+                      <p className="text-success">{getEligibleRefundLabel(selectedBooking)}</p>
                       <button
                         type="button"
                         className="text-primary hover:text-primary-light transition"
