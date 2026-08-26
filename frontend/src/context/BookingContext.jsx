@@ -39,6 +39,35 @@ export const BookingProvider = ({ children }) => {
     }));
   }, []);
 
+  // Merge a freshly fetched show into the stored snapshot.
+  //
+  // The Payment page keeps the show object it was handed by the showtime list,
+  // so its availability goes stale the moment anyone else books. This adopts
+  // only the availability fields, leaving price/date/theater untouched.
+  const updateShowAvailability = useCallback((nextShow) => {
+    if (!nextShow) return;
+
+    setBookingData((prev) => {
+      if (!prev.show) return prev;
+      const show = { ...prev.show };
+
+      if (Array.isArray(nextShow.bookedSeats)) {
+        show.bookedSeats = nextShow.bookedSeats;
+      }
+
+      // Lock fields travel as a set: without myLockedSeats we cannot tell the
+      // user's own locks apart from other people's, and the seat map would
+      // discard their current selection. Adopt both or neither.
+      if (Array.isArray(nextShow.lockedSeats) && Array.isArray(nextShow.myLockedSeats)) {
+        show.lockedSeats = nextShow.lockedSeats;
+        show.myLockedSeats = nextShow.myLockedSeats;
+        show.myLockExpiresAt = nextShow.myLockExpiresAt ?? null;
+      }
+
+      return { ...prev, show };
+    });
+  }, []);
+
   // Clear booking data
   const clearBooking = () => {
     setBookingData({
@@ -70,6 +99,7 @@ export const BookingProvider = ({ children }) => {
     bookingData,
     setMovieAndShow,
     updateSelectedSeats,
+    updateShowAvailability,
     clearBooking,
     getBookingSummary,
     updateShowLocks: (lockedSeats = [], myLockedSeats = [], myLockExpiresAt = null) =>

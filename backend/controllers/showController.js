@@ -1,6 +1,7 @@
 const Show = require("../models/Show");
 const Movie = require("../models/Movie");
 const {
+  MAX_SEATS_PER_BOOKING,
   uniqueSeats,
   getActiveLocks,
   buildLockResponse,
@@ -13,7 +14,7 @@ const DEFAULT_LOCK_MINUTES = parseInt(process.env.SEAT_LOCK_MINUTES || "10", 10)
 const MIN_BOOKING_LEAD_MINUTES = parseInt(process.env.MIN_BOOKING_LEAD_MINUTES || "60", 10);
 const MIN_BOOKING_LEAD_MS = MIN_BOOKING_LEAD_MINUTES * 60 * 1000;
 const MAX_LOCK_MINUTES = 30;
-const MAX_LOCK_SEATS = 10;
+const MAX_LOCK_SEATS = MAX_SEATS_PER_BOOKING;
 
 const isBookingClosedForShow = (show) => {
   const showDateTime = typeof show?.getShowDateTime === "function"

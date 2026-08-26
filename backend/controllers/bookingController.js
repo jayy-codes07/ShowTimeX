@@ -7,6 +7,7 @@ const User = require("../models/User");
 const { triggerN8n } = require('../n8nService');
 const Razorpay = require("razorpay");
 const {
+  MAX_SEATS_PER_BOOKING,
   uniqueSeats,
   getActiveLocks,
   isSeatLockedByOther,
@@ -212,6 +213,15 @@ const createBooking = async (req, res) => {
       return res.status(400).json({
         success: false,
         message: "Please select at least one seat",
+      });
+    }
+
+    // Authoritative seat-count cap. The seat map enforces the same limit for
+    // UX, but a request can reach here without ever passing through it.
+    if (seatsToBook.length > MAX_SEATS_PER_BOOKING) {
+      return res.status(400).json({
+        success: false,
+        message: `You can book a maximum of ${MAX_SEATS_PER_BOOKING} seats per booking`,
       });
     }
 

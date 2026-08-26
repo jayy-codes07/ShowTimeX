@@ -29,7 +29,16 @@ const SeatMap = ({
   // pending keys: toggle data-pending attr directly on DOM node, zero re-render
   const pendingKeysRef = useRef(new Set());
 
-  useEffect(() => () => clearTimeout(debounceTimer.current), []);
+  // flushBatch is redefined each render; the unmount cleanup reads the latest
+  // one through this ref so it can stay a mount-once effect.
+  const flushBatchRef = useRef(null);
+
+  useEffect(() => () => {
+    clearTimeout(debounceTimer.current);
+    // Leaving the seat-selection step within DEBOUNCE_MS of a click used to
+    // discard that click's lock/unlock entirely. Send it instead.
+    if (pendingOpsRef.current.size > 0) flushBatchRef.current?.();
+  }, []);
 
   // ─── Flatten + lookup sets ────────────────────────────────────────────────
   const flatten = useCallback((arr) => {
@@ -62,6 +71,15 @@ const SeatMap = ({
     if (el) el.setAttribute('data-pending', String(pending));
   }, []);
 
+  // ─── Seat limit ───────────────────────────────────────────────────────────
+  // Every path that puts a seat *into* the store must go through this, not just
+  // the plain select path.
+  const isAtSeatLimit = () => {
+    if (store.size() < SEAT_CONFIG.MAX_SEATS_PER_BOOKING) return false;
+    toast.error(`You can select a maximum of ${SEAT_CONFIG.MAX_SEATS_PER_BOOKING} seats per booking`);
+    return true;
+  };
+
   // ─── Mirror store selection into BookingContext ───────────────────────────
   // Called synchronously on every toggle so the booking summary updates
   // immediately, without waiting for the debounced lock request.
@@ -88,6 +106,23 @@ const SeatMap = ({
     syncSelectionToContext();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // Drop any selected seat that has since become booked or locked by someone
+  // else. Runs whenever availability changes — i.e. after the Payment page
+  // refetches the show on entry or refocus.
+  useEffect(() => {
+    let changed = false;
+    store.getAll().forEach((key) => {
+      if (!bookedSet.has(key) && !lockedByOtherSet.has(key)) return;
+      store.remove(key);
+      pendingOpsRef.current.delete(key);
+      rollbackRef.current.delete(key);
+      changed = true;
+    });
+    if (!changed) return;
+    syncSelectionToContext();
+    toast.error('Some of your seats were just taken and have been removed.');
+  }, [bookedSet, lockedByOtherSet, store, syncSelectionToContext]);
 
   // ─── Flush batch ──────────────────────────────────────────────────────────
   const flushBatch = useCallback(async () => {
@@ -142,6 +177,8 @@ const SeatMap = ({
     }
   }, [bookingData.show?._id, store, updateShowLocks, setPendingDOM, syncSelectionToContext]);
 
+  flushBatchRef.current = flushBatch;
+
   const scheduleBatch = useCallback(() => {
     clearTimeout(debounceTimer.current);
     debounceTimer.current = setTimeout(flushBatch, DEBOUNCE_MS);
@@ -160,6 +197,10 @@ const SeatMap = ({
 
     // Deduplication: click A → click A again before API fires = net zero
     if (existingOp) {
+      // Cancelling a pending 'unlock' puts the seat back, so it has to pass the
+      // cap too — another seat may have claimed the free slot in the meantime.
+      if (existingOp === 'unlock' && isAtSeatLimit()) return;
+
       pendingOpsRef.current.delete(key);
       rollbackRef.current.delete(key);
       if (existingOp === 'lock') store.remove(key);
@@ -169,10 +210,7 @@ const SeatMap = ({
       return;
     }
 
-    if (!currentlySelected && store.size() >= SEAT_CONFIG.MAX_SEATS_PER_BOOKING) {
-      toast.error(`You can select a maximum of ${SEAT_CONFIG.MAX_SEATS_PER_BOOKING} seats per booking`);
-      return;
-    }
+    if (!currentlySelected && isAtSeatLimit()) return;
 
     rollbackRef.current.set(key, currentlySelected);
     if (currentlySelected) {

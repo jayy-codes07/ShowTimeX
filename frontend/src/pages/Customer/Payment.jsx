@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { ArrowLeft, Film, Calendar, Clock, MapPin } from "lucide-react";
@@ -38,7 +38,8 @@ const loadRazorpayScript = () => {
 
 const Payment = () => {
   const navigate = useNavigate();
-  const { bookingData, getBookingSummary, clearBooking } = useBooking();
+  const { bookingData, getBookingSummary, clearBooking, updateShowAvailability } =
+    useBooking();
   const [loading, setLoading] = useState(false);
   const [step, setStep] = useState(1); // 1: Select Seats, 2: Checkout
   const [lockRemaining, setLockRemaining] = useState(null);
@@ -50,6 +51,42 @@ const Payment = () => {
       navigate("/");
     }
   }, [bookingData, navigate]);
+
+  // The show object was handed over by the showtime list and never refreshed,
+  // so its bookedSeats went stale the moment anyone else booked. Pull current
+  // availability on entry and whenever the tab regains focus. SeatMap drops any
+  // selected seat the refresh reports as taken.
+  const showId = bookingData.show?._id;
+
+  const refreshAvailability = useCallback(async () => {
+    if (!showId) return;
+    try {
+      const res = await apiRequest.get(API_ENDPOINTS.SHOW_BY_ID(showId));
+      updateShowAvailability(res?.show);
+    } catch (error) {
+      // Keep the existing snapshot; the lock and booking endpoints still
+      // validate availability server-side.
+      console.error("Availability refresh failed:", error);
+    }
+  }, [showId, updateShowAvailability]);
+
+  useEffect(() => {
+    if (!showId) return undefined;
+
+    refreshAvailability();
+
+    const onFocus = () => refreshAvailability();
+    const onVisibility = () => {
+      if (document.visibilityState === "visible") refreshAvailability();
+    };
+
+    window.addEventListener("focus", onFocus);
+    document.addEventListener("visibilitychange", onVisibility);
+    return () => {
+      window.removeEventListener("focus", onFocus);
+      document.removeEventListener("visibilitychange", onVisibility);
+    };
+  }, [showId, refreshAvailability]);
 
   useEffect(() => {
     const expiry = bookingData.show?.myLockExpiresAt

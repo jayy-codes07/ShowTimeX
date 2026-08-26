@@ -1,3 +1,8 @@
+// Business rule: a single booking (and therefore a single lock request) may
+// never cover more than this many seats. Authoritative — the frontend limit is
+// only UX. Shared by showController (lock) and bookingController (create).
+const MAX_SEATS_PER_BOOKING = 10;
+
 const normalizeSeat = (seat) => {
   const row = typeof seat?.row === "string" ? seat.row.trim().toUpperCase() : "";
   const number = Number(seat?.number);
@@ -197,6 +202,7 @@ const atomicLockSeats = async (Show, showId, userId, seats, holdMinutes) => {
 };
 
 module.exports = {
+  MAX_SEATS_PER_BOOKING,
   normalizeSeat,
   uniqueSeats,
   getActiveLocks,
