@@ -11,13 +11,13 @@ This is a short, faculty‑friendly flow that shows core features in under 5 min
 2. `npm run seed`
 
 ## 3. Admin Flow
-1. Login as admin using `admin@cinebook.com / Admin@123`
+1. Login as the seeded admin account (credentials are defined in `backend/seed.js`)
 2. Navigate to Admin Dashboard and verify stats and charts
 3. Go to Manage Movies and create or update a movie
 4. Go to Manage Shows and generate showtimes
 
 ## 4. User Flow
-1. Login as user using `user@cinebook.com / User@123`
+1. Login as a seeded customer account (credentials are defined in `backend/seed.js`)
 2. Open a movie, select a date and showtime
 3. Select seats and verify they lock with a countdown
 4. Proceed to checkout and complete payment

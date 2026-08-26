@@ -152,15 +152,6 @@ const Login = () => {
             </Link>
           </div>
         </div>
-
-        {/* Demo Credentials */}
-        <div className="mt-6 bg-dark-card rounded-xl p-4">
-          <p className="text-sm text-gray-400 text-center mb-2">Demo Credentials:</p>
-          <div className="text-xs text-gray-500 space-y-1">
-            <p>Admin: admin@ShowTime.com / Admin@123</p>
-            <p>User: user@ShowTime.com / User@123</p>
-          </div>
-        </div>
       </motion.div>
     </div>
   );

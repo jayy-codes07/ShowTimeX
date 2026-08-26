@@ -32,8 +32,10 @@ ShowTimeX is a full‑stack movie ticket booking platform with real‑time seat 
 This seeds demo users and movies. See [docs/demo.md](docs/demo.md) for a step‑by‑step demo flow.
 
 **Demo Credentials (after seeding)**
-1. Admin: `admin@cinebook.com` / `Admin@123`
-2. User: `user@cinebook.com` / `User@123`
+
+The seeded local accounts are defined in [`backend/seed.js`](backend/seed.js). Credentials are
+deliberately not published here. Always change the seeded passwords before deploying — never
+reuse them on a public deployment.
 
 **Seat Locking**
 Seats are locked for a short time when a user selects them. This prevents double booking while they complete payment. The UI shows a countdown timer and indicates seats locked by other users.

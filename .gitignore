@@ -1,0 +1,43 @@
+# ─── Environment / secrets ────────────────────────────────────────────
+# Never commit real credentials. Commit .env.example files instead.
+.env
+.env.*
+!.env.example
+!.env*.example
+
+# ─── Dependencies ─────────────────────────────────────────────────────
+node_modules/
+
+# ─── Build output ─────────────────────────────────────────────────────
+dist/
+dist-ssr/
+build/
+*.local
+
+# ─── Logs ─────────────────────────────────────────────────────────────
+*.log
+logs/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# ─── Runtime uploads (ephemeral on Render, never a source of truth) ───
+backend/uploads/
+
+# ─── Editor / OS ──────────────────────────────────────────────────────
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# ─── Scratch / temporary files ────────────────────────────────────────
+temp
+tmp/
+*.bak
