@@ -15,9 +15,9 @@ const SeatMap = ({
   lockedSeats = [],
   myLockedSeats = [],
 }) => {
-  const { bookingData, updateShowLocks } = useBooking();
-  // NOTE: addSeat / removeSeat from context are GONE.
-  // The store is the single source of truth for selection.
+  const { bookingData, updateShowLocks, updateSelectedSeats } = useBooking();
+  // The store is the source of truth for seat-map rendering. Every mutation is
+  // mirrored into BookingContext.selectedSeats so the payment flow can read it.
 
   // ─── Seat selection store (created once, never changes reference) ──────────
   const store = useMemo(() => createSeatStore(), []);
@@ -62,6 +62,33 @@ const SeatMap = ({
     if (el) el.setAttribute('data-pending', String(pending));
   }, []);
 
+  // ─── Mirror store selection into BookingContext ───────────────────────────
+  // Called synchronously on every toggle so the booking summary updates
+  // immediately, without waiting for the debounced lock request.
+  const syncSelectionToContext = useCallback(() => {
+    const seats = [...store.getAll()].map((key) => {
+      const [row, numStr] = key.split('-');
+      return { row, number: Number(numStr) };
+    });
+    updateSelectedSeats(seats);
+  }, [store, updateSelectedSeats]);
+
+  // Re-seed the store from context on mount, so a selection survives leaving
+  // and returning to step 1 (SeatMap unmounts while the checkout form shows).
+  useEffect(() => {
+    const existing = bookingData.selectedSeats || [];
+    if (existing.length === 0 || store.size() > 0) return;
+
+    existing.forEach((seat) => {
+      const key = `${seat.row}-${seat.number}`;
+      if (!bookedSet.has(key) && !lockedByOtherSet.has(key)) store.add(key);
+    });
+    // Seats that became unavailable meanwhile are dropped — resync so context
+    // never claims a seat the map cannot show as selected.
+    syncSelectionToContext();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   // ─── Flush batch ──────────────────────────────────────────────────────────
   const flushBatch = useCallback(async () => {
     const ops = new Map(pendingOpsRef.current);
@@ -98,10 +125,6 @@ const SeatMap = ({
         lastRes?.myLockExpiresAt || lastRes?.expiresAt || null
       );
 
-      // Sync BookingContext selectedSeats if your context needs it externally
-      // (e.g. for the payment summary). Pull from store directly:
-      // updateSelectedSeats([...store.getAll()]);
-
       ops.forEach((_, key) => rollbackRef.current.delete(key));
     } catch (error) {
       // Granular rollback — only this batch
@@ -111,11 +134,13 @@ const SeatMap = ({
         if (action === 'unlock' && wasSelected === true)  store.add(key);
         rollbackRef.current.delete(key);
       });
+      // Roll BookingContext back in step with the store
+      syncSelectionToContext();
       toast.error(error.response?.data?.message || 'Some seats could not be updated. Please try again.');
     } finally {
       ops.forEach((_, key) => setPendingDOM(key, false));
     }
-  }, [bookingData.show?._id, store, updateShowLocks, setPendingDOM]);
+  }, [bookingData.show?._id, store, updateShowLocks, setPendingDOM, syncSelectionToContext]);
 
   const scheduleBatch = useCallback(() => {
     clearTimeout(debounceTimer.current);
@@ -139,6 +164,7 @@ const SeatMap = ({
       rollbackRef.current.delete(key);
       if (existingOp === 'lock') store.remove(key);
       else                       store.add(key);
+      syncSelectionToContext();
       scheduleBatch();
       return;
     }
@@ -156,6 +182,7 @@ const SeatMap = ({
       store.add(key);
       pendingOpsRef.current.set(key, 'lock');
     }
+    syncSelectionToContext();
     scheduleBatch();
   };
 

@@ -1,5 +1,4 @@
-import React, { createContext, useState, useContext } from 'react';
-import toast from 'react-hot-toast';
+import React, { createContext, useState, useContext, useCallback } from 'react';
 
 const BookingContext = createContext(null);
 
@@ -24,67 +23,21 @@ export const BookingProvider = ({ children }) => {
     }));
   };
 
-  // Add seat to selection
-  const addSeat = (seat) => {
-    if (bookingData.selectedSeats.length >= 10) {
-      toast.error('You can select maximum 10 seats per booking');
-      return false;
-    }
-
-    const isAlreadySelected = bookingData.selectedSeats.some(
-      (s) => s.row === seat.row && s.number === seat.number
-    );
-
-    if (isAlreadySelected) {
-      toast.error('Seat already selected');
-      return false;
-    }
-
-    const updatedSeats = [...bookingData.selectedSeats, seat];
-    const totalPrice = updatedSeats.length * (bookingData.show?.price || 0);
+  // Replace the entire seat selection.
+  //
+  // SeatMap owns an external store that drives seat-map rendering; it mirrors
+  // every mutation here so the payment/booking flow has a single value to read.
+  // Stable identity (empty deps) so SeatMap can depend on it safely; the show
+  // price is read from `prev` to avoid a stale closure.
+  const updateSelectedSeats = useCallback((seats) => {
+    const selectedSeats = Array.isArray(seats) ? seats : [];
 
     setBookingData((prev) => ({
       ...prev,
-      selectedSeats: updatedSeats,
-      totalPrice,
+      selectedSeats,
+      totalPrice: selectedSeats.length * (prev.show?.price || 0),
     }));
-
-    return true;
-  };
-
-  // Remove seat from selection
-  const removeSeat = (seat) => {
-    const updatedSeats = bookingData.selectedSeats.filter(
-      (s) => !(s.row === seat.row && s.number === seat.number)
-    );
-    const totalPrice = updatedSeats.length * (bookingData.show?.price || 0);
-
-    setBookingData((prev) => ({
-      ...prev,
-      selectedSeats: updatedSeats,
-      totalPrice,
-    }));
-  };
-
-  // Toggle seat selection
-  const toggleSeat = (seat) => {
-    const isSelected = bookingData.selectedSeats.some(
-      (s) => s.row === seat.row && s.number === seat.number
-    );
-
-    if (isSelected) {
-      removeSeat(seat);
-    } else {
-      addSeat(seat);
-    }
-  };
-
-  // Check if seat is selected
-  const isSeatSelected = (row, number) => {
-    return bookingData.selectedSeats.some(
-      (s) => s.row === row && s.number === number
-    );
-  };
+  }, []);
 
   // Clear booking data
   const clearBooking = () => {
@@ -116,10 +69,7 @@ export const BookingProvider = ({ children }) => {
   const value = {
     bookingData,
     setMovieAndShow,
-    addSeat,
-    removeSeat,
-    toggleSeat,
-    isSeatSelected,
+    updateSelectedSeats,
     clearBooking,
     getBookingSummary,
     updateShowLocks: (lockedSeats = [], myLockedSeats = [], myLockExpiresAt = null) =>
