@@ -182,6 +182,10 @@
   border-radius: 0 0 0 calc(var(--r-card) - 1px);
 }
 
+.ticket-rail--void {
+  background-color: var(--error);
+}
+
 .ticket-rail span {
   writing-mode: vertical-rl;
   transform: rotate(180deg);

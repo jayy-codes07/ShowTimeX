@@ -40,12 +40,12 @@ const weekdayUTC = (date) => {
   return Number.isNaN(d.getTime()) ? '' : WEEKDAYS[d.getUTCDay()];
 };
 
-const STATUS_TONE = {
-  confirmed: 'border-success bg-success-soft text-success',
-  pending: 'border-warning bg-warning-soft text-warning',
-  cancelled: 'border-error bg-error-soft text-error',
-  expired: 'border-line-strong bg-surface-hover text-content-muted',
-};
+// The chip sits on the poster head, where [data-on-media] has already flipped
+// surface/border/text. State colours (--success, --error) are NOT flipped, so
+// using them here would put dark ink on a dark ground — glass + the word does
+// the job instead, and a void ticket is called out on the stub rail as well.
+const STATUS_CHIP =
+  'shrink-0 rounded-full border border-line bg-surface px-2.5 py-1 text-[10px] font-extrabold uppercase leading-none tracking-wider text-content';
 
 const PAYMENT_LABEL = {
   razorpay: 'Razorpay',
@@ -190,7 +190,7 @@ const Receipt = ({ booking }) => {
         <p className="mx-auto mt-2 max-w-prose text-body text-content-secondary">
           {isCancelled
             ? 'This ticket is no longer valid for entry.'
-            : `Your ticket is ready. We also sent a copy to ${booking.email || booking.user?.email || 'your email'}.`}
+            : 'Your ticket is ready. Download it, or show this screen at the entrance.'}
         </p>
       </header>
 
@@ -219,16 +219,10 @@ const Receipt = ({ booking }) => {
 
             <div className="min-w-0 flex-1">
               <div className="mb-2 flex items-start justify-between gap-3">
-                <p className="ticket-label !text-content-media-secondary">
+                <p className="ticket-label">
                   Admit {seats.length || 1}
                 </p>
-                <span
-                  className={`shrink-0 rounded-full border px-2.5 py-1 text-[10px] font-extrabold uppercase leading-none tracking-wider ${
-                    STATUS_TONE[status] || STATUS_TONE.confirmed
-                  }`}
-                >
-                  {status}
-                </span>
+                <span className={STATUS_CHIP}>{status}</span>
               </div>
 
               <h2 className="font-display text-[1.6rem] leading-[1.1] text-content-media sm:text-[2rem]">
@@ -251,7 +245,7 @@ const Receipt = ({ booking }) => {
             value={formatDateUTC(show.date)}
             sub={weekdayUTC(show.date)}
           />
-          <Field label="Time" value={formatTime(show.time)} sub="Doors 20 min prior" />
+          <Field label="Time" value={formatTime(show.time)} />
           <Field label="Screen" value={show.format || '2D'} />
         </dl>
 
@@ -332,8 +326,11 @@ const Receipt = ({ booking }) => {
 
         {/* Stub */}
         <div className="ticket-stub">
-          <div className="ticket-rail" aria-hidden="true">
-            <span>Admit one</span>
+          <div
+            className={`ticket-rail${isCancelled ? ' ticket-rail--void' : ''}`}
+            aria-hidden="true"
+          >
+            <span>{isCancelled ? 'Not valid' : 'Admit one'}</span>
           </div>
 
           <div className="flex flex-1 flex-col items-center gap-4 p-5 text-center sm:flex-row sm:items-center sm:gap-6 sm:p-6 sm:text-left">
@@ -357,7 +354,7 @@ const Receipt = ({ booking }) => {
               <p className="ticket-label">Booking ID</p>
               <p className="ticket-code mt-1.5 text-body text-content">{bookingCode}</p>
               <p className="mt-2 text-body-sm text-content-secondary">
-                Scan at the entrance. Carry a photo ID.
+                Scan this code at the entrance.
               </p>
               {booking.bookingDate ? (
                 <p className="mt-1 text-body-sm text-content-muted">
