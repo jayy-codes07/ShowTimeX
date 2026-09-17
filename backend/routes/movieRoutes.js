@@ -1,7 +1,6 @@
 const express = require('express');
 const router = express.Router();
 const multer = require('multer');
-const path = require('path');
 const {
   getAllMovies, getMovieById, getNowShowing,
   getComingSoon, searchMovies, createMovie,
@@ -10,13 +9,10 @@ const {
 const { protect } = require('../middleware/authMiddleware');
 const { adminOnly } = require('../middleware/adminMiddleware');
 
-// Multer setup
-const storage = multer.diskStorage({
-  destination: './uploads/',
-  filename: (req, file, cb) => {
-    cb(null, Date.now() + path.extname(file.originalname));
-  }
-});
+// Multer setup — memory storage keeps the upload.fields()/req.files contract
+// identical while avoiding a local disk write, which is not possible on a
+// read-only serverless filesystem.
+const storage = multer.memoryStorage();
 const upload = multer({ storage });
 
 // Public routes

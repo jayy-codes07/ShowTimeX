@@ -189,7 +189,7 @@ const ManageMovies = () => {
 
   try {
     const res = await fetch(
-      `http://localhost:5000/api/tmdb/search?title=${encodeURIComponent(formData.title.trim())}`
+      `${import.meta.env.VITE_API_BASE_URL}/tmdb/search?title=${encodeURIComponent(formData.title.trim())}`
     );
 
     const data = await res.json();

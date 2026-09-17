@@ -2,7 +2,6 @@ const express = require('express');
 const cors = require('cors');
 const dotenv = require('dotenv');
 const connectDB = require('./config/db');
-const multer = require('multer');
 const path = require('path');
 
 // Load environment variables
@@ -11,8 +10,25 @@ dotenv.config();
 // Initialize Express app
 const app = express();
 
-// Connect to MongoDB
-connectDB();
+// Connect to MongoDB.
+// On a traditional server (local / Render) this runs once at boot, exactly as before.
+// On Vercel each serverless invocation may reuse a warm module, so the connection
+// promise is cached and reused instead of reconnecting per request. The .catch()
+// below marks the promise as handled (so a failure can never reach the
+// unhandledRejection handler) and clears the cache so the next request retries.
+let dbPromise = null;
+
+const ensureDB = () => {
+  if (!dbPromise) {
+    dbPromise = connectDB();
+    dbPromise.catch(() => {
+      dbPromise = null;
+    });
+  }
+  return dbPromise;
+};
+
+ensureDB();
 
 // Middleware
 app.use(cors());
@@ -25,17 +41,26 @@ app.use((req, res, next) => {
   next();
 });
 
-const storage = multer.diskStorage({
-  destination: './uploads/',
-  filename: (req, file, cb) => {
-    cb(null, Date.now() + path.extname(file.originalname));
-  }
-});
-
-const upload = multer({ storage });
-
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 app.use('/api/tmdb', require('./routes/tmdbRoutes')); // new TMDB proxy route
+
+// Ensure MongoDB is connected before any database-backed route runs. Scoped to the
+// data routes only, so /api/health and / stay reachable even if the database is down.
+app.use(
+  ['/api/auth', '/api/movies', '/api/shows', '/api/bookings', '/api/payments', '/api/admin'],
+  async (req, res, next) => {
+    try {
+      await ensureDB();
+      next();
+    } catch (error) {
+      console.error('Database unavailable:', error.message);
+      res.status(503).json({
+        success: false,
+        message: 'Database connection unavailable. Please try again.',
+      });
+    }
+  }
+);
 
 // Routes
 app.use('/api/auth', require('./routes/authRoutes'));
@@ -96,21 +121,28 @@ app.use((err, req, res, next) => {
 // Start server
 const PORT = process.env.PORT || 5000;
 
-app.listen(PORT, () => {
-  console.log('\n╔════════════════════════════════════════╗');
-  console.log('║   🎬 SHOWTIMEX API SERVER RUNNING 🎬    ║');
-  console.log('╚════════════════════════════════════════╝');
-  console.log(`🚀 Server: http://localhost:${PORT}`);
-  console.log(`📝 Environment: ${process.env.NODE_ENV || 'development'}`);
-  console.log(`⏰ Started at: ${new Date().toLocaleString()}`);
-  console.log('════════════════════════════════════════\n');
-});
+// Vercel invokes the exported app directly, so no port is bound there.
+// Local development and Render keep the traditional listening server.
+if (!process.env.VERCEL) {
+  app.listen(PORT, () => {
+    console.log('\n╔════════════════════════════════════════╗');
+    console.log('║   🎬 SHOWTIMEX API SERVER RUNNING 🎬    ║');
+    console.log('╚════════════════════════════════════════╝');
+    console.log(`🚀 Server: http://localhost:${PORT}`);
+    console.log(`📝 Environment: ${process.env.NODE_ENV || 'development'}`);
+    console.log(`⏰ Started at: ${new Date().toLocaleString()}`);
+    console.log('════════════════════════════════════════\n');
+  });
+}
 
 // Handle unhandled promise rejections
 process.on('unhandledRejection', (err) => {
   console.error('❌ Unhandled Rejection:', err.message);
-  // Close server & exit process
-  process.exit(1);
+  // Close server & exit process. On Vercel, exiting would abort the whole
+  // serverless invocation, so the rejection is only logged there.
+  if (!process.env.VERCEL) {
+    process.exit(1);
+  }
 });
 
 module.exports = app;
