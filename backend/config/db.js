@@ -59,4 +59,25 @@ process.on('SIGINT', async () => {
   process.exit(0);
 });
 
+// Cached connection promise shared by server.js (boot) and app.js (per-route
+// gate). Returns immediately when mongoose is already connected, which is how
+// the test suite (mongodb-memory-server) bypasses MONGO_URI entirely. A failed
+// attempt clears the cache so the next call retries.
+let dbPromise = null;
+
+const ensureDB = () => {
+  if (mongoose.connection.readyState === 1) {
+    return Promise.resolve(mongoose.connection);
+  }
+  if (!dbPromise) {
+    dbPromise = connectDB();
+    dbPromise.catch(() => {
+      dbPromise = null;
+    });
+  }
+  return dbPromise;
+};
+
 module.exports = connectDB;
+module.exports.connectDB = connectDB;
+module.exports.ensureDB = ensureDB;
