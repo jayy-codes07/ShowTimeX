@@ -1,0 +1,62 @@
+# Local stack: API + MongoDB + Redis. The React frontend is served separately
+# (Vite dev server or Vercel) and talks to http://localhost:5000/api.
+#
+#   docker compose up --build        # start
+#   docker compose ps                # all three services should be "healthy"
+#   docker compose down -v           # stop and drop the volumes
+#
+# Secrets (JWT_SECRET, RAZORPAY_*, SMTP_*) come from backend/.env, which is
+# git-ignored. MONGO_URI and REDIS_URL are overridden below to point at the
+# compose services. Redis is provisioned for the optional read-through cache;
+# the API runs fine without it.
+services:
+  api:
+    build: ./backend
+    env_file:
+      - ./backend/.env
+    environment:
+      NODE_ENV: production
+      PORT: 5000
+      MONGO_URI: mongodb://mongo:27017/showtimex
+      REDIS_URL: redis://redis:6379
+    ports:
+      - "5000:5000"
+    depends_on:
+      mongo:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:5000/api/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+    restart: unless-stopped
+
+  mongo:
+    image: mongo:7
+    volumes:
+      - mongo_data:/data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "--quiet", "--eval", "db.adminCommand('ping').ok"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    restart: unless-stopped
+
+  redis:
+    image: redis:7-alpine
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+volumes:
+  mongo_data:
+  redis_data:
