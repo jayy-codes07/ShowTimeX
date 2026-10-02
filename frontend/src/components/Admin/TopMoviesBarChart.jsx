@@ -88,7 +88,7 @@ const TopMoviesBarChart = ({ data }) => {
   );
   const xAxisHeight = 8 + maxLineCount * lineHeight + 8;
 
-  const CustomTick = ({ x, y, payload }) => {
+  const renderTick = ({ x, y, payload }) => {
     const lines = splitLabel(payload?.value || "", 20);
     const blockHeight = lines.length * lineHeight;
     const offset = Math.max(0, (xAxisHeight - blockHeight) / 2);
@@ -136,7 +136,7 @@ const TopMoviesBarChart = ({ data }) => {
           tickMargin={20}
           
           height={xAxisHeight}
-          tick={<CustomTick />}
+          tick={renderTick}
         />
 
         <YAxis

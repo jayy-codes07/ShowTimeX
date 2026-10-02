@@ -24,6 +24,7 @@ export const ThemeProvider = ({ children }) => {
   return <ThemeContext.Provider value={VALUE}>{children}</ThemeContext.Provider>;
 };
 
+// eslint-disable-next-line react-refresh/only-export-components
 export const useTheme = () => useContext(ThemeContext);
 
 export default ThemeContext;

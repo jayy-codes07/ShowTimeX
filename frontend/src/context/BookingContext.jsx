@@ -119,6 +119,7 @@ export const BookingProvider = ({ children }) => {
 };
 
 // Custom hook to use booking context
+// eslint-disable-next-line react-refresh/only-export-components
 export const useBooking = () => {
   const context = useContext(BookingContext);
   if (!context) {
