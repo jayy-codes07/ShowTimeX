@@ -2,7 +2,6 @@ const express = require('express');
 const router = express.Router();
 const {
   createBooking,
-  verifyPayment,
   getUserBookings,
   getBookingById,
   cancelBooking,
@@ -15,7 +14,6 @@ const { adminOnly } = require('../middleware/adminMiddleware');
 
 // Protected routes - Customer
 router.post('/create',protect, createBooking);
-router.post('/verify-payment', protect, verifyPayment);
 router.get('/user', protect, getUserBookings);
 router.get('/:id', protect, getBookingById);
 router.delete('/:id/cancel', protect, cancelBooking);

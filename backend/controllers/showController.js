@@ -170,13 +170,6 @@ const getShowsByMovie = async (req, res) => {
 // @desc    Create MULTIPLE shows (Batch Generator)
 // @route   POST /api/shows
 // @access  Private/Admin
-// @desc    Create MULTIPLE shows (Batch Generator)
-// @route   POST /api/shows
-// @access  Private/Admin
-// @desc    Create MULTIPLE shows (Batch Generator)
-// @route   POST /api/shows
-// @access  Private/Admin
-// Bulk Insert
 
 const createShow = async (req, res) => {
   try {

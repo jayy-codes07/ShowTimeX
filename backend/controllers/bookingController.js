@@ -272,7 +272,6 @@ const createBooking = async (req, res) => {
       }
     }
 
-    // Check if enough seats available (No need for extra variables now)
     // Check if enough seats available
     // FIX: Use availableSeats virtual because bookedSeats.length is not accurate for nested arrays
     if (show.availableSeats < seatsToBook.length) {
