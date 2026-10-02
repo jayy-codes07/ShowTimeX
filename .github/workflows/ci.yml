@@ -22,7 +22,9 @@ jobs:
           --health-retries 10
     env:
       NODE_ENV: test
-      REDIS_URL: redis://localhost:6379
+      # Only the real-Redis smoke test reads this; tests/setup.js clears REDIS_URL
+      # so the app never auto-connects during tests.
+      TEST_REDIS_URL: redis://localhost:6379
       JWT_SECRET: ci-dummy-jwt-secret
       RAZORPAY_KEY_ID: rzp_test_dummy
       RAZORPAY_KEY_SECRET: ci-dummy-razorpay-secret

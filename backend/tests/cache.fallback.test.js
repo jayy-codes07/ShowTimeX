@@ -40,14 +40,20 @@ test('unreachable Redis is reported as unavailable with exactly one warning', as
   assert.match(warnings[0], /Cache unavailable, serving from MongoDB/);
 });
 
-test('middleware falls through with X-Cache: BYPASS while Redis is down', async () => {
-  const headers = {};
-  const req = { headers: {}, originalUrl: '/api/movies' };
-  const res = { set: (k, v) => { headers[k] = v; }, statusCode: 200, json: () => {} };
-  let called = false;
-  await cache.cacheMiddleware('movies')(req, res, () => { called = true; });
-  assert.equal(called, true);
-  assert.equal(headers['X-Cache'], 'BYPASS');
+test('requests are served from MongoDB with X-Cache: BYPASS while Redis is down', async () => {
+  const first = await api().get('/api/movies');
+  const second = await api().get('/api/movies');
+  assert.equal(first.status, 200);
+  assert.equal(second.status, 200);
+  assert.equal(first.headers['x-cache'], 'BYPASS');
+  assert.equal(second.headers['x-cache'], 'BYPASS');
+  assert.equal(first.body.movies[0].title, 'Fallback Movie');
   // Reconnect attempts in the background must not add warnings.
   assert.equal(warnings.length, 1);
+});
+
+test('/api/health reports the redis driver as unavailable', async () => {
+  const res = await api().get('/api/health');
+  assert.equal(res.status, 200);
+  assert.deepEqual(res.body.cache, { driver: 'redis', status: 'unavailable' });
 });

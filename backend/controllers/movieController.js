@@ -3,6 +3,7 @@ const { triggerN8n } = require('../n8nService');
 const User = require('../models/User');
 const { escapeRegex } = require('../utils/strings');
 const logger = require('../utils/logger');
+const cache = require('../utils/cache');
 
 const getToday = () => {
   const today = new Date();
@@ -249,6 +250,7 @@ const createMovie = async (req, res) => {
     }
 
     const movie = await Movie.create(movieData);
+    await cache.invalidate('movies', 'shows');
 
     // 🔔 Trigger n8n - notify all users about new movie (unchanged)
     const subscribers = await User.find({ role: 'customer' }, 'email').lean();
@@ -311,6 +313,8 @@ const updateMovie = async (req, res) => {
       });
     }
 
+    await cache.invalidate('movies', 'shows');
+
     res.status(200).json({
       success: true,
       message: 'Movie updated successfully',
@@ -342,6 +346,7 @@ const deleteMovie = async (req, res) => {
     // Soft delete - just set isActive to false
     movie.isActive = false;
     await movie.save();
+    await cache.invalidate('movies', 'shows');
 
     res.status(200).json({
       success: true,

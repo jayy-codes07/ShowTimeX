@@ -7,6 +7,7 @@ dotenv.config({ path: path.join(__dirname, '.env') });
 const app = require('./app');
 const { ensureDB } = require('./config/db');
 const logger = require('./utils/logger');
+const cache = require('./utils/cache');
 
 // Connect to MongoDB.
 // On a traditional server (local / Render) this runs once at boot.
@@ -15,6 +16,10 @@ const logger = require('./utils/logger');
 ensureDB().catch(() => {
   // Already logged inside connectDB; the route gate retries on the next request.
 });
+
+// Optional Redis cache. Without REDIS_URL (or with Redis down) every request
+// is served from MongoDB; see utils/cache.js.
+cache.connect();
 
 // Start server
 const PORT = process.env.PORT || 5000;

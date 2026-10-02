@@ -55,6 +55,7 @@ mongoose.connection.on('disconnected', () => {
 });
 
 process.on('SIGINT', async () => {
+  await require('../utils/cache').close();
   await mongoose.connection.close();
   logger.info('MongoDB connection closed due to app termination');
   process.exit(0);

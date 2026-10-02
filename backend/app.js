@@ -3,6 +3,7 @@ const cors = require('cors');
 const helmet = require('helmet');
 const { ensureDB } = require('./config/db');
 const logger = require('./utils/logger');
+const cache = require('./utils/cache');
 
 // Builds the Express app without connecting to the database or listening.
 // server.js wires in dotenv, the DB connection and app.listen(); tests
@@ -75,6 +76,7 @@ app.get('/api/health', (req, res) => {
     success: true,
     message: 'Server is running',
     timestamp: new Date().toISOString(),
+    cache: cache.getStatus(),
   });
 });
 

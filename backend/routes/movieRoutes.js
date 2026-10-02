@@ -7,12 +7,17 @@ const {
 } = require('../controllers/movieController');
 const { protect } = require('../middleware/authMiddleware');
 const { adminOnly } = require('../middleware/adminMiddleware');
+const { cacheMiddleware } = require('../utils/cache');
+
+// Public list responses are cached (read-through, optional Redis). getMovieById
+// is not a list and is left uncached.
+const cached = cacheMiddleware('movies');
 
 // Public routes
-router.get('/search', searchMovies);
-router.get('/now-showing', getNowShowing);
-router.get('/coming-soon', getComingSoon);
-router.get('/', getAllMovies);
+router.get('/search', cached, searchMovies);
+router.get('/now-showing', cached, getNowShowing);
+router.get('/coming-soon', cached, getComingSoon);
+router.get('/', cached, getAllMovies);
 router.get('/:id', getMovieById);
 
 // Protected routes - Admin only

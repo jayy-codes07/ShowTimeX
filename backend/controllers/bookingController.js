@@ -8,6 +8,7 @@ const { triggerN8n } = require('../n8nService');
 const razorpayClient = require("../utils/razorpay");
 const { escapeRegex } = require("../utils/strings");
 const logger = require("../utils/logger");
+const cache = require("../utils/cache");
 const {
   MAX_SEATS_PER_BOOKING,
   uniqueSeats,
@@ -475,6 +476,7 @@ const verifyPayment = async (req, res) => {
         message: "Seats are no longer available",
       });
     }
+    await cache.invalidate("shows");
 
     // ✅ Confirm booking. The seats are already written above; if this save
     // fails the booking needs manual reconciliation, so log loudly.
@@ -638,6 +640,7 @@ const cancelBooking = async (req, res) => {
 
     // Remove seats from show
     await removeSeatsFromShow(booking.show?._id || booking.show, booking.seats || [], booking.user);
+    await cache.invalidate("shows");
 
     let refundDetails = null;
     if (booking.paymentStatus === "completed" && booking.refundStatus === "none") {
@@ -919,6 +922,7 @@ const initiateBookingRefund = async (req, res) => {
       await booking.save();
 
       await removeSeatsFromShow(booking.show?._id || booking.show, booking.seats || [], booking.user);
+      await cache.invalidate("shows");
 
       await triggerN8n("refund-initiated", {
         userName: booking.user?.name || "Customer",

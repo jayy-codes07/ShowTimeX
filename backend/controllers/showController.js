@@ -2,6 +2,7 @@ const Show = require("../models/Show");
 const Movie = require("../models/Movie");
 const { escapeRegex } = require("../utils/strings");
 const logger = require("../utils/logger");
+const cache = require("../utils/cache");
 const {
   MAX_SEATS_PER_BOOKING,
   uniqueSeats,
@@ -235,6 +236,7 @@ const createShow = async (req, res) => {
     }
 
     const result = await Show.insertMany(showsToInsert, { ordered: false });
+    await cache.invalidate("shows");
 
     res.status(201).json({
       success: true,
@@ -357,6 +359,7 @@ const lockSeats = async (req, res) => {
       });
     }
 
+    await cache.invalidate("shows");
     const lockResult = buildLockResponse(lockedShow, req.user._id);
 
     res.status(200).json({
@@ -396,6 +399,7 @@ const unlockSeats = async (req, res) => {
     }
 
     await show.save();
+    await cache.invalidate("shows");
 
     const { lockedSeats, myLockedSeats, myLockExpiresAt } = buildLockResponse(show, req.user._id);
     res.status(200).json({
@@ -440,6 +444,7 @@ const updateShow = async (req, res) => {
       req.body, // Ensure body uses 'showDate'/'showTime' if updating those
       { new: true, runValidators: true },
     ).populate("movie", "title poster duration");
+    await cache.invalidate("shows");
 
     res.status(200).json({
       success: true,
@@ -477,6 +482,7 @@ const deleteShow = async (req, res) => {
 
     show.isActive = false;
     await show.save();
+    await cache.invalidate("shows");
 
     res.status(200).json({
       success: true,
