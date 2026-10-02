@@ -5,13 +5,14 @@
 flowchart LR
   subgraph Frontend
     UI[React UI]
-    Store[Context State]
+    Store[Redux store + Booking context]
   end
 
   subgraph Backend
     API[Express API]
     Auth[JWT Auth]
     Locks[Seat Lock Service]
+    Cache[(Redis cache, optional)]
   end
 
   subgraph Database
@@ -20,6 +21,7 @@ flowchart LR
 
   UI --> Store
   Store --> API
+  API -.-> Cache
   API --> Auth
   API --> Locks
   API --> Mongo
