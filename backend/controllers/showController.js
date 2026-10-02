@@ -1,5 +1,6 @@
 const Show = require("../models/Show");
 const Movie = require("../models/Movie");
+const { escapeRegex } = require("../utils/strings");
 const {
   MAX_SEATS_PER_BOOKING,
   uniqueSeats,
@@ -53,7 +54,7 @@ const getAllShows = async (req, res) => {
       filter.date = { $gte: startDate, $lte: endDate };
     }
 
-    if (theater) filter.theater = { $regex: theater, $options: "i" };
+    if (theater) filter.theater = { $regex: escapeRegex(theater), $options: "i" };
     if (movieId) filter.movie = movieId;
 
     const sortDirection = order === "desc" ? -1 : 1;

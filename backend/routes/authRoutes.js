@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const { body, validationResult } = require('express-validator');
+const rateLimit = require('express-rate-limit');
 const {
   register,
   login,
@@ -10,6 +11,23 @@ const {
   resetPassword,
 } = require('../controllers/authController');
 const { protect } = require('../middleware/authMiddleware');
+
+// Rate limit for credential and OTP endpoints. Tunable through env:
+//   AUTH_RATE_LIMIT_MAX            requests per window per IP (default 20)
+//   AUTH_RATE_LIMIT_WINDOW_MINUTES window length (default 15)
+// Skipped under NODE_ENV=test unless AUTH_RATE_LIMIT_MAX is set explicitly,
+// so the suite can exercise it on demand.
+const authLimiter = rateLimit({
+  windowMs: parseInt(process.env.AUTH_RATE_LIMIT_WINDOW_MINUTES || '15', 10) * 60 * 1000,
+  max: parseInt(process.env.AUTH_RATE_LIMIT_MAX || '20', 10),
+  standardHeaders: true,
+  legacyHeaders: false,
+  skip: () => process.env.NODE_ENV === 'test' && !process.env.AUTH_RATE_LIMIT_MAX,
+  message: {
+    success: false,
+    message: 'Too many attempts. Please try again later.',
+  },
+});
 
 // Validation middleware — checks for errors from express-validator
 const validate = (req, res, next) => {
@@ -27,6 +45,7 @@ const validate = (req, res, next) => {
 // Public routes
 router.post(
   '/register',
+  authLimiter,
   [
     body('name')
       .trim()
@@ -48,6 +67,7 @@ router.post(
 
 router.post(
   '/login',
+  authLimiter,
   [
     body('email')
       .trim()
@@ -62,6 +82,7 @@ router.post(
 
 router.post(
   '/forgotpassword',
+  authLimiter,
   [
     body('email')
       .trim()
@@ -74,6 +95,7 @@ router.post(
 
 router.put(
   '/resetpassword',
+  authLimiter,
   [
     body('email')
       .trim()

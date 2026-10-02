@@ -6,6 +6,7 @@ const Movie = require("../models/Movie");
 const User = require("../models/User");
 const { triggerN8n } = require('../n8nService');
 const razorpayClient = require("../utils/razorpay");
+const { escapeRegex } = require("../utils/strings");
 const {
   MAX_SEATS_PER_BOOKING,
   uniqueSeats,
@@ -708,7 +709,7 @@ const getAllBookings = async (req, res) => {
 
     if (theater) {
       const matchingShows = await Show.find({
-        theater: { $regex: theater, $options: "i" },
+        theater: { $regex: escapeRegex(theater), $options: "i" },
       }).select("_id");
 
       filter.show = { $in: matchingShows.map((show) => show._id) };
@@ -724,8 +725,7 @@ const getAllBookings = async (req, res) => {
 
     if (search) {
       // Escape special regex characters to prevent ReDoS attacks
-      const escapedSearch = search.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-      const searchRegex = new RegExp(escapedSearch, "i");
+      const searchRegex = new RegExp(escapeRegex(search), "i");
       const matchingUsers = await User.find({
         $or: [{ name: searchRegex }, { email: searchRegex }],
       }).select("_id");

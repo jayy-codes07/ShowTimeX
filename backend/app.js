@@ -1,5 +1,6 @@
 const express = require('express');
 const cors = require('cors');
+const helmet = require('helmet');
 const { ensureDB } = require('./config/db');
 
 // Builds the Express app without connecting to the database or listening.
@@ -7,8 +8,29 @@ const { ensureDB } = require('./config/db');
 // import this file directly with an in-memory MongoDB already connected.
 const app = express();
 
-// Middleware
-app.use(cors());
+// Behind one reverse proxy (Render, Vercel, nginx) so rate limiting and
+// req.ip see the real client address from X-Forwarded-For.
+app.set('trust proxy', 1);
+
+// Security headers
+app.use(helmet());
+
+// CORS allow-list. CLIENT_URL may hold several origins separated by commas.
+// Requests without an Origin header (curl, server-to-server, health checks)
+// are not CORS requests and pass through.
+const allowedOrigins = (process.env.CLIENT_URL || 'http://localhost:5173')
+  .split(',')
+  .map((origin) => origin.trim())
+  .filter(Boolean);
+
+app.use(
+  cors({
+    origin: (origin, callback) => {
+      if (!origin) return callback(null, true);
+      return callback(null, allowedOrigins.includes(origin));
+    },
+  })
+);
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 

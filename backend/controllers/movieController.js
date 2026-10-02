@@ -1,6 +1,7 @@
 const Movie = require('../models/Movie');
 const { triggerN8n } = require('../n8nService');
 const User = require('../models/User');
+const { escapeRegex } = require('../utils/strings');
 
 const getToday = () => {
   const today = new Date();
@@ -208,9 +209,10 @@ const searchMovies = async (req, res) => {
     let searchFilter = { isActive: true };
 
     if (query) {
+      const safeQuery = escapeRegex(query);
       searchFilter.$or = [
-        { title: { $regex: query, $options: 'i' } },
-        { description: { $regex: query, $options: 'i' } },
+        { title: { $regex: safeQuery, $options: 'i' } },
+        { description: { $regex: safeQuery, $options: 'i' } },
       ];
     }
 
