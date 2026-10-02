@@ -80,32 +80,6 @@ const buildLockResponse = (show, userId) => {
   };
 };
 
-const upsertUserLock = (show, userId, seats, holdMinutes) => {
-  const now = new Date();
-  const activeLocks = getActiveLocks(show, now);
-  const normalizedSeats = uniqueSeats(seats);
-  const mySeats = getMyLockedSeats(activeLocks, userId);
-  const mergedSeats = uniqueSeats([...mySeats, ...normalizedSeats]);
-
-  const otherLocks = activeLocks.filter(
-    (lock) => !lock.user || lock.user.toString() !== userId.toString()
-  );
-
-  const expiresAt = new Date(now.getTime() + holdMinutes * 60 * 1000);
-  if (mergedSeats.length > 0) {
-    otherLocks.push({
-      user: userId,
-      seats: mergedSeats,
-      expiresAt,
-      createdAt: now,
-    });
-  }
-
-  show.seatLocks = otherLocks;
-  const { lockedSeats, myLockedSeats, myLockExpiresAt } = buildLockResponse(show, userId);
-  return { lockedSeats, myLockedSeats, myLockExpiresAt, expiresAt };
-};
-
 const removeUserLockedSeats = (show, userId, seatsToRemove) => {
   const now = new Date();
   const activeLocks = getActiveLocks(show, now);
@@ -144,61 +118,90 @@ const removeUserLockedSeats = (show, userId, seatsToRemove) => {
   return buildLockResponse(show, userId);
 };
 
-// ⚡ ATOMIC: Lock seats using MongoDB operators (prevents race conditions)
-// This function should be used in booking flow for atomic seat locking
-const atomicLockSeats = async (Show, showId, userId, seats, holdMinutes) => {
-  const now = new Date();
-  const expiresAt = new Date(now.getTime() + holdMinutes * 60 * 1000);
-  const normalizedSeats = uniqueSeats(seats);
+const toPlainSeats = (seats) =>
+  uniqueSeats(seats).map((s) => ({ row: s.row, number: s.number }));
 
-  if (normalizedSeats.length === 0) {
-    return null;
-  }
-
-  try {
-    // Use atomic MongoDB operations:
-    // 1. Remove expired locks for this user
-    // 2. Add new lock entry
-    const result = await Show.findByIdAndUpdate(
-      showId,
-      [
-        {
-          $set: {
-            // Remove this user's old locks and add new lock atomically
-            seatLocks: {
-              $concatArrays: [
-                {
-                  $filter: {
-                    input: '$seatLocks',
-                    cond: {
-                      $or: [
-                        // Keep locks from other users
-                        { $ne: ['$$this.user', userId] },
-                      ],
-                    },
-                  },
-                },
-                [
-                  {
-                    user: userId,
-                    seats: normalizedSeats,
-                    expiresAt: expiresAt,
-                    createdAt: now,
-                  },
-                ],
-              ],
-            },
+// Query filter that matches the show ONLY IF none of `seats` is already in
+// bookedSeats and none is inside another user's unexpired lock. Used as the
+// filter of a single updateOne so the check and the write are one atomic
+// server-side operation: of two concurrent writers for the same seat, exactly
+// one matches (the other sees matchedCount === 0).
+const seatConflictFilter = (seats, userId, now = new Date()) => {
+  const plain = toPlainSeats(seats);
+  return {
+    $nor: [
+      ...plain.map((seat) => ({
+        "bookedSeats.seats": { $elemMatch: { row: seat.row, number: seat.number } },
+      })),
+      ...plain.map((seat) => ({
+        seatLocks: {
+          $elemMatch: {
+            user: { $ne: userId },
+            expiresAt: { $gt: now },
+            seats: { $elemMatch: { row: seat.row, number: seat.number } },
           },
         },
-      ],
-      { new: true }
-    );
+      })),
+    ],
+  };
+};
 
-    return result;
-  } catch (error) {
-    console.error('Atomic seat lock failed:', error);
-    throw new Error('Failed to lock seats. Please try again.');
-  }
+// Atomically (re)place this user's lock on `show` with `seats` merged into any
+// seats they already hold, pruning expired locks. Returns the updated show,
+// or null when a seat is booked or held by someone else.
+const acquireSeatLock = async (show, userId, seats, holdMinutes) => {
+  const Show = require("../models/Show");
+  const now = new Date();
+  const expiresAt = new Date(now.getTime() + holdMinutes * 60 * 1000);
+  const requested = toPlainSeats(seats);
+  if (requested.length === 0) return null;
+
+  const mySeats = getMyLockedSeats(getActiveLocks(show, now), userId);
+  const mergedSeats = toPlainSeats([...mySeats, ...requested]);
+
+  const result = await Show.updateOne(
+    { _id: show._id, ...seatConflictFilter(requested, userId, now) },
+    [
+      {
+        $set: {
+          seatLocks: {
+            $concatArrays: [
+              {
+                $filter: {
+                  input: { $ifNull: ["$seatLocks", []] },
+                  cond: {
+                    $and: [
+                      { $ne: ["$$this.user", userId] },
+                      { $gt: ["$$this.expiresAt", now] },
+                    ],
+                  },
+                },
+              },
+              [{ user: userId, seats: mergedSeats, expiresAt, createdAt: now }],
+            ],
+          },
+        },
+      },
+    ]
+  );
+
+  if (result.matchedCount === 0) return null;
+  return Show.findById(show._id);
+};
+
+// Atomically move `seats` from this user's lock into bookedSeats. Returns
+// true when the seats were written, false when any seat was taken meanwhile.
+const confirmSeats = async (show, userId, seats) => {
+  const Show = require("../models/Show");
+  const plain = toPlainSeats(seats);
+  const result = await Show.updateOne(
+    { _id: show._id, ...seatConflictFilter(plain, userId, new Date()) },
+    {
+      $push: { bookedSeats: { date: show.date, time: show.time, seats: plain } },
+      $pull: { seatLocks: { user: userId } },
+    }
+  );
+  return result.matchedCount > 0;
 };
 
 module.exports = {
@@ -211,7 +214,8 @@ module.exports = {
   getMyLockExpiresAt,
   isSeatLockedByOther,
   buildLockResponse,
-  upsertUserLock,
   removeUserLockedSeats,
-  atomicLockSeats,
+  seatConflictFilter,
+  acquireSeatLock,
+  confirmSeats,
 };

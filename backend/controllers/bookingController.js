@@ -11,9 +11,9 @@ const {
   uniqueSeats,
   getActiveLocks,
   isSeatLockedByOther,
-  upsertUserLock,
   removeUserLockedSeats,
-  atomicLockSeats,
+  acquireSeatLock,
+  confirmSeats,
 } = require("../utils/seatLocks");
 
 const DEFAULT_LOCK_MINUTES = parseInt(process.env.SEAT_LOCK_MINUTES || "10", 10);
@@ -286,19 +286,13 @@ const createBooking = async (req, res) => {
       });
     }
 
-    // Lock seats while user completes payment (ATOMIC operation)
-    try {
-      const lockedShow = await atomicLockSeats(Show, showId, req.user._id, seatsToBook, DEFAULT_LOCK_MINUTES);
-      if (!lockedShow) {
-        return res.status(409).json({
-          success: false,
-          message: "Failed to lock seats. They may have been booked by someone else.",
-        });
-      }
-    } catch (lockError) {
+    // Lock seats while user completes payment. Single conditional update:
+    // fails if any seat is booked or held by another user.
+    const lockedShow = await acquireSeatLock(show, req.user._id, seatsToBook, DEFAULT_LOCK_MINUTES);
+    if (!lockedShow) {
       return res.status(409).json({
         success: false,
-        message: lockError.message || "Could not lock seats. Please try again.",
+        message: "Failed to lock seats. They may have been booked by someone else.",
       });
     }
 
@@ -456,10 +450,12 @@ const verifyPayment = async (req, res) => {
         .json({ success: false, message: "Payment does not match booking" });
     }
 
+    // Friendly pre-check; the authoritative check is the conditional update
+    // in confirmSeats() below. Both report "seat taken" as 409.
     const activeLocks = getActiveLocks(booking.show);
     for (const seat of booking.seats || []) {
       if (booking.show.isSeatBooked(seat.row, seat.number)) {
-        return res.status(400).json({
+        return res.status(409).json({
           success: false,
           message: `Seat ${seat.row}${seat.number} is already booked`,
         });
@@ -472,25 +468,31 @@ const verifyPayment = async (req, res) => {
       }
     }
 
-    // ✅ Start atomic operations: Book seats AND confirm booking
-    try {
-      // ✅ NOW book seats
-      booking.show.bookSeats(booking.seats);
-      removeUserLockedSeats(booking.show, booking.user, booking.seats);
-      await booking.show.save();
+    // 🪑 Book the seats with ONE conditional update. If another user booked
+    // or locked any of them since the pre-check above, nothing is written and
+    // the booking stays pending (the customer must be refunded manually).
+    const seatsWritten = await confirmSeats(booking.show, booking.user, booking.seats);
+    if (!seatsWritten) {
+      return res.status(409).json({
+        success: false,
+        message: "Seats are no longer available",
+      });
+    }
 
-      // ✅ Confirm booking
+    // ✅ Confirm booking. The seats are already written above; if this save
+    // fails the booking needs manual reconciliation, so log loudly.
+    try {
       booking.status = "confirmed";
       booking.paymentStatus = "completed";
       booking.orderId = razorpay_order_id;
       booking.paymentId = razorpay_payment_id;
       await booking.save();
-    } catch (atomicError) {
-      // If atomic operations fail, clean up
-      console.error("Payment confirmation atomic operation failed:", atomicError);
-      // Attempt to rollback show updates
-      booking.show.save().catch(e => console.error("Rollback failed:", e));
-      throw atomicError;
+    } catch (saveError) {
+      console.error(
+        `Seats written but booking ${booking.bookingId} could not be saved as confirmed (payment ${razorpay_payment_id}):`,
+        saveError
+      );
+      throw saveError;
     }
 
     // Populate for email details

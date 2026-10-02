@@ -6,8 +6,8 @@ const {
   getActiveLocks,
   buildLockResponse,
   isSeatLockedByOther,
-  upsertUserLock,
   removeUserLockedSeats,
+  acquireSeatLock,
 } = require("../utils/seatLocks");
 
 const DEFAULT_LOCK_MINUTES = parseInt(process.env.SEAT_LOCK_MINUTES || "10", 10);
@@ -348,13 +348,23 @@ const lockSeats = async (req, res) => {
       Math.max(parseInt(holdMinutes || DEFAULT_LOCK_MINUTES, 10), 1),
       MAX_LOCK_MINUTES
     );
-    const lockResult = upsertUserLock(show, req.user._id, requestedSeats, minutes);
-    await show.save();
+    // Single conditional update; fails if any seat was booked or locked by
+    // another user between the pre-check above and the write.
+    const lockedShow = await acquireSeatLock(show, req.user._id, requestedSeats, minutes);
+    if (!lockedShow) {
+      return res.status(409).json({
+        success: false,
+        message: "One or more seats are already booked or locked",
+      });
+    }
+
+    const lockResult = buildLockResponse(lockedShow, req.user._id);
 
     res.status(200).json({
       success: true,
       message: "Seats locked successfully",
       ...lockResult,
+      expiresAt: lockResult.myLockExpiresAt,
     });
   } catch (error) {
     console.error("Lock Seats Error:", error);
