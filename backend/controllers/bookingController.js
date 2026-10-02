@@ -151,6 +151,20 @@ const createRazorpayOrder = async (req, res) => {
         .json({ success: false, message: "Booking not found" });
     }
 
+    // Only the booking owner may pay for it.
+    if (booking.user.toString() !== req.user._id.toString()) {
+      return res
+        .status(403)
+        .json({ success: false, message: "Unauthorized access to booking" });
+    }
+
+    if (booking.status !== "pending") {
+      return res.status(400).json({
+        success: false,
+        message: `Cannot create a payment order for a ${booking.status} booking`,
+      });
+    }
+
     const bookingShow = await Show.findById(booking.show);
     if (!bookingShow) {
       return res
@@ -378,6 +392,14 @@ const verifyPayment = async (req, res) => {
       return res
         .status(404)
         .json({ success: false, message: "Booking not found" });
+    }
+
+    // Only the booking owner may verify its payment. `show` is populated but
+    // `user` is not, so booking.user is still an ObjectId here.
+    if (booking.user.toString() !== req.user._id.toString()) {
+      return res
+        .status(403)
+        .json({ success: false, message: "Unauthorized access to booking" });
     }
 
     if (isBookingClosedForShow(booking.show)) {
