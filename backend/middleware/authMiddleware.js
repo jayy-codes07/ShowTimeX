@@ -1,5 +1,6 @@
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
+const logger = require('../utils/logger');
 
 // Protect routes - verify JWT token
 const protect = async (req, res, next) => {
@@ -36,7 +37,7 @@ const protect = async (req, res, next) => {
 
       next();
     } catch (error) {
-      console.error('Auth Middleware Error:', error.message);
+      logger.error('Auth Middleware Error:', error.message);
 
       if (error.name === 'TokenExpiredError') {
         return res.status(401).json({

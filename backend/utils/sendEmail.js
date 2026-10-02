@@ -1,4 +1,5 @@
 const nodemailer = require('nodemailer');
+const logger = require('./logger');
 
 const sendEmail = async (options) => {
   // Create a reusable transporter using the default SMTP transport
@@ -43,11 +44,11 @@ const sendEmail = async (options) => {
   // Send the email
   const info = await transporter.sendMail(message);
 
-  console.log('Message sent: %s', info.messageId);
+  logger.info('Message sent: %s', info.messageId);
   
   // Preview only available when sending through an Ethereal account
   if (!process.env.SMTP_HOST) {
-    console.log('Preview URL: %s', nodemailer.getTestMessageUrl(info));
+    logger.info('Preview URL: %s', nodemailer.getTestMessageUrl(info));
   }
 };
 

@@ -2,6 +2,7 @@ const User = require('../models/User');
 const { generateToken } = require('../middleware/authMiddleware');
 const crypto = require('crypto');
 const sendEmail = require('../utils/sendEmail');
+const logger = require('../utils/logger');
 
 // @desc    Register a new user
 // // @route   POST /api/auth/register
@@ -52,10 +53,10 @@ const register = async (req, res) => {
       },
     });
   } catch (error) {
-    console.error('Register Error:', error);
+    logger.error('Register Error:', error);
     res.status(500).json({
       success: false,
-      message: error.message || 'Server error during registration',
+      message: 'Server error during registration',
     });
   }
 };
@@ -122,7 +123,7 @@ const login = async (req, res) => {
       },
     });
   } catch (error) {
-    console.error('Login Error:', error);
+    logger.error('Login Error:', error);
     res.status(500).json({
       success: false,
       message: 'Server error during login',
@@ -142,7 +143,7 @@ const getProfile = async (req, res) => {
       user,
     });
   } catch (error) {
-    console.error('Get Profile Error:', error);
+    logger.error('Get Profile Error:', error);
     res.status(500).json({
       success: false,
       message: 'Server error while fetching profile',
@@ -198,7 +199,7 @@ const updateProfile = async (req, res) => {
       },
     });
   } catch (error) {
-    console.error('Update Profile Error:', error);
+    logger.error('Update Profile Error:', error);
     res.status(500).json({
       success: false,
       message: 'Server error while updating profile',
@@ -250,14 +251,14 @@ If you did not request a password reset, please ignore this message or contact s
 
       await user.save({ validateBeforeSave: false });
 
-      console.error('Email error:', err);
+      logger.error('Email error:', err);
       return res.status(500).json({
         success: false,
         message: 'Email could not be sent',
       });
     }
   } catch (error) {
-    console.error('Forgot Password Error:', error);
+    logger.error('Forgot Password Error:', error);
     res.status(500).json({
       success: false,
       message: 'Server error during forgot password',
@@ -320,7 +321,7 @@ const resetPassword = async (req, res) => {
       },
     });
   } catch (error) {
-    console.error('Reset Password Error:', error);
+    logger.error('Reset Password Error:', error);
     res.status(500).json({
       success: false,
       message: 'Server error during reset password',

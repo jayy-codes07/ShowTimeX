@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const axios = require('axios');
+const logger = require('../utils/logger');
 
 router.get('/search', async (req, res) => {
   try {
@@ -52,10 +53,10 @@ router.get('/search', async (req, res) => {
     });
 
   } catch (error) {
-    console.error('TMDB Error:', error.response?.data || error.message);
+    logger.error('TMDB Error:', error.response?.data || error.message);
     res.status(500).json({ 
       success: false, 
-      message: error.response?.data?.status_message || error.message 
+      message: 'TMDB lookup failed' 
     });
   }
 });

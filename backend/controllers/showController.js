@@ -1,6 +1,7 @@
 const Show = require("../models/Show");
 const Movie = require("../models/Movie");
 const { escapeRegex } = require("../utils/strings");
+const logger = require("../utils/logger");
 const {
   MAX_SEATS_PER_BOOKING,
   uniqueSeats,
@@ -108,7 +109,7 @@ const getAllShows = async (req, res) => {
       shows: formattedShows,
     });
   } catch (error) {
-    console.error("Get All Shows Error:", error);
+    logger.error("Get All Shows Error:", error);
     res.status(500).json({
       success: false,
       message: "Server error while fetching shows",
@@ -133,7 +134,6 @@ const getShowsByMovie = async (req, res) => {
 
     // 🟢 FIX 1: Removed `isActive: true` so it catches all created shows
     let filter = { movie: movieId };
-    console.log("Filter:", filter);
     if (date) {
       const startDate = new Date(date + "T00:00:00.000Z");
       const endDate = new Date(date + "T23:59:59.999Z");
@@ -160,7 +160,7 @@ const getShowsByMovie = async (req, res) => {
       shows: formattedShows,
     });
   } catch (error) {
-    console.error("Get Shows By Movie Error:", error);
+    logger.error("Get Shows By Movie Error:", error);
     res.status(500).json({
       success: false,
       message: "Server error while fetching shows",
@@ -227,8 +227,6 @@ const createShow = async (req, res) => {
       currentDate.setDate(currentDate.getDate() + 1);
     }
 
-    console.log("Total generated:", showsToInsert.length);
-
     if (showsToInsert.length === 0) {
       return res.status(400).json({
         success: false,
@@ -244,8 +242,8 @@ const createShow = async (req, res) => {
     });
 
   } catch (error) {
-    console.error("Create Show Error:", error);
-    res.status(500).json({ success: false, message: error.message });
+    logger.error("Create Show Error:", error);
+    res.status(500).json({ success: false, message: "Server error while creating shows" });
   }
 };
 
@@ -284,7 +282,7 @@ const getShowById = async (req, res) => {
       show: showObj,
     });
   } catch (error) {
-    console.error("Get Show By ID Error:", error);
+    logger.error("Get Show By ID Error:", error);
     res
       .status(500)
       .json({ success: false, message: "Server error while fetching show" });
@@ -368,10 +366,10 @@ const lockSeats = async (req, res) => {
       expiresAt: lockResult.myLockExpiresAt,
     });
   } catch (error) {
-    console.error("Lock Seats Error:", error);
+    logger.error("Lock Seats Error:", error);
     res.status(500).json({
       success: false,
-      message: error.message || "Server error while locking seats",
+      message: "Server error while locking seats",
     });
   }
 };
@@ -408,10 +406,10 @@ const unlockSeats = async (req, res) => {
       myLockExpiresAt,
     });
   } catch (error) {
-    console.error("Unlock Seats Error:", error);
+    logger.error("Unlock Seats Error:", error);
     res.status(500).json({
       success: false,
-      message: error.message || "Server error while unlocking seats",
+      message: "Server error while unlocking seats",
     });
   }
 };
@@ -449,10 +447,10 @@ const updateShow = async (req, res) => {
       show: updatedShow,
     });
   } catch (error) {
-    console.error("Update Show Error:", error);
+    logger.error("Update Show Error:", error);
     res.status(500).json({
       success: false,
-      message: error.message || "Server error while updating show",
+      message: "Server error while updating show",
     });
   }
 };
@@ -485,7 +483,7 @@ const deleteShow = async (req, res) => {
       message: "Show deleted successfully",
     });
   } catch (error) {
-    console.error("Delete Show Error:", error);
+    logger.error("Delete Show Error:", error);
     res.status(500).json({
       success: false,
       message: "Server error while deleting show",

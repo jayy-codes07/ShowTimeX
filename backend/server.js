@@ -6,6 +6,7 @@ dotenv.config({ path: path.join(__dirname, '.env') });
 
 const app = require('./app');
 const { ensureDB } = require('./config/db');
+const logger = require('./utils/logger');
 
 // Connect to MongoDB.
 // On a traditional server (local / Render) this runs once at boot.
@@ -22,19 +23,15 @@ const PORT = process.env.PORT || 5000;
 // Local development and Render keep the traditional listening server.
 if (!process.env.VERCEL) {
   app.listen(PORT, () => {
-    console.log('\n╔════════════════════════════════════════╗');
-    console.log('║   🎬 SHOWTIMEX API SERVER RUNNING 🎬    ║');
-    console.log('╚════════════════════════════════════════╝');
-    console.log(`🚀 Server: http://localhost:${PORT}`);
-    console.log(`📝 Environment: ${process.env.NODE_ENV || 'development'}`);
-    console.log(`⏰ Started at: ${new Date().toLocaleString()}`);
-    console.log('════════════════════════════════════════\n');
+    logger.info(
+      `ShowTimeX API listening on http://localhost:${PORT} (${process.env.NODE_ENV || 'development'})`
+    );
   });
 }
 
 // Handle unhandled promise rejections
 process.on('unhandledRejection', (err) => {
-  console.error('❌ Unhandled Rejection:', err.message);
+  logger.error('❌ Unhandled Rejection:', err.message);
   // Close server & exit process. On Vercel, exiting would abort the whole
   // serverless invocation, so the rejection is only logged there.
   if (!process.env.VERCEL) {

@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const logger = require('../utils/logger');
 
 const normalizeMongoUri = () => {
   const rawMongoUri = process.env.MONGO_URI;
@@ -32,30 +33,30 @@ const connectDB = async () => {
     const mongoUri = normalizeMongoUri();
     const conn = await mongoose.connect(mongoUri);
 
-    console.log(`MongoDB Connected: ${conn.connection.host}`);
-    console.log(`Database Name: ${conn.connection.name}`);
+    logger.info(`MongoDB Connected: ${conn.connection.host}`);
+    logger.info(`Database Name: ${conn.connection.name}`);
     return conn;
   } catch (error) {
-    console.error(`MongoDB Connection Error: ${error.message}`);
+    logger.error(`MongoDB Connection Error: ${error.message}`);
     throw error;
   }
 };
 
 mongoose.connection.on('connected', () => {
-  console.log('Mongoose connected to MongoDB');
+  logger.info('Mongoose connected to MongoDB');
 });
 
 mongoose.connection.on('error', (err) => {
-  console.error(`Mongoose connection error: ${err}`);
+  logger.error(`Mongoose connection error: ${err}`);
 });
 
 mongoose.connection.on('disconnected', () => {
-  console.log('Mongoose disconnected from MongoDB');
+  logger.info('Mongoose disconnected from MongoDB');
 });
 
 process.on('SIGINT', async () => {
   await mongoose.connection.close();
-  console.log('MongoDB connection closed due to app termination');
+  logger.info('MongoDB connection closed due to app termination');
   process.exit(0);
 });
 

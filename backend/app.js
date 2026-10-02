@@ -2,6 +2,7 @@ const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
 const { ensureDB } = require('./config/db');
+const logger = require('./utils/logger');
 
 // Builds the Express app without connecting to the database or listening.
 // server.js wires in dotenv, the DB connection and app.listen(); tests
@@ -36,9 +37,7 @@ app.use(express.urlencoded({ extended: true }));
 
 // Request logging middleware
 app.use((req, res, next) => {
-  if (process.env.NODE_ENV !== 'test') {
-    console.log(`${req.method} ${req.path}`);
-  }
+  logger.info(`${req.method} ${req.path}`);
   next();
 });
 
@@ -53,7 +52,7 @@ app.use(
       await ensureDB();
       next();
     } catch (error) {
-      console.error('Database unavailable:', error.message);
+      logger.error('Database unavailable:', error.message);
       res.status(503).json({
         success: false,
         message: 'Database connection unavailable. Please try again.',
@@ -105,16 +104,21 @@ app.use((req, res) => {
 });
 
 // Global error handler
+// Client errors (4xx, e.g. malformed JSON from express.json) may carry their
+// own message; anything else is reported generically and logged here. Stack
+// traces are never sent to the client.
 app.use((err, req, res, next) => {
-  console.error('Error:', err.stack);
+  const statusCode = err.statusCode || err.status || 500;
+  const message =
+    statusCode < 500 && err.message ? err.message : 'Internal Server Error';
 
-  const statusCode = err.statusCode || 500;
-  const message = err.message || 'Internal Server Error';
+  if (statusCode >= 500) {
+    logger.error('Unhandled error:', err);
+  }
 
   res.status(statusCode).json({
     success: false,
     message,
-    ...(process.env.NODE_ENV === 'development' && { stack: err.stack }),
   });
 });
 

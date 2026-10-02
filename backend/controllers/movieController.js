@@ -2,6 +2,7 @@ const Movie = require('../models/Movie');
 const { triggerN8n } = require('../n8nService');
 const User = require('../models/User');
 const { escapeRegex } = require('../utils/strings');
+const logger = require('../utils/logger');
 
 const getToday = () => {
   const today = new Date();
@@ -116,7 +117,7 @@ const getAllMovies = async (req, res) => {
       movies: movies.map(withComputedStatus),
     });
   } catch (error) {
-    console.error('Get All Movies Error:', error);
+    logger.error('Get All Movies Error:', error);
     res.status(500).json({
       success: false,
       message: 'Server error while fetching movies',
@@ -143,7 +144,7 @@ const getMovieById = async (req, res) => {
       movie: withComputedStatus(movie),
     });
   } catch (error) {
-    console.error('Get Movie By ID Error:', error);
+    logger.error('Get Movie By ID Error:', error);
     res.status(500).json({
       success: false,
       message: 'Server error while fetching movie',
@@ -167,7 +168,7 @@ const getNowShowing = async (req, res) => {
       movies: movies.map(withComputedStatus),
     });
   } catch (error) {
-    console.error('Get Now Showing Error:', error);
+    logger.error('Get Now Showing Error:', error);
     res.status(500).json({
       success: false,
       message: 'Server error while fetching now showing movies',
@@ -191,7 +192,7 @@ const getComingSoon = async (req, res) => {
       movies: movies.map(withComputedStatus),
     });
   } catch (error) {
-    console.error('Get Coming Soon Error:', error);
+    logger.error('Get Coming Soon Error:', error);
     res.status(500).json({
       success: false,
       message: 'Server error while fetching coming soon movies',
@@ -227,7 +228,7 @@ const searchMovies = async (req, res) => {
       movies: movies.map(withComputedStatus),
     });
   } catch (error) {
-    console.error('Search Movies Error:', error);
+    logger.error('Search Movies Error:', error);
     res.status(500).json({
       success: false,
       message: 'Server error while searching movies',
@@ -268,7 +269,7 @@ const createMovie = async (req, res) => {
       movie,
     });
   } catch (error) {
-    console.error('Create Movie Error:', error);
+    logger.error('Create Movie Error:', error);
 
     if (error.code === 11000) {
       return res.status(400).json({
@@ -279,7 +280,7 @@ const createMovie = async (req, res) => {
 
     res.status(500).json({
       success: false,
-      message: error.message || 'Server error while creating movie',
+      message: 'Server error while creating movie',
     });
   }
 };
@@ -316,10 +317,10 @@ const updateMovie = async (req, res) => {
       movie,
     });
   } catch (error) {
-    console.error('Update Movie Error:', error);
+    logger.error('Update Movie Error:', error);
     res.status(500).json({
       success: false,
-      message: error.message || 'Server error while updating movie',
+      message: 'Server error while updating movie',
     });
   }
 };
@@ -347,7 +348,7 @@ const deleteMovie = async (req, res) => {
       message: 'Movie deleted successfully',
     });
   } catch (error) {
-    console.error('Delete Movie Error:', error);
+    logger.error('Delete Movie Error:', error);
     res.status(500).json({
       success: false,
       message: 'Server error while deleting movie',

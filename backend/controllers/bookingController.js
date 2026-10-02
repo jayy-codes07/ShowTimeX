@@ -7,6 +7,7 @@ const User = require("../models/User");
 const { triggerN8n } = require('../n8nService');
 const razorpayClient = require("../utils/razorpay");
 const { escapeRegex } = require("../utils/strings");
+const logger = require("../utils/logger");
 const {
   MAX_SEATS_PER_BOOKING,
   uniqueSeats,
@@ -136,7 +137,6 @@ const createRazorpayOrder = async (req, res) => {
     }
 
     if (!booking) {
-      console.log("❌ Could not find booking in the database!");
       return res
         .status(404)
         .json({ success: false, message: "Booking not found" });
@@ -191,10 +191,10 @@ const createRazorpayOrder = async (req, res) => {
 
     res.json(order);
   } catch (err) {
-    console.error("Razorpay Order Error:", err);
+    logger.error("Razorpay Order Error:", err);
     res.status(500).json({
       success: false,
-      message: err.message,
+      message: "Server error while creating payment order",
     });
   }
 };
@@ -329,10 +329,10 @@ const createBooking = async (req, res) => {
       orderId: `ORDER_${booking.bookingId}`,
     });
   } catch (error) {
-    console.error("Create Booking Error:", error);
+    logger.error("Create Booking Error:", error);
     res.status(500).json({
       success: false,
-      message: error.message || "Server error while creating booking",
+      message: "Server error while creating booking",
     });
   }
 };
@@ -349,8 +349,6 @@ const verifyPayment = async (req, res) => {
       razorpay_signature,
       bookingId,
     } = req.body;
-
-    console.log("Verifying payment for ID:", bookingId);
 
     if (!bookingId) {
       return res
@@ -374,7 +372,6 @@ const verifyPayment = async (req, res) => {
     }
 
     if (!booking) {
-      console.log("❌ Could not find booking during verification!");
       return res
         .status(404)
         .json({ success: false, message: "Booking not found" });
@@ -413,7 +410,6 @@ const verifyPayment = async (req, res) => {
       .digest("hex");
 
     if (expectedSign !== razorpay_signature) {
-      console.log("❌ Signature mismatch!");
       return res
         .status(400)
         .json({ success: false, message: "Invalid signature" });
@@ -432,7 +428,7 @@ const verifyPayment = async (req, res) => {
     try {
       payment = await razorpayClient.fetchPayment(razorpay_payment_id);
     } catch (gatewayError) {
-      console.error("Razorpay fetchPayment failed:", gatewayError);
+      logger.error("Razorpay fetchPayment failed:", gatewayError);
       return res.status(502).json({
         success: false,
         message: "Could not confirm payment with the payment gateway",
@@ -489,7 +485,7 @@ const verifyPayment = async (req, res) => {
       booking.paymentId = razorpay_payment_id;
       await booking.save();
     } catch (saveError) {
-      console.error(
+      logger.error(
         `Seats written but booking ${booking.bookingId} could not be saved as confirmed (payment ${razorpay_payment_id}):`,
         saveError
       );
@@ -515,11 +511,10 @@ const verifyPayment = async (req, res) => {
       totalAmount: booking.totalAmount,
     });
 
-    console.log("✅ Payment verified and seats booked!");
     res.json({ success: true, booking });
   } catch (error) {
-    console.error("Verify Payment Error:", error);
-    res.status(500).json({ success: false, message: error.message });
+    logger.error("Verify Payment Error:", error);
+    res.status(500).json({ success: false, message: "Server error while verifying payment" });
   }
 };
 
@@ -541,7 +536,7 @@ const getUserBookings = async (req, res) => {
       bookings,
     });
   } catch (error) {
-    console.error("Get User Bookings Error:", error);
+    logger.error("Get User Bookings Error:", error);
     res.status(500).json({
       success: false,
       message: "Server error while fetching bookings",
@@ -594,7 +589,7 @@ const getBookingById = async (req, res) => {
       booking,
     });
   } catch (error) {
-    console.error("Get Booking By ID Error:", error);
+    logger.error("Get Booking By ID Error:", error);
     res.status(500).json({
       success: false,
       message: "Server error while fetching booking",
@@ -632,7 +627,13 @@ const cancelBooking = async (req, res) => {
       });
     }
 
-    // Cancel booking
+    // Cancel booking (the model refuses past shows)
+    if (booking.show && typeof booking.show.isPast === "function" && booking.show.isPast()) {
+      return res.status(400).json({
+        success: false,
+        message: "Cannot cancel booking for past shows",
+      });
+    }
     await booking.cancelBooking();
 
     // Remove seats from show
@@ -669,10 +670,10 @@ const cancelBooking = async (req, res) => {
       refund: refundDetails,
     });
   } catch (error) {
-    console.error("Cancel Booking Error:", error);
+    logger.error("Cancel Booking Error:", error);
     res.status(500).json({
       success: false,
-      message: error.message || "Server error while cancelling booking",
+      message: "Server error while cancelling booking",
     });
   }
 };
@@ -776,7 +777,7 @@ const getAllBookings = async (req, res) => {
       bookings,
     });
   } catch (error) {
-    console.error("Get All Bookings Error:", error);
+    logger.error("Get All Bookings Error:", error);
     res.status(500).json({
       success: false,
       message: "Server error while fetching bookings",
@@ -946,7 +947,7 @@ const initiateBookingRefund = async (req, res) => {
       });
     }
   } catch (error) {
-    console.error("Initiate Booking Refund Error:", error);
+    logger.error("Initiate Booking Refund Error:", error);
     res.status(500).json({
       success: false,
       message: "Server error while initiating refund",
@@ -996,7 +997,7 @@ const resendBookingTicket = async (req, res) => {
       message: "Ticket email resent successfully",
     });
   } catch (error) {
-    console.error("Resend Booking Ticket Error:", error);
+    logger.error("Resend Booking Ticket Error:", error);
     res.status(500).json({
       success: false,
       message: "Server error while resending ticket",
@@ -1186,7 +1187,7 @@ const getAdminStats = async (req, res) => {
       },
     });
   } catch (error) {
-    console.error("Get Admin Stats Error:", error);
+    logger.error("Get Admin Stats Error:", error);
     res.status(500).json({
       success: false,
       message: "Server error while fetching statistics",
@@ -1247,7 +1248,7 @@ const getAdminUserInsights = async (req, res) => {
       },
     });
   } catch (error) {
-    console.error("Get Admin User Insights Error:", error);
+    logger.error("Get Admin User Insights Error:", error);
     res.status(500).json({
       success: false,
       message: "Server error while fetching user insights",
@@ -1405,7 +1406,7 @@ const getAdminReports = async (req, res) => {
     });
 
   } catch (error) {
-    console.error("Get Admin Reports Error:", error);
+    logger.error("Get Admin Reports Error:", error);
     res.status(500).json({ success: false, message: "Server error while generating reports" });
   }
 };
