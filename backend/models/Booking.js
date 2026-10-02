@@ -87,6 +87,13 @@ const bookingSchema = new mongoose.Schema(
       type: String,
       default: null,
     },
+    // Razorpay order id created for this booking. verifyPayment refuses any
+    // signature whose order id does not match this value.
+    razorpayOrderId: {
+      type: String,
+      default: null,
+      index: true,
+    },
     status: {
       type: String,
       enum: ['confirmed', 'cancelled', 'pending', 'expired'],

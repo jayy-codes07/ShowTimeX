@@ -5,7 +5,7 @@ const Show = require("../models/Show");
 const Movie = require("../models/Movie");
 const User = require("../models/User");
 const { triggerN8n } = require('../n8nService');
-const Razorpay = require("razorpay");
+const razorpayClient = require("../utils/razorpay");
 const {
   MAX_SEATS_PER_BOOKING,
   uniqueSeats,
@@ -114,9 +114,7 @@ const createRazorpayOrder = async (req, res) => {
   try {
     const { bookingId } = req.body;
 
-    // Check if keys are configured
-
-    if (!process.env.RAZORPAY_KEY_ID || !process.env.RAZORPAY_KEY_SECRET) {
+    if (!razorpayClient.isConfigured()) {
       return res
         .status(500)
         .json({
@@ -124,14 +122,6 @@ const createRazorpayOrder = async (req, res) => {
           message: "Server is missing Razorpay keys in .env",
         });
     }
-
-    // 2. Initialize Razorpay INSIDE the function
-    const razorpay = new Razorpay({
-      key_id: process.env.RAZORPAY_KEY_ID,
-      key_secret: process.env.RAZORPAY_KEY_SECRET,
-    });
-
-
 
     if (!bookingId) {
       return res
@@ -188,12 +178,13 @@ const createRazorpayOrder = async (req, res) => {
     }
 
     // 3. Create the order
-    const order = await razorpay.orders.create({
+    const order = await razorpayClient.createOrder({
       amount: Math.round(booking.totalAmount * 100),
       currency: "INR",
       receipt: booking.bookingId,
     });
 
+    // Bind the order to the booking; verifyPayment checks this id.
     booking.razorpayOrderId = order.id;
     await booking.save();
 
@@ -431,6 +422,38 @@ const verifyPayment = async (req, res) => {
       return res
         .status(400)
         .json({ success: false, message: "Invalid signature" });
+    }
+
+    // 🔗 The signed order must be the one created for this booking.
+    if (!booking.razorpayOrderId || razorpay_order_id !== booking.razorpayOrderId) {
+      return res
+        .status(400)
+        .json({ success: false, message: "Order does not match booking" });
+    }
+
+    // 💰 Confirm with Razorpay that the payment is captured for this order
+    // and for exactly the booking amount (Razorpay amounts are in paise).
+    let payment;
+    try {
+      payment = await razorpayClient.fetchPayment(razorpay_payment_id);
+    } catch (gatewayError) {
+      console.error("Razorpay fetchPayment failed:", gatewayError);
+      return res.status(502).json({
+        success: false,
+        message: "Could not confirm payment with the payment gateway",
+      });
+    }
+
+    const expectedAmount = Math.round(booking.totalAmount * 100);
+    if (
+      !payment ||
+      payment.order_id !== booking.razorpayOrderId ||
+      payment.status !== "captured" ||
+      Number(payment.amount) !== expectedAmount
+    ) {
+      return res
+        .status(400)
+        .json({ success: false, message: "Payment does not match booking" });
     }
 
     const activeLocks = getActiveLocks(booking.show);
