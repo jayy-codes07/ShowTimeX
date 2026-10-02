@@ -1,270 +1,234 @@
+/*
+ * Demo seed (dummy data only).
+ *
+ *   npm run seed                 dry run: prints what would be created/updated, writes nothing
+ *   npm run seed -- --confirm    writes. Requires SEED_ADMIN_PASSWORD and SEED_CUSTOMER_PASSWORD.
+ *
+ * Idempotent: users are matched by email, movies by title, shows by
+ * (theater, date, time) and demo bookings are only created when the demo
+ * customer has none. Running it twice reports 0 creates the second time.
+ * Passwords never come from this file and are never printed.
+ */
 const dotenv = require('dotenv');
 const path = require('path');
+const mongoose = require('mongoose');
 const connectDB = require('./config/db');
 const User = require('./models/User');
 const Movie = require('./models/Movie');
 const Show = require('./models/Show');
 const Booking = require('./models/Booking');
+const { confirmSeats } = require('./utils/seatLocks');
 
-// Load environment variables from backend/.env even when command is run from project root
 dotenv.config({ path: path.join(__dirname, '.env') });
 
-// Connect to database
-connectDB();
+const DEMO_ADMIN_EMAIL = 'demo.admin@example.com';
+const DEMO_CUSTOMER_EMAIL = 'demo.customer@example.com';
 
-// Sample data
-const users = [
+// Fictional titles; posters use the model's placeholder default.
+const MOVIES = [
   {
-    name: 'Admin User',
-    email: 'admin@cinebook.com',
-    phone: '9876543210',
-    password: 'Admin@123',
-    role: 'admin',
+    title: 'The Last Projector',
+    description: 'A retired projectionist discovers a reel that plays a different ending every night.',
+    genres: ['Drama', 'Mystery'],
+    languages: ['English'],
+    duration: 118,
+    releaseDate: '2026-09-01',
+    certificate: 'UA',
+    director: 'A. Demo',
+    cast: ['Demo Actor One', 'Demo Actor Two'],
   },
   {
-    name: 'Rohit Solanki',
-    email: 'rohit.solanki@gmail.com',
-    phone: '9017362830',
-    password: 'User@123',
-    role: 'customer',
+    title: 'Orbit Seven',
+    description: 'Seven strangers wake up on a station whose orbit is slowly decaying.',
+    genres: ['Sci-Fi', 'Thriller'],
+    languages: ['English', 'Hindi'],
+    duration: 132,
+    releaseDate: '2026-09-15',
+    certificate: 'UA',
+    director: 'B. Demo',
+    cast: ['Demo Actor Three'],
   },
   {
-    name: 'Meera Patel',
-    email: 'meera.patel@gmail.com',
-    phone: '9876543211',
-    password: 'User@123',
-    role: 'customer',
+    title: 'Monsoon Kitchen',
+    description: 'Two rival street-food stalls are forced to share one roof during the rains.',
+    genres: ['Comedy', 'Romance'],
+    languages: ['Hindi'],
+    duration: 104,
+    releaseDate: '2026-09-20',
+    certificate: 'U',
+    director: 'C. Demo',
+    cast: ['Demo Actor Four', 'Demo Actor Five'],
   },
   {
-    name: 'Aarav Shah',
-    email: 'aarav.shah@gmail.com',
-    phone: '9876543212',
-    password: 'User@123',
-    role: 'customer',
-  },
-  {
-    name: 'Priya Nair',
-    email: 'priya.nair@gmail.com',
-    phone: '9876543213',
-    password: 'User@123',
-    role: 'customer',
-  },
-  {
-    name: 'Kunal Verma',
-    email: 'kunal.verma@gmail.com',
-    phone: '9876543214',
-    password: 'User@123',
-    role: 'customer',
-  },
-  {
-    name: 'Nisha Rao',
-    email: 'nisha.rao@gmail.com',
-    phone: '9876543215',
-    password: 'User@123',
-    role: 'customer',
-  },
-  {
-    name: 'Vivek Trivedi',
-    email: 'vivek.trivedi@gmail.com',
-    phone: '9876543216',
-    password: 'User@123',
-    role: 'customer',
-  },
-  {
-    name: 'Sneha Joshi',
-    email: 'sneha.joshi@gmail.com',
-    phone: '9876543217',
-    password: 'User@123',
-    role: 'customer',
-  },
-  {
-    name: 'Harsh Mehta',
-    email: 'harsh.mehta@gmail.com',
-    phone: '9876543218',
-    password: 'User@123',
-    role: 'customer',
-  },
-  {
-    name: 'Isha Kapoor',
-    email: 'isha.kapoor@gmail.com',
-    phone: '9876543219',
-    password: 'User@123',
-    role: 'customer',
-  },
-  {
-    name: 'Yash Parmar',
-    email: 'yash.parmar@gmail.com',
-    phone: '9876543220',
-    password: 'User@123',
-    role: 'customer',
-  },
-  {
-    name: 'Divya Bhatt',
-    email: 'divya.bhatt@gmail.com',
-    phone: '9876543221',
-    password: 'User@123',
-    role: 'customer',
-  },
-  {
-    name: 'Manav Desai',
-    email: 'manav.desai@gmail.com',
-    phone: '9876543222',
-    password: 'User@123',
-    role: 'customer',
+    title: 'Paper Lanterns',
+    description: 'An animated tale of a lantern maker who lights the way for lost travellers.',
+    genres: ['Animation', 'Adventure'],
+    languages: ['English'],
+    duration: 96,
+    releaseDate: '2026-09-25',
+    certificate: 'U',
+    director: 'D. Demo',
+    cast: ['Demo Voice One'],
   },
 ];
 
-const seatRows = ['A', 'B', 'C', 'D', 'E', 'F'];
-const seatsPerRow = 20;
+const THEATERS = [
+  { name: 'Aurora Cinema', location: 'Demo City Centre' },
+  { name: 'Riverside Multiplex', location: 'Demo Riverside Mall' },
+];
 
-const getRandomInt = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min;
+// One fixed slot per movie so (theater, date, time) never collides.
+const SLOTS = ['10:00 AM', '01:30 PM', '05:00 PM', '08:30 PM'];
+const SHOW_DAYS = 5;
+const BASE_PRICE = 200;
 
-const getRandomDateInLastDays = (days) => {
-  const now = new Date();
-  const date = new Date(now);
-  date.setDate(now.getDate() - getRandomInt(0, days - 1));
-  date.setHours(getRandomInt(8, 23), getRandomInt(0, 59), getRandomInt(0, 59), 0);
-  return date;
+const utcMidnightPlusDays = (days) => {
+  const d = new Date();
+  d.setUTCHours(0, 0, 0, 0);
+  d.setUTCDate(d.getUTCDate() + days);
+  return d;
 };
 
-const pickSeatsForShow = (showId, count, occupiedMap) => {
-  const key = String(showId);
-  const occupied = occupiedMap.get(key) || new Set();
-  const selected = [];
-  const maxAttempts = 500;
-  let attempts = 0;
+const buildShowDocs = (moviesByTitle) => {
+  const docs = [];
+  MOVIES.forEach((movie, index) => {
+    for (let day = 1; day <= SHOW_DAYS; day += 1) {
+      for (const theater of THEATERS) {
+        const format = index % 2 === 0 ? '2D' : '3D';
+        docs.push({
+          movie: moviesByTitle.get(movie.title)._id,
+          theater: theater.name,
+          location: theater.location,
+          format,
+          date: utcMidnightPlusDays(day),
+          time: SLOTS[index % SLOTS.length],
+          price: format === '3D' ? Math.round(BASE_PRICE * 1.3) : BASE_PRICE,
+          totalSeats: 120,
+          bookedSeats: [],
+        });
+      }
+    }
+  });
+  return docs;
+};
 
-  while (selected.length < count && attempts < maxAttempts) {
-    attempts += 1;
-    const row = seatRows[getRandomInt(0, seatRows.length - 1)];
-    const number = getRandomInt(1, seatsPerRow);
-    const seatKey = `${row}-${number}`;
+const DEMO_BOOKING_SEATS = [
+  [{ row: 'E', number: 5 }, { row: 'E', number: 6 }],
+  [{ row: 'C', number: 10 }],
+  [{ row: 'F', number: 1 }, { row: 'F', number: 2 }, { row: 'F', number: 3 }],
+];
 
-    if (!occupied.has(seatKey)) {
-      occupied.add(seatKey);
-      selected.push({ row, number });
+// Returns a summary; writes only when confirm === true.
+const runSeed = async ({ confirm = false, env = process.env } = {}) => {
+  const summary = {
+    mode: confirm ? 'write' : 'dry-run',
+    users: { create: 0, update: 0 },
+    movies: { create: 0, skip: 0 },
+    shows: { create: 0, skip: 0 },
+    bookings: { create: 0, skip: 0 },
+  };
+
+  if (confirm && (!env.SEED_ADMIN_PASSWORD || !env.SEED_CUSTOMER_PASSWORD)) {
+    throw new Error(
+      'SEED_ADMIN_PASSWORD and SEED_CUSTOMER_PASSWORD must be set to run with --confirm'
+    );
+  }
+
+  // ---- users (matched by email) ----
+  const users = [
+    { name: 'Demo Admin', email: DEMO_ADMIN_EMAIL, phone: '9000000001', role: 'admin', password: env.SEED_ADMIN_PASSWORD },
+    { name: 'Demo Customer', email: DEMO_CUSTOMER_EMAIL, phone: '9000000002', role: 'customer', password: env.SEED_CUSTOMER_PASSWORD },
+  ];
+  const userDocs = new Map();
+  for (const u of users) {
+    const existing = await User.findOne({ email: u.email }).select('+password');
+    if (existing) {
+      summary.users.update += 1;
+      if (confirm) {
+        existing.name = u.name;
+        existing.phone = u.phone;
+        existing.role = u.role;
+        existing.password = u.password; // hashed by the pre-save hook
+        await existing.save();
+      }
+      userDocs.set(u.email, existing);
+    } else {
+      summary.users.create += 1;
+      if (confirm) {
+        userDocs.set(u.email, await User.create(u));
+      }
     }
   }
 
-  occupiedMap.set(key, occupied);
-  return selected;
-};
-
-// Seed database
-const seedDatabase = async () => {
-  try {
-    console.log('🌱 Starting database seeding...\n');
-
-    const shouldReset = process.argv.includes('--reset');
-
-    // Reset only when explicitly requested: node backend/seed.js --reset
-    if (shouldReset) {
-      console.log('🗑️  Reset mode enabled. Clearing existing seedable data...');
-      await Booking.deleteMany();
-      await Show.updateMany({}, { $set: { bookedSeats: [], seatLocks: [] } });
-      await User.deleteMany({ role: 'customer' });
-      console.log(' Existing data cleared\n');
+  // ---- movies (matched by title) ----
+  const moviesByTitle = new Map();
+  for (const m of MOVIES) {
+    const existing = await Movie.findOne({ title: m.title });
+    if (existing) {
+      summary.movies.skip += 1;
+      moviesByTitle.set(m.title, existing);
     } else {
-      console.log('  Safe mode enabled. Existing data will be preserved. Use --reset to clear data.\n');
-    }
-
-    // Create users
-    console.log('👥 Creating users...');
-    const createdUsers = [];
-    for (const userData of users) {
-      const existing = await User.findOne({ email: userData.email }).select('+password');
-      if (existing) {
-        existing.name = userData.name;
-        existing.phone = userData.phone;
-        existing.role = userData.role;
-        existing.password = userData.password;
-        await existing.save();
-        createdUsers.push(existing);
-      } else {
-        const created = await User.create(userData);
-        createdUsers.push(created);
+      summary.movies.create += 1;
+      if (confirm) {
+        moviesByTitle.set(m.title, await Movie.create(m));
       }
     }
-    console.log(` Created ${createdUsers.length} users\n`);
+  }
 
-    // Reuse existing shows; create fallback shows only when there are none
-    console.log('🎭 Loading existing shows...');
-    let createdShows = await Show.find({ isActive: true });
-
-    const theaters = [
-      { name: 'PVR Cinemas', location: 'Ahmedabad Central Mall' },
-      { name: 'INOX', location: 'Alpha One Mall' },
-      { name: 'Cinepolis', location: 'Himalaya Mall' },
-      { name: 'Carnival Cinemas', location: 'Motera' },
-    ];
-
-    const timeslots = ['09:00 AM', '12:30 PM', '03:45 PM', '06:30 PM', '09:45 PM'];
-    const formats = ['2D', '3D', 'IMAX'];
-
-    // Get next 7 days
-    const today = new Date();
-    if (createdShows.length === 0) {
-      console.log(' No shows found. Creating fallback shows from existing movies...');
-      const nowShowingMovies = await Movie.find({ status: 'NOW_SHOWING', isActive: true });
-
-      if (nowShowingMovies.length === 0) {
-        throw new Error('No existing NOW_SHOWING movies found. Please add movies/shows first.');
-      }
-
-      const shows = [];
-      for (let i = 0; i < 7; i++) {
-        const showDate = new Date(today);
-        showDate.setDate(today.getDate() + i);
-
-        for (const movie of nowShowingMovies) {
-          const numShows = Math.floor(Math.random() * 2) + 2;
-
-          for (let j = 0; j < numShows; j++) {
-            const theater = theaters[Math.floor(Math.random() * theaters.length)];
-            const time = timeslots[Math.floor(Math.random() * timeslots.length)];
-            const format = formats[Math.floor(Math.random() * formats.length)];
-            const basePrice = 200;
-            const formatMultiplier = format === 'IMAX' ? 1.5 : format === '3D' ? 1.3 : 1;
-
-            shows.push({
-              movie: movie._id,
-              date: showDate,
-              time,
-              theater: theater.name,
-              location: theater.location,
-              format,
-              price: Math.round(basePrice * formatMultiplier),
-              totalSeats: 120,
-              bookedSeats: [],
-            });
-          }
+  // ---- shows (matched by theater + date + time) ----
+  if (confirm) {
+    for (const doc of buildShowDocs(moviesByTitle)) {
+      const result = await Show.updateOne(
+        { theater: doc.theater, date: doc.date, time: doc.time },
+        { $setOnInsert: doc },
+        { upsert: true }
+      );
+      if (result.upsertedCount > 0) summary.shows.create += 1;
+      else summary.shows.skip += 1;
+    }
+  } else {
+    // Dry run: count without the movie ids (they may not exist yet).
+    const total = MOVIES.length * SHOW_DAYS * THEATERS.length;
+    let existing = 0;
+    for (const movie of MOVIES) {
+      if (!moviesByTitle.has(movie.title)) continue;
+      const index = MOVIES.indexOf(movie);
+      for (let day = 1; day <= SHOW_DAYS; day += 1) {
+        for (const theater of THEATERS) {
+          const found = await Show.exists({
+            theater: theater.name,
+            date: utcMidnightPlusDays(day),
+            time: SLOTS[index % SLOTS.length],
+          });
+          if (found) existing += 1;
         }
       }
-
-      createdShows = await Show.create(shows);
     }
-    console.log(` Loaded ${createdShows.length} shows\n`);
+    summary.shows.skip = existing;
+    summary.shows.create = total - existing;
+  }
 
-    // Create realistic bookings from different users
-    console.log('🎟️  Creating bookings...');
-    const customerUsers = createdUsers.filter((u) => u.role === 'customer');
-    const showSeatMap = new Map();
-    const createdBookings = [];
-
-    for (const customer of customerUsers) {
-      const bookingsForUser = getRandomInt(4, 8);
-
-      for (let i = 0; i < bookingsForUser; i++) {
-        const show = createdShows[getRandomInt(0, createdShows.length - 1)];
-        const seatCount = getRandomInt(1, 4);
-        const seats = pickSeatsForShow(show._id, seatCount, showSeatMap);
-
-        if (seats.length === 0) {
-          continue;
-        }
-
+  // ---- demo bookings for the demo customer (only if they have none) ----
+  const customer = userDocs.get(DEMO_CUSTOMER_EMAIL);
+  const existingBookings = customer
+    ? await Booking.countDocuments({ user: customer._id })
+    : 0;
+  if (existingBookings > 0) {
+    summary.bookings.skip = existingBookings;
+  } else {
+    summary.bookings.create = DEMO_BOOKING_SEATS.length;
+    if (confirm) {
+      const shows = await Show.find({ theater: THEATERS[0].name })
+        .sort({ date: 1, time: 1 })
+        .limit(DEMO_BOOKING_SEATS.length);
+      summary.bookings.create = 0;
+      for (let i = 0; i < shows.length; i += 1) {
+        const show = shows[i];
+        const seats = DEMO_BOOKING_SEATS[i];
+        const written = await confirmSeats(show, customer._id, seats);
+        if (!written) continue;
         const booking = new Booking({
-          bookingId: `BK-${Date.now()}-${Math.floor(10000 + Math.random() * 90000)}`,
+          bookingId: `BK-${Date.now()}-${10000 + i}`,
           user: customer._id,
           movie: show.movie,
           show: show._id,
@@ -274,54 +238,52 @@ const seedDatabase = async () => {
           status: 'confirmed',
           paymentStatus: 'completed',
           paymentMethod: 'razorpay',
-          paymentId: `pay_seed_${Math.random().toString(36).slice(2, 10)}`,
-          orderId: `order_seed_${Math.random().toString(36).slice(2, 10)}`,
-          bookingDate: getRandomDateInLastDays(7),
+          paymentId: `pay_seed_${i}`,
+          orderId: `order_seed_${i}`,
+          razorpayOrderId: `order_seed_${i}`,
         });
-
         booking.calculateTotal(show.price, seats.length);
         await booking.save();
-
-        // Keep show seat matrix in sync with created bookings
-        show.bookedSeats.push({
-          date: show.date,
-          time: show.time,
-          seats,
-        });
-        await show.save();
-
-        createdBookings.push(booking);
+        summary.bookings.create += 1;
       }
     }
+  }
 
-    // Mark users as logged in recently so user insights look active
-    await User.updateMany(
-      { role: 'customer' },
-      { $set: { lastLoginAt: getRandomDateInLastDays(3) } }
-    );
+  return summary;
+};
 
-    console.log(` Created ${createdBookings.length} bookings\n`);
+const printSummary = (summary) => {
+  const line = (label, parts) =>
+    console.log(`  ${label.padEnd(9)} ${Object.entries(parts).map(([k, v]) => `${k} ${v}`).join(', ')}`);
+  console.log(`\nSeed ${summary.mode === 'dry-run' ? 'DRY RUN (nothing written)' : 'WRITE'}:`);
+  line('users', summary.users);
+  line('movies', summary.movies);
+  line('shows', summary.shows);
+  line('bookings', summary.bookings);
+  console.log(`\nDemo accounts: ${DEMO_ADMIN_EMAIL} (admin), ${DEMO_CUSTOMER_EMAIL} (customer)`);
+  console.log('Passwords come from SEED_ADMIN_PASSWORD / SEED_CUSTOMER_PASSWORD and are not printed.');
+  if (summary.mode === 'dry-run') {
+    console.log('\nRe-run with --confirm to write.');
+  }
+};
 
-    console.log('═══════════════════════════════════════');
-    console.log('🎉 DATABASE SEEDING COMPLETED! 🎉');
-    console.log('═══════════════════════════════════════');
-    console.log('\n📊 Summary:');
-    console.log(`   👥 Users: ${createdUsers.length}`);
-    console.log(`   🎬 Movies: ${await Movie.countDocuments()}`);
-    console.log(`   🎭 Shows: ${createdShows.length}`);
-    console.log(`   🎟️  Bookings: ${createdBookings.length}`);
-    console.log('\n🔐 Login Credentials:');
-    console.log('   Admin: admin@cinebook.com / Admin@123');
-    console.log('   Demo users: rohit.solanki@gmail.com / User@123');
-    console.log('   Demo users: meera.patel@gmail.com / User@123');
-    console.log('═══════════════════════════════════════\n');
-
+const main = async () => {
+  const confirm = process.argv.includes('--confirm');
+  try {
+    await connectDB();
+    const summary = await runSeed({ confirm });
+    printSummary(summary);
+    await mongoose.disconnect();
     process.exit(0);
   } catch (error) {
-    console.error('❌ Error seeding database:', error);
+    console.error(`Seed failed: ${error.message}`);
+    await mongoose.disconnect().catch(() => {});
     process.exit(1);
   }
 };
 
-// Run seeder
-seedDatabase();
+if (require.main === module) {
+  main();
+}
+
+module.exports = { runSeed, DEMO_ADMIN_EMAIL, DEMO_CUSTOMER_EMAIL, MOVIES };
