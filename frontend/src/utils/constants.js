@@ -154,8 +154,9 @@ export const STORAGE_KEYS = {
   BOOKING_DRAFT: 'booking_draft',
 };
 
-// Razorpay Configuration (for frontend)
-export const RAZORPAY_KEY = import.meta.env.VITE_RAZORPAY_KEY || 'rzp_test_SHsn3cne86vNc4';
+// Razorpay publishable key id. Must be set in frontend/.env (VITE_RAZORPAY_KEY);
+// there is deliberately no fallback so a missing value fails visibly at checkout.
+export const RAZORPAY_KEY = import.meta.env.VITE_RAZORPAY_KEY;
 
 // Image Placeholder
 export const IMAGE_PLACEHOLDER = 'https://via.placeholder.com/300x450?text=Movie+Poster';
