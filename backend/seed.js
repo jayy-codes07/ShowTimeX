@@ -1,8 +1,10 @@
 /*
  * Demo seed (dummy data only).
  *
- *   npm run seed                 dry run: prints what would be created/updated, writes nothing
- *   npm run seed -- --confirm    writes. Requires SEED_ADMIN_PASSWORD and SEED_CUSTOMER_PASSWORD.
+ *   npm run seed                       dry run: prints what would be created/updated, writes nothing
+ *   npm run seed -- --confirm          writes. Requires SEED_ADMIN_PASSWORD and SEED_CUSTOMER_PASSWORD.
+ *   npm run seed:users                 dry run, demo users only
+ *   npm run seed:users -- --confirm    upserts ONLY the two demo users; never touches movies, shows or bookings.
  *
  * Idempotent: users are matched by email, movies by title, shows by
  * (theater, date, time) and demo bookings are only created when the demo
@@ -119,9 +121,10 @@ const DEMO_BOOKING_SEATS = [
 ];
 
 // Returns a summary; writes only when confirm === true.
-const runSeed = async ({ confirm = false, env = process.env } = {}) => {
+const runSeed = async ({ confirm = false, usersOnly = false, env = process.env } = {}) => {
   const summary = {
     mode: confirm ? 'write' : 'dry-run',
+    scope: usersOnly ? 'users-only' : 'full',
     users: { create: 0, update: 0 },
     movies: { create: 0, skip: 0 },
     shows: { create: 0, skip: 0 },
@@ -158,6 +161,10 @@ const runSeed = async ({ confirm = false, env = process.env } = {}) => {
         userDocs.set(u.email, await User.create(u));
       }
     }
+  }
+
+  if (usersOnly) {
+    return summary;
   }
 
   // ---- movies (matched by title) ----
@@ -255,11 +262,16 @@ const runSeed = async ({ confirm = false, env = process.env } = {}) => {
 const printSummary = (summary) => {
   const line = (label, parts) =>
     console.log(`  ${label.padEnd(9)} ${Object.entries(parts).map(([k, v]) => `${k} ${v}`).join(', ')}`);
-  console.log(`\nSeed ${summary.mode === 'dry-run' ? 'DRY RUN (nothing written)' : 'WRITE'}:`);
+  console.log(
+    `\nSeed ${summary.mode === 'dry-run' ? 'DRY RUN (nothing written)' : 'WRITE'}` +
+      `${summary.scope === 'users-only' ? ' (demo users only)' : ''}:`
+  );
   line('users', summary.users);
-  line('movies', summary.movies);
-  line('shows', summary.shows);
-  line('bookings', summary.bookings);
+  if (summary.scope !== 'users-only') {
+    line('movies', summary.movies);
+    line('shows', summary.shows);
+    line('bookings', summary.bookings);
+  }
   console.log(`\nDemo accounts: ${DEMO_ADMIN_EMAIL} (admin), ${DEMO_CUSTOMER_EMAIL} (customer)`);
   console.log('Passwords come from SEED_ADMIN_PASSWORD / SEED_CUSTOMER_PASSWORD and are not printed.');
   if (summary.mode === 'dry-run') {
@@ -269,9 +281,10 @@ const printSummary = (summary) => {
 
 const main = async () => {
   const confirm = process.argv.includes('--confirm');
+  const usersOnly = process.argv.includes('--users-only');
   try {
     await connectDB();
-    const summary = await runSeed({ confirm });
+    const summary = await runSeed({ confirm, usersOnly });
     printSummary(summary);
     await mongoose.disconnect();
     process.exit(0);
