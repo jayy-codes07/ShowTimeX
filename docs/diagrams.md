@@ -60,22 +60,7 @@ erDiagram
 ```
 
 ## Booking Flow (Sequence)
-```mermaid
-sequenceDiagram
-  participant U as User
-  participant FE as Frontend
-  participant BE as Backend
-  participant DB as MongoDB
 
-  U->>FE: Select seats
-  FE->>BE: POST /shows/:id/lock
-  BE->>DB: Save seat lock
-  DB-->>BE: Lock saved
-  BE-->>FE: Lock confirmed
-
-  U->>FE: Pay
-  FE->>BE: POST /payments/verify
-  BE->>DB: Recheck seats + confirm booking
-  DB-->>BE: Booking saved
-  BE-->>FE: Booking confirmed
-```
+The up-to-date sequence diagram (lock → create booking → Razorpay order →
+checkout → verify with order/amount binding → atomic seat write) lives in
+the README under "Architecture and booking flow".
