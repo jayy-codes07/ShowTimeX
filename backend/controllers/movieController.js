@@ -8,6 +8,20 @@ const getToday = () => {
   return today;
 };
 
+// Posters and backdrops are stored as external URLs only (no file upload).
+const IMAGE_URL_RE = /^https?:\/\/\S+$/i;
+
+const validateImageUrls = (data) => {
+  for (const field of ['poster', 'backdrop']) {
+    const value = data[field];
+    if (value === undefined || value === null || value === '') continue;
+    if (typeof value !== 'string' || !IMAGE_URL_RE.test(value)) {
+      return `${field} must be an http(s) URL`;
+    }
+  }
+  return null;
+};
+
 const computeStatusFromDates = (releaseDate, endDate) => {
   const today = getToday();
   const release = releaseDate ? new Date(releaseDate) : null;
@@ -224,17 +238,13 @@ const searchMovies = async (req, res) => {
 // @access  Private/Admin
 const createMovie = async (req, res) => {
   try {
-    // ✅ ADD THIS BLOCK - handle poster & backdrop (file upload OR TMDB URL)
     const movieData = { ...req.body };
 
-    if (req.files?.poster) {
-      movieData.poster = `/uploads/${req.files.poster[0].filename}`;
-    }
-    if (req.files?.backdrop) {
-      movieData.backdrop = `/uploads/${req.files.backdrop[0].filename}`;
+    const imageError = validateImageUrls(movieData);
+    if (imageError) {
+      return res.status(400).json({ success: false, message: imageError });
     }
 
-    // ✅ CHANGE: Movie.create(req.body) → Movie.create(movieData)
     const movie = await Movie.create(movieData);
 
     // 🔔 Trigger n8n - notify all users about new movie (unchanged)
@@ -277,6 +287,11 @@ const createMovie = async (req, res) => {
 // @access  Private/Admin
 const updateMovie = async (req, res) => {
   try {
+    const imageError = validateImageUrls(req.body);
+    if (imageError) {
+      return res.status(400).json({ success: false, message: imageError });
+    }
+
     const movie = await Movie.findByIdAndUpdate(
       req.params.id,
       req.body,

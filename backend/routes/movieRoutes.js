@@ -1,6 +1,5 @@
 const express = require('express');
 const router = express.Router();
-const multer = require('multer');
 const {
   getAllMovies, getMovieById, getNowShowing,
   getComingSoon, searchMovies, createMovie,
@@ -8,12 +7,6 @@ const {
 } = require('../controllers/movieController');
 const { protect } = require('../middleware/authMiddleware');
 const { adminOnly } = require('../middleware/adminMiddleware');
-
-// Multer setup — memory storage keeps the upload.fields()/req.files contract
-// identical while avoiding a local disk write, which is not possible on a
-// read-only serverless filesystem.
-const storage = multer.memoryStorage();
-const upload = multer({ storage });
 
 // Public routes
 router.get('/search', searchMovies);
@@ -23,16 +16,11 @@ router.get('/', getAllMovies);
 router.get('/:id', getMovieById);
 
 // Protected routes - Admin only
-// ↓ ADD upload.fields() here
-router.post('/', protect, adminOnly, upload.fields([
-  { name: 'poster', maxCount: 1 },
-  { name: 'backdrop', maxCount: 1 }
-]), createMovie);
+// Posters and backdrops are URLs only (TMDB lookup or pasted link); there is
+// no file upload.
+router.post('/', protect, adminOnly, createMovie);
 
-router.put('/:id', protect, adminOnly, upload.fields([
-  { name: 'poster', maxCount: 1 },
-  { name: 'backdrop', maxCount: 1 }
-]), updateMovie);
+router.put('/:id', protect, adminOnly, updateMovie);
 
 router.delete('/:id', protect, adminOnly, deleteMovie);
 
