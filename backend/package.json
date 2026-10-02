@@ -30,7 +30,8 @@
     "jsonwebtoken": "^9.0.2",
     "mongoose": "^8.0.3",
     "nodemailer": "^8.0.3",
-    "razorpay": "^2.9.6"
+    "razorpay": "^2.9.6",
+    "redis": "^6.3.0"
   },
   "devDependencies": {
     "mongodb-memory-server": "^11.3.0",
