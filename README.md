@@ -6,19 +6,21 @@ A movie ticket booking web app. Customers browse movies and showtimes, hold seat
 
 ## Demo
 
-- Live app: `<LIVE_FRONTEND_URL>`
-- API health: `<LIVE_API_URL>/api/health`
+- Live app: https://showtimexproject.vercel.app/
+- Backend API: https://showtimex.onrender.com/ (health check: https://showtimex.onrender.com/api/health)
+
+The backend runs on a free Render plan and may take up to a minute to wake on the first request.
 
 | Role | Email | Password |
 |---|---|---|
-| Customer | demo.customer@example.com | `<DEMO_PASSWORD>` |
-| Admin | demo.admin@example.com | `<DEMO_PASSWORD>` |
+| Customer | demo.customer@example.com | `YOUR_DEMO_PASSWORD` |
+| Admin | demo.admin@example.com | `YOUR_DEMO_PASSWORD` |
 
-Payments run in **Razorpay test mode only**; no money moves. Razorpay's published test card list includes Visa `4100 2800 0000 1007` with any future expiry and any CVV (verify before use at https://razorpay.com/docs/payments/payments/test-card-details/).
+These are demo accounts with fake data only. Payments run in **Razorpay test mode only**; no money moves. Razorpay's published test card list includes Visa `4100 2800 0000 1007` with any future expiry and any CVV (verify before use at https://razorpay.com/docs/payments/payments/test-card-details/).
 
 Screenshots:
 
-- `docs/screenshots/home.png` – home page with now-showing movies
+- `docs/screenshots/home.png` – home page
 - `docs/screenshots/seat-map.png` – seat map with seats held by another user
 - `docs/screenshots/admin-dashboard.png` – admin revenue dashboard
 
@@ -28,7 +30,7 @@ Screenshots:
 - **Payment verification is bound to the booking.** The server creates the Razorpay order from the stored amount, saves the order id on the booking, checks the HMAC-SHA256 signature, then fetches the payment from Razorpay and requires the same order id, status `captured` and the exact amount in paise before writing seats. See `verifyPayment` in [backend/controllers/bookingController.js](backend/controllers/bookingController.js) and [backend/tests/payment.binding.test.js](backend/tests/payment.binding.test.js).
 - **Bookings are private to their owner.** Reading, cancelling, creating a payment order and verifying a payment all return 403 for anyone else; admins can read. See [backend/tests/payment.authz.test.js](backend/tests/payment.authz.test.js) and [backend/tests/booking.flow.test.js](backend/tests/booking.flow.test.js).
 - **Prices are never trusted from the client.** Totals are computed from the show price in the database plus fee and tax in [backend/models/Booking.js](backend/models/Booking.js).
-- **48 tests run in CI** with the built-in `node:test` runner, `supertest` and an in-memory MongoDB; Razorpay is stubbed. The workflow is [.github/workflows/ci.yml](.github/workflows/ci.yml).
+- **51 tests run in CI** with the built-in `node:test` runner, `supertest` and an in-memory MongoDB; Razorpay is stubbed. The workflow is [.github/workflows/ci.yml](.github/workflows/ci.yml).
 
 ## Tech stack
 
@@ -152,7 +154,7 @@ Backend, from [backend/.env.example](backend/.env.example):
 |---|---|---|
 | MONGO_URI | yes | MongoDB connection string |
 | JWT_SECRET, JWT_EXPIRE | yes, no | Token signing; expiry defaults to 7d |
-| CLIENT_URL | yes | CORS allow-list, comma-separated origins |
+| CLIENT_URL | yes | Frontend origin for the CORS allow-list, e.g. `https://showtimexproject.vercel.app`, no trailing slash; several origins may be comma-separated |
 | RAZORPAY_KEY_ID, RAZORPAY_KEY_SECRET | yes | Test-mode keys |
 | TMDB_API_KEY | no | Poster lookup |
 | SMTP_HOST, SMTP_PORT, SMTP_EMAIL, SMTP_PASSWORD, FROM_NAME, FROM_EMAIL | no | OTP email; without SMTP_HOST an Ethereal test inbox is used |
@@ -190,24 +192,24 @@ cd backend && npm install && cp .env.example .env && npm run dev      # http://l
 cd frontend && npm install && cp .env.example .env && npm run dev     # http://localhost:5173
 ```
 
-Seed demo data:
+Seed the demo accounts:
 
 ```bash
 cd backend
-npm run seed                                                          # dry run, writes nothing
-SEED_ADMIN_PASSWORD=... SEED_CUSTOMER_PASSWORD=... npm run seed -- --confirm
+npm run seed:users                                                    # dry run, writes nothing
+SEED_ADMIN_PASSWORD=... SEED_CUSTOMER_PASSWORD=... npm run seed:users -- --confirm
 ```
 
-The seed creates the two demo accounts, 4 fictional movies, 40 shows over the next 5 days and 3 demo bookings. It matches existing records by email, title and (theater, date, time), so a second run reports 0 creates.
+`seed:users` upserts only the two demo accounts and never touches movies, shows or bookings; movies and shows are added through the admin panel. Running it again updates the same two users and creates nothing. The full `npm run seed -- --confirm` additionally creates fictional movies, shows and bookings for local development; both modes dry-run by default and read passwords only from the two `SEED_*` variables.
 
 ## Testing and CI
 
 ```bash
-cd backend && npm test        # 48 tests, about 10 seconds, no Docker or external services
+cd backend && npm test        # 51 tests, about 10 seconds, no Docker or external services
 cd frontend && npm run lint && npm run build
 ```
 
-Tests use `node:test`, `supertest` and `mongodb-memory-server`; the Razorpay client in [backend/utils/razorpay.js](backend/utils/razorpay.js) is stubbed. Covered: two parallel confirmations and two parallel locks for one seat, wrong-owner 403s, bad signature, order mismatch, amount mismatch and non-captured status, gateway failure leaving the booking pending, regex metacharacters in search, CORS allow-list, helmet headers, rate limiting, generic 500 bodies, auth flows, IDOR on read and cancel, admin route protection, seed dry-run and idempotency.
+Tests use `node:test`, `supertest` and `mongodb-memory-server`; the Razorpay client in [backend/utils/razorpay.js](backend/utils/razorpay.js) is stubbed. Covered: two parallel confirmations and two parallel locks for one seat, wrong-owner 403s, bad signature, order mismatch, amount mismatch and non-captured status, gateway failure leaving the booking pending, regex metacharacters in search, CORS allow-list, helmet headers, rate limiting, generic 500 bodies, auth flows, IDOR on read and cancel, admin route protection, seed dry-run and idempotency, users-only seed with real login.
 
 CI ([.github/workflows/ci.yml](.github/workflows/ci.yml)) runs the backend tests with a Redis service container and the frontend lint and build, each job limited to 10 minutes.
 
