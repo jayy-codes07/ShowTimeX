@@ -1,10 +1,12 @@
 import { configureStore } from '@reduxjs/toolkit';
 import authReducer from './authSlice';
+import moviesReducer from './moviesSlice';
 import { setAuthTokenGetter } from '../services/api';
 
 export const store = configureStore({
   reducer: {
     auth: authReducer,
+    movies: moviesReducer,
   },
 });
 

@@ -4,50 +4,42 @@ import { Film, TrendingUp, Calendar } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import MovieGrid from '../../components/Movie/MovieGrid';
 import Loader from '../../components/UI/Loader';
-import { movieService } from '../../services/movieService';
+import { useDispatch, useSelector } from 'react-redux';
+import { fetchNowShowing, fetchComingSoon, selectMovies } from '../../store/moviesSlice';
 import toast from 'react-hot-toast';
 
 const HomePage = () => {
   const navigate = useNavigate();
-  const [nowShowing, setNowShowing] = useState([]);
-  const [comingSoon, setComingSoon] = useState([]);
+  const dispatch = useDispatch();
+  const { nowShowing: nowShowingList, comingSoon: comingSoonList } = useSelector(selectMovies);
+  const nowShowing = nowShowingList.items;
+  const comingSoon = comingSoonList.items;
   const [heroMovie, setHeroMovie] = useState(null);
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [loading, setLoading] = useState(true);
+  // Show the loader only until the first data arrives; cached items render at once.
+  const loading =
+    nowShowingList.status !== 'succeeded' &&
+    nowShowingList.status !== 'failed' &&
+    nowShowing.length === 0 &&
+    comingSoon.length === 0;
   const featuredMovies = useMemo(() => nowShowing.slice(0, 5), [nowShowing]);
 
   useEffect(() => {
-    fetchMovies();
-  }, []);
-
-  const fetchMovies = async () => {
-    try {
-      setLoading(true);
-
-      const [nowShowingRes, comingSoonRes] = await Promise.all([
-        movieService.getNowShowing(),
-        movieService.getComingSoon(),
-      ]);
-
-      if (nowShowingRes.success) {
-        const movies = nowShowingRes.movies || [];
-        setNowShowing(movies);
-        if (movies.length > 0) {
-          setHeroMovie(movies[0]);
+    Promise.all([dispatch(fetchNowShowing()), dispatch(fetchComingSoon())]).then(
+      ([nowShowingResult, comingSoonResult]) => {
+        if (nowShowingResult.meta.requestStatus === 'fulfilled' && nowShowingResult.payload.length > 0) {
+          setHeroMovie(nowShowingResult.payload[0]);
           setCurrentIndex(0);
         }
+        if (
+          nowShowingResult.meta.requestStatus === 'rejected' ||
+          comingSoonResult.meta.requestStatus === 'rejected'
+        ) {
+          toast.error('Failed to load movies');
+        }
       }
-
-      if (comingSoonRes.success) {
-        setComingSoon(comingSoonRes.movies || []);
-      }
-    } catch (error) {
-      console.error('Error fetching movies:', error);
-      toast.error('Failed to load movies');
-    } finally {
-      setLoading(false);
-    }
-  };
+    );
+  }, [dispatch]);
 
   useEffect(() => {
     if (featuredMovies.length === 0) return;
