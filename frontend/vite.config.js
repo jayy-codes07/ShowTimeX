@@ -10,6 +10,7 @@ export default defineConfig({
         manualChunks: {
           'vendor-react': ['react', 'react-dom', 'react-router-dom'],
           'vendor-motion': ['framer-motion'],
+          'vendor-redux': ['@reduxjs/toolkit', 'react-redux'],
           'vendor-charts': ['recharts'],
         },
       },

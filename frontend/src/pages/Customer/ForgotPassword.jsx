@@ -8,7 +8,7 @@ import { validateForm } from '../../utils/validators';
 import toast from 'react-hot-toast';
 import logo from '../../assets/images/Showtime_logo.png';
 import api from '../../services/api';
-import { useAuth } from '../../context/AuthContext';
+import { useAuth } from '../../hooks/useAuth';
 
 const ForgotPassword = () => {
   const navigate = useNavigate();

@@ -2,7 +2,6 @@ import React, { lazy, Suspense, useEffect } from "react";
 import { Routes, Route, useLocation } from "react-router-dom";
 import { AnimatePresence } from "framer-motion";
 import { Toaster } from "react-hot-toast";
-import { AuthProvider, useAuth } from "./context/AuthContext";
 import { BookingProvider } from "./context/BookingContext";
 import { ThemeProvider } from "./context/ThemeContext";
 import PageTransition from "./components/Common/PageTransition";
@@ -39,7 +38,6 @@ const NotFound = lazy(() => import("./pages/NotFound"));
 
 function AppLayout() {
   const location = useLocation();
-  const { loading } = useAuth();
   const isAdminRoute = location.pathname.startsWith("/admin");
 
   // Update favicon based on theme
@@ -54,10 +52,6 @@ function AppLayout() {
       document.documentElement.classList.remove("admin-route");
     };
   }, [isAdminRoute]);
-
-  if (loading) {
-    return <Loader />;
-  }
 
   return (
     <div className="min-h-screen flex flex-col bg-dark">
@@ -327,11 +321,9 @@ function AppLayout() {
 function App() {
   return (
     <ThemeProvider>
-      <AuthProvider>
-        <BookingProvider>
-          <AppLayout />
-        </BookingProvider>
-      </AuthProvider>
+      <BookingProvider>
+        <AppLayout />
+      </BookingProvider>
     </ThemeProvider>
   );
 }

@@ -4,7 +4,7 @@ import { motion } from 'framer-motion';
 import { Mail, Lock } from 'lucide-react';
 import Input from '../../components/UI/Input';
 import Button from '../../components/UI/Button';
-import { useAuth } from '../../context/AuthContext';
+import { useAuth } from '../../hooks/useAuth';
 import { validateForm } from '../../utils/validators';
 import toast from 'react-hot-toast';
 

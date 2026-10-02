@@ -8,7 +8,7 @@ import {
   BarChart3,
   Users,
 } from "lucide-react";
-import { useAuth } from "../../context/AuthContext";
+import { useAuth } from "../../hooks/useAuth";
 
 const adminLinks = [
   { label: "Dashboard", to: "/admin/dashboard", icon: LayoutDashboard },

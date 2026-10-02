@@ -4,7 +4,7 @@ import { motion } from 'framer-motion';
 import { Mail, Lock, User, Phone } from 'lucide-react';
 import Input from '../../components/UI/Input';
 import Button from '../../components/UI/Button';
-import { useAuth } from '../../context/AuthContext';
+import { useAuth } from '../../hooks/useAuth';
 import { validateForm } from '../../utils/validators';
 
 const Register = () => {

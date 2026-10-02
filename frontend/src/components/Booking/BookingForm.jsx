@@ -4,7 +4,7 @@ import { CreditCard, Wallet, Building2 } from 'lucide-react';
 import Button from '../UI/Button';
 import Input from '../UI/Input';
 import { useBooking } from '../../context/BookingContext';
-import { useAuth } from '../../context/AuthContext';
+import { useAuth } from '../../hooks/useAuth';
 
 const BookingForm = ({ onSubmit, loading }) => {
   const { bookingData, getBookingSummary } = useBooking();

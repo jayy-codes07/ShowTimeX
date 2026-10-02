@@ -2,6 +2,13 @@ import axios from 'axios';
 import { API_BASE_URL } from '../utils/constants';
 import toast from 'react-hot-toast';
 
+// Token source. The store registers a getter at startup (see store/index.js);
+// until then, or in isolation, the token is read from localStorage as before.
+let tokenGetter = null;
+export const setAuthTokenGetter = (fn) => {
+  tokenGetter = fn;
+};
+
 // Create axios instance
 const api = axios.create({
   baseURL: API_BASE_URL,
@@ -13,7 +20,7 @@ const api = axios.create({
 // Request interceptor - Add auth token to requests
 api.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem('token');
+    const token = tokenGetter ? tokenGetter() : localStorage.getItem('token');
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }

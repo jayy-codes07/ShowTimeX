@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { MapPin, Clock } from 'lucide-react';
 import { formatTime } from '../../utils/formatDate';
 import { useBooking } from '../../context/BookingContext';
-import { useAuth } from '../../context/AuthContext';
+import { useAuth } from '../../hooks/useAuth';
 import toast from 'react-hot-toast';
 
 const BOOKING_CUTOFF_MS = 60 * 60 * 1000;

@@ -1,15 +1,9 @@
 import React from 'react';
 import { Navigate } from 'react-router-dom';
-import { useAuth } from '../../context/AuthContext';
-import Loader from '../UI/Loader';
+import { useAuth } from '../../hooks/useAuth';
 
 const ProtectedRoute = ({ children, allowedRoles = [] }) => {
-  const { user, loading, isAuthenticated } = useAuth();
-
-  // Show loader while checking authentication
-  if (loading) {
-    return <Loader fullScreen message="Verifying access..." />;
-  }
+  const { user, isAuthenticated } = useAuth();
 
   // Redirect to login if not authenticated
   if (!isAuthenticated) {
